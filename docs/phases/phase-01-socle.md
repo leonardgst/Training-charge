@@ -12,7 +12,7 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 
 ## Livrables
 
-- [ ] Dépôt public dans WSL, hors de tout dossier synchronisé, avec la documentation de cadrage
+- [x] Dépôt public dans WSL, hors de tout dossier synchronisé, avec la documentation de cadrage
 - [ ] Projet Django 5.2 nettoyé de tout contenu du générateur, refus par défaut, page de connexion minimale
 - [ ] Ruff, mypy et pytest configurés, avec un test trivial à chaque niveau (unitaire, intégration, bout en bout)
 - [ ] Base locale reproductible (`docker compose`) avec les rôles de migration et d'exécution
@@ -24,8 +24,8 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 
 | # | Titre | Contenu | Tests apportés | Statut | Lien |
 | --- | --- | --- | --- | --- | --- |
-| 1.1 | `docs: ajouter le cadrage et la configuration de travail` | `docs/`, `CLAUDE.md`, `CHANGELOG.md`, modèle de PR, `.gitignore`, `.claude/settings.json` | Aucun : la CI n'existe pas encore | En revue | — |
-| 1.2 | `chore: initialiser le projet Django` | uv, Django 5.2, projet `config`, application `suivi`, réglages par variables d'environnement, français et Europe/Paris, `LoginRequiredMiddleware`, connexion minimale, contrôle de santé, Ruff, mypy, `.env.example` | Unitaires : liens de la documentation, redirection d'un visiteur vers la connexion | À faire | — |
+| 1.1 | `docs: ajouter le cadrage et la configuration de travail` | `docs/`, `CLAUDE.md`, `CHANGELOG.md`, modèle de PR, `.gitignore`, `.claude/settings.json` | Aucun : la CI n'existe pas encore | Fusionnée | [#1](https://github.com/leonardgst/Training-charge/pull/1) |
+| 1.2 | `chore: initialiser le projet Django` | uv, Django 5.2, projet `config`, application `suivi`, réglages par variables d'environnement, français et Europe/Paris, `LoginRequiredMiddleware`, connexion minimale, contrôle de santé, Ruff, mypy, `.env.example` | Unitaires : liens de la documentation, redirection d'un visiteur vers la connexion | En revue | — |
 | 1.3 | `chore: fournir la base locale et les rôles Postgres` | `compose.yaml`, script de création des rôles, droits par défaut, `pytest-django` | Intégration : migrations depuis zéro, rôle d'exécution sans droit sur le schéma, aucun droit à `PUBLIC` | À faire | — |
 | 1.4 | `chore: ajouter la chaîne d'intégration continue` | Workflow à six jobs, Playwright, pip-audit, gitleaks ; ruleset complet sur `main` | Bout en bout : connexion sur ordinateur et téléphone ; intégration : squelette de A1 sur le catalogue des routes | À faire | — |
 | 1.5 | `chore: déployer les previews et la production` | Projets Vercel et Neon, branche Neon par PR, environnement `production`, migrations par le rôle de migration, en-têtes de sécurité | Test de fumée après déploiement ; `check --deploy` | À faire | — |
@@ -71,6 +71,11 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 - PR 1.1 : `main` a été créée a posteriori par un commit vide (`chore: initialiser le dépôt`). Le lot de cadrage avait été commité et poussé sur `docs/cadrage`, première branche du dépôt ; son commit a été reposé sur `main` pour pouvoir ouvrir la PR.
 - PR 1.1 : ajout de `.gitattributes` (`* text=auto eol=lf`) pour normaliser les fins de ligne en LF, le travail se faisant sous Windows.
 - Le dépôt est nommé `Training-charge` ; le cadrage laissait ce nom à choisir.
+- PR 1.2 : le dépôt de travail est cloné dans WSL (`~/Training-charge`) ; la copie `C:\Training-charge` n'est plus utilisée.
+- PR 1.2 : la racine `/` (page d'accueil minimale) et l'administration Django sont routées dès cette PR, pour que les lignes de la recette « la racine redirige vers la connexion » et « l'administration demande une connexion » aient un objet. L'administration garde sa propre page de connexion (`/admin/login/`) ; sa restriction au superutilisateur reste à faire en phase 2 (A6).
+- PR 1.2 : le contrôle de santé est dans `suivi/views/sante.py` ; le paquet `views/` accueillera `staff.py` et `joueur.py` ensuite.
+- PR 1.2 : aucun réglage de base de données, qui arrivent avec `compose.yaml` et `pytest-django` en PR 1.3. Les tests unitaires utilisent le client de test de Django, initialisé dans `tests/conftest.py`.
+- PR 1.2 : Ruff 0.17 vérifie aussi les blocs de code Python des fichiers Markdown, donc `ruff format --check .` couvre la documentation.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé
 
