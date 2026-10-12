@@ -1,0 +1,157 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Valeurs de test sans secret : la base n'existe que le temps du job.
+  DJANGO_SECRET_KEY: cle-de-ci-sans-valeur
+  DJANGO_DEBUG: "false"
+  POSTGRES_PASSWORD: ci-postgres
+  DB_NAME: suivi
+  DB_USER: suivi_migration
+  DB_PASSWORD: ci-migration
+  DB_RUNTIME_USER: suivi_execution
+  DB_RUNTIME_PASSWORD: ci-execution
+  DB_HOST: 127.0.0.1
+  DB_PORT: "5432"
+
+jobs:
+  qualite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy .
+      # Sans base : `makemigrations --check` ne se connecte pas à Postgres.
+      - run: uv run python manage.py makemigrations --check --dry-run
+
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - name: Créer les rôles et la base
+        run: ./docker/ci/creer-roles.sh
+        env:
+          PGHOST: 127.0.0.1
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+      - run: uv run pytest tests/unit tests/integration --cov=suivi --cov-branch
+
+  migrations:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - name: Créer les rôles et la base
+        run: ./docker/ci/creer-roles.sh
+        env:
+          PGHOST: 127.0.0.1
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+      # Base vide : tout le jeu de migrations est rejoué depuis zéro (D3).
+      - run: uv run python manage.py migrate --noinput
+      - run: uv run python manage.py makemigrations --check --dry-run
+
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run playwright install --with-deps chromium
+      - name: Créer les rôles et la base
+        run: ./docker/ci/creer-roles.sh
+        env:
+          PGHOST: 127.0.0.1
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+      - run: uv run pytest tests/e2e
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - name: Vulnérabilités connues des dépendances verrouillées
+        run: uv export --locked --no-emit-project --format requirements-txt -o "$RUNNER_TEMP/requirements.txt" && uv run pip-audit -r "$RUNNER_TEMP/requirements.txt" --no-deps --disable-pip
+      - name: Secrets dans l'historique
+        run: |
+          version=8.28.0
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${version}/gitleaks_${version}_linux_x64.tar.gz" | tar -xz -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" git --redact --verbose .
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked --no-dev
+      - run: uv run python manage.py collectstatic --noinput
+      - run: uv run python -c "import django; django.setup(); from config.wsgi import application"
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings
