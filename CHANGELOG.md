@@ -11,3 +11,8 @@ Toutes les modifications notables du projet sont consignées ici, au format [Kee
 - `.gitattributes` : fins de ligne normalisées en LF.
 - Projet Django 5.2 : projet `config` et application `suivi`, réglages par variables d'environnement (`.env.example`), français et Europe/Paris, refus par défaut des vues (`LoginRequiredMiddleware`), page de connexion minimale, contrôle de santé (`/sante/`).
 - Chaîne locale de qualité : uv (Python 3.12), Ruff, mypy avec `django-stubs`, pytest ; tests unitaires des liens de la documentation, des réglages et de l'accès d'un visiteur sans session.
+- Base locale : `compose.yaml` (Postgres 16), script d'initialisation des rôles de migration et d'exécution sans droit à `PUBLIC`, réglages `DATABASES` par variables d'environnement ; `pytest-django` et `psycopg` ; tests d'intégration des migrations depuis zéro et des droits des rôles.
+
+### Modifié
+
+- Permissions de Claude Code : lecture de `.env` refusée aussi par le shell ; auto-mode autorisé et mode par défaut.
