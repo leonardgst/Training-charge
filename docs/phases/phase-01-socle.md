@@ -80,6 +80,9 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 - PR 1.3 : en local, `DB_USER` est le rôle de migration et sert à `migrate`, aux tests et à `runserver` ; le rôle d'exécution (`DB_RUNTIME_USER`) n'est exercé que par les tests d'intégration. Les commandes de `CLAUDE.md` restent inchangées, au prix d'un `runserver` local qui ne révèle pas un droit manquant au rôle d'exécution.
 - PR 1.3 : le script `docker/initdb/01-roles.sh` configure aussi `template1`, pour que la base de test de `pytest-django` hérite des droits par défaut et de l'absence de droit à `PUBLIC`. Il ne s'exécute qu'à la création du volume : changer un mot de passe impose `docker compose down -v`.
 - PR 1.3 : `tests/conftest.py` n'appelle plus `setup_test_environment()`, que `pytest-django` appelle déjà ; mypy reçoit `explicit_package_bases` à cause des deux `conftest.py`.
+- PR 1.4 : `check --deploy` n'est pas dans le job `qualite` : les réglages de sécurité de production arrivent en PR 1.5, où il est ajouté. Le job `migrations` se limite à `migrate` et `makemigrations --check`, `generer_demo` n'existant pas encore. Aucun seuil de couverture n'est imposé : `engine/` n'existe pas.
+- PR 1.4 : ajout de `pytest-cov`, `pytest-playwright` et `pip-audit` (accord du mainteneur) ; `STATIC_ROOT` ajouté aux réglages pour `collectstatic` ; `docker/ci/creer-roles.sh` réutilise `docker/initdb/01-roles.sh` pour créer les rôles du service Postgres de la CI.
+- PR 1.4 : le ruleset sur `main` est créé après le premier passage vert de la CI, pour ne pas exiger des jobs que GitHub n'a jamais vus.
 - PR 1.3 : `.claude/settings.json` : règles `deny` étendues à la lecture de `.env` par le shell, `disableAutoMode` retiré et mode par défaut `auto`, à la demande du mainteneur. Le niveau 3 de `CLAUDE.md` reste une règle de comportement : plan et accord avant chaque action sur ses zones, même en auto-mode.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé
