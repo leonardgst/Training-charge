@@ -1,0 +1,27 @@
+# Base locale. Les valeurs viennent de `.env` (voir `.env.example`).
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?définir POSTGRES_PASSWORD dans .env}
+      # Lues par docker/initdb/01-roles.sh, qui ne s'exécute qu'à la création du volume.
+      DB_NAME: ${DB_NAME:?définir DB_NAME dans .env}
+      DB_USER: ${DB_USER:?définir DB_USER dans .env}
+      DB_PASSWORD: ${DB_PASSWORD:?définir DB_PASSWORD dans .env}
+      DB_RUNTIME_USER: ${DB_RUNTIME_USER:?définir DB_RUNTIME_USER dans .env}
+      DB_RUNTIME_PASSWORD: ${DB_RUNTIME_PASSWORD:?définir DB_RUNTIME_PASSWORD dans .env}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - suivi_pgdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  suivi_pgdata:

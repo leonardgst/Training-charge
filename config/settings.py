@@ -64,6 +64,21 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# Pas de connexion persistante : le pooler de Neon fonctionne par transaction.
+# En local, `DB_USER` est le rôle de migration (migrations, tests) ; l'application
+# déployée se connecte avec le rôle d'exécution (docs/02-architecture.md).
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("DB_NAME", ""),
+        "USER": os.environ.get("DB_USER", ""),
+        "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+        "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
+        "CONN_MAX_AGE": 0,
+    },
+}
+
 LOGIN_URL = "connexion"
 LOGIN_REDIRECT_URL = "accueil"
 
