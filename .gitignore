@@ -1,0 +1,26 @@
+# Secrets locaux : seul .env.example est versionné
+.env
+.env.local
+
+# Python et uv
+.venv/
+__pycache__/
+*.py[cod]
+
+# Outils de qualité et de test
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+test-results/
+playwright-report/
+
+# Django
+staticfiles/
+
+# Claude Code : réglages personnels
+.claude/settings.local.json
+
+# Vercel
+.vercel/
