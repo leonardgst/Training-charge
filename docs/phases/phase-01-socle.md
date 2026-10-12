@@ -14,9 +14,9 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 
 - [x] Dépôt public dans WSL, hors de tout dossier synchronisé, avec la documentation de cadrage
 - [ ] Projet Django 5.2 nettoyé de tout contenu du générateur, refus par défaut, page de connexion minimale
-- [ ] Ruff, mypy et pytest configurés, avec un test trivial à chaque niveau (unitaire, intégration, bout en bout)
+- [x] Ruff, mypy et pytest configurés, avec un test trivial à chaque niveau (unitaire, intégration, bout en bout)
 - [x] Base locale reproductible (`docker compose`) avec les rôles de migration et d'exécution
-- [ ] CI complète (`qualite`, `tests`, `migrations`, `e2e`, `audit`, `build`), obligatoire par ruleset
+- [x] CI complète (`qualite`, `tests`, `migrations`, `e2e`, `audit`, `build`), obligatoire par ruleset
 - [ ] Preview par PR sur une branche Neon ; production derrière l'environnement `production` et ton approbation
 - [ ] README d'installation, de lancement et de test
 
@@ -27,7 +27,7 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 | 1.1 | `docs: ajouter le cadrage et la configuration de travail` | `docs/`, `CLAUDE.md`, `CHANGELOG.md`, modèle de PR, `.gitignore`, `.claude/settings.json` | Aucun : la CI n'existe pas encore | Fusionnée | [#1](https://github.com/leonardgst/Training-charge/pull/1) |
 | 1.2 | `chore: initialiser le projet Django` | uv, Django 5.2, projet `config`, application `suivi`, réglages par variables d'environnement, français et Europe/Paris, `LoginRequiredMiddleware`, connexion minimale, contrôle de santé, Ruff, mypy, `.env.example` | Unitaires : liens de la documentation, redirection d'un visiteur vers la connexion | Fusionnée | [#2](https://github.com/leonardgst/Training-charge/pull/2) |
 | 1.3 | `chore: fournir la base locale et les rôles Postgres` | `compose.yaml`, script de création des rôles, droits par défaut, `pytest-django`, `psycopg` | Intégration : migrations depuis zéro, rôle d'exécution sans droit sur le schéma, aucun droit à `PUBLIC` | En revue | [#3](https://github.com/leonardgst/Training-charge/pull/3) |
-| 1.4 | `chore: ajouter la chaîne d'intégration continue` | Workflow à six jobs, Playwright, pip-audit, gitleaks ; ruleset complet sur `main` | Bout en bout : connexion sur ordinateur et téléphone ; intégration : squelette de A1 sur le catalogue des routes | À faire | — |
+| 1.4 | `chore: ajouter la chaîne d'intégration continue` | Workflow à six jobs, Playwright, pip-audit, gitleaks ; ruleset complet sur `main` | Bout en bout : connexion sur ordinateur et téléphone ; intégration : squelette de A1 sur le catalogue des routes | Fusionnée | [#4](https://github.com/leonardgst/Training-charge/pull/4) |
 | 1.5 | `chore: déployer les previews et la production` | Projets Vercel et Neon, branche Neon par PR, environnement `production`, migrations par le rôle de migration, en-têtes de sécurité | Test de fumée après déploiement ; `check --deploy` | À faire | — |
 | 1.6 | `docs: compléter le README et démontrer le blocage` | README ; PR de démonstration avec un test en échec, bloquée puis fermée sans fusion | Recette : clone neuf | À faire | — |
 
@@ -82,7 +82,7 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 - PR 1.3 : `tests/conftest.py` n'appelle plus `setup_test_environment()`, que `pytest-django` appelle déjà ; mypy reçoit `explicit_package_bases` à cause des deux `conftest.py`.
 - PR 1.4 : `check --deploy` n'est pas dans le job `qualite` : les réglages de sécurité de production arrivent en PR 1.5, où il est ajouté. Le job `migrations` se limite à `migrate` et `makemigrations --check`, `generer_demo` n'existant pas encore. Aucun seuil de couverture n'est imposé : `engine/` n'existe pas.
 - PR 1.4 : ajout de `pytest-cov`, `pytest-playwright` et `pip-audit` (accord du mainteneur) ; `STATIC_ROOT` ajouté aux réglages pour `collectstatic` ; `docker/ci/creer-roles.sh` réutilise `docker/initdb/01-roles.sh` pour créer les rôles du service Postgres de la CI.
-- PR 1.4 : le ruleset sur `main` est créé après le premier passage vert de la CI, pour ne pas exiger des jobs que GitHub n'a jamais vus.
+- PR 1.4 : le ruleset « Protecting main » existait, désactivé et sans vérifications requises ; il a été activé et complété (six jobs obligatoires, aucun contournement) après le premier passage vert de la CI, pour ne pas exiger des jobs que GitHub n'avait jamais vus.
 - PR 1.3 : `.claude/settings.json` : règles `deny` étendues à la lecture de `.env` par le shell, `disableAutoMode` retiré et mode par défaut `auto`, à la demande du mainteneur. Le niveau 3 de `CLAUDE.md` reste une règle de comportement : plan et accord avant chaque action sur ses zones, même en auto-mode.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé
