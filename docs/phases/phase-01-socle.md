@@ -29,13 +29,13 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 | 1.3 | `chore: fournir la base locale et les rôles Postgres` | `compose.yaml`, script de création des rôles, droits par défaut, `pytest-django`, `psycopg` | Intégration : migrations depuis zéro, rôle d'exécution sans droit sur le schéma, aucun droit à `PUBLIC` | En revue | [#3](https://github.com/leonardgst/Training-charge/pull/3) |
 | 1.4 | `chore: ajouter la chaîne d'intégration continue` | Workflow à six jobs, Playwright, pip-audit, gitleaks ; ruleset complet sur `main` | Bout en bout : connexion sur ordinateur et téléphone ; intégration : squelette de A1 sur le catalogue des routes | Fusionnée | [#4](https://github.com/leonardgst/Training-charge/pull/4) |
 | 1.5 | `chore: déployer les previews et la production` | Projets Vercel et Neon, branche Neon par PR, environnement `production`, migrations par le rôle de migration, en-têtes de sécurité | Test de fumée après déploiement ; `check --deploy` | Fusionnée | [#6](https://github.com/leonardgst/Training-charge/pull/6) |
-| 1.6 | `docs: compléter le README et démontrer le blocage` | README ; PR de démonstration avec un test en échec, bloquée puis fermée sans fusion | Recette : clone neuf | En cours | — |
+| 1.6 | `docs: compléter le README et démontrer le blocage` | README ; PR de démonstration avec un test en échec, bloquée puis fermée sans fusion | Recette : clone neuf | Fusionnée | [#8](https://github.com/leonardgst/Training-charge/pull/8) ; démonstration : [#9](https://github.com/leonardgst/Training-charge/pull/9), fermée sans fusion |
 
 ## Critères de fin (Definition of Done)
 
 - [ ] Toutes les PR de la phase sont fusionnées, CI verte
-- [ ] Cas de test de la phase au vert : D3 (migrations depuis zéro, encore sans données de démonstration) ; squelette de A1
-- [ ] Une PR avec un test en échec est bloquée, démonstration faite et liée ci-dessous
+- [x] Cas de test de la phase au vert : D3 (migrations depuis zéro, encore sans données de démonstration) ; squelette de A1
+- [x] Une PR avec un test en échec est bloquée, démonstration faite et liée ci-dessous : [PR #9](https://github.com/leonardgst/Training-charge/pull/9), CI rouge sur le job `tests`, fusion bloquée par le ruleset, fermée sans fusion
 - [x] L'application est joignable à une URL publique
 - [ ] Un clone neuf s'installe, se lance et passe ses tests avec les seules commandes du README
 - [ ] Le dépôt est hors de tout dossier synchronisé
