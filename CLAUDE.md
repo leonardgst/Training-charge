@@ -53,7 +53,7 @@ Stratégie complète : [docs/03-strategie-tests.md](docs/03-strategie-tests.md).
 - **Niveau 3** : phase 3 entière (moteur). Commence par un plan, puis demande l'accord avant chaque action. Le mainteneur passe la session en mode Manuel.
 - **Phase 2 : niveau 4**, par décision du mainteneur (2026-10-13). Les modifications de fichiers du projet, les suppressions de fichiers et les ajouts de dépendances ne demandent plus d'accord ; la protection repose sur le ruleset de `main`, la relecture des PR et les `deny` de [.claude/settings.json](.claude/settings.json).
 - **Jamais** : pousser sur `main`, fusionner une PR, forcer une poussée, lire `.env`, lancer la CLI Vercel ou Neon, agir sur une base déployée, créer une ressource payante.
-- **Avec accord seulement** : réinitialiser la base locale (phase 2 : suppression de fichier, dépendance et workflow de CI autorisés par le mainteneur).
+- **Avec accord seulement** : réinitialiser la base locale. Suppression de fichier, ajout de dépendance et modification d'un workflow de CI sont autorisés en phase 2 (décision du mainteneur, 2026-10-13).
 - Le dépôt est poussé sur GitHub avant chaque session autonome.
 
 ## 8. Documentation
