@@ -4,13 +4,23 @@ Toutes les modifications notables du projet sont consignées ici, au format [Kee
 
 ## [Non publié]
 
+## [0.2.0] - 2026-10-13
+
+Phase 2 : modèle de données et accès.
+
 ### Ajouté
 
 - Modèles `Categorie`, `Preparateur` et `Joueur` avec leur migration : contraintes en base (code unique, jours de questionnaire dans la semaine, nom et prénom non vides), archivage par `actif`, `updated_at` et `updated_by`, administration Django réservée au superutilisateur.
 - Modèles `Seance` et `Participation` : durée de 1 à 300, RPE de 0 à 10 (ou absents en brouillon), type et statut dans une liste fermée, `validated_at` cohérent avec le statut, une participation par joueur et par séance ; déclencheurs Postgres interdisant une participation incomplète dans une séance validée.
 - Modèles `Indicateur`, `EntreeSensations` et `Reponse` : bornes ordonnées, poids positif, types et sens en liste fermée, un indicateur sans sens ni de type note hors du score, une entrée par joueur et par jour, une réponse par indicateur et par entrée ; déclencheurs Postgres pour la valeur dans les bornes et pour l'échelle figée dès qu'une réponse existe ; indicateurs configurables dans l'administration.
 - Accès du staff : profil préparateur exigé sur toute URL hors liste blanche (403 sinon), administration réservée au superutilisateur, `suivi/acces.py` (joueurs suivis, annuaire, séances, participations et entrées visibles) ; tests A1 (routes connecté ou non, catalogue Postgres), A2 (méta-tests), A3 (deux catégories et joueur invité), A6 (aucune inscription), index en double.
-- Démonstration : commande `generer_demo` à graine fixe (U19 et U17, 33 joueurs fictifs dont un archivé et trois invités, huit semaines de séances, sensations quotidiennes, un joueur à surveiller, une séance en brouillon, trois comptes) ; fonction unique de la date du jour (`suivi/horloge.py`) ; job `migrations` de la CI qui charge la démonstration et contrôle les effectifs ; tests D3 et D4 (archivage, effacement en cascade par l'administrateur).
+- Démonstration : commande `generer_demo` à graine fixe (U19 et U17, 33 joueurs fictifs dont un archivé et trois invités, huit semaines de séances, sensations quotidiennes, un joueur à surveiller, une séance en brouillon, trois comptes ; refuse une base non vide) ; fonction unique de la date du jour (`suivi/horloge.py`) ; job `migrations` de la CI qui charge la démonstration et contrôle les effectifs ; tests D3 et D4 (archivage, effacement en cascade par l'administrateur).
+- Fiche de la phase 3 (moteur de calcul).
+
+### Modifié
+
+- Phase 2 en niveau 4 de collaboration (décision du mainteneur) : permissions de Claude Code et règles de `CLAUDE.md` alignées.
+- `CLAUDE.md` pointe vers la phase 3, en niveau 3.
 
 ## [0.1.0] - 2026-10-13
 
