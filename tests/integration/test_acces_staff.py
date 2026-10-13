@@ -1,6 +1,7 @@
 """Accès du staff : profil préparateur exigé (A1 connecté), périmètre (A3), inscription (A6)."""
 
 import datetime
+import secrets
 
 import pytest
 from catalogue_acces import catalogue_des_routes, routes_qui_fuient
@@ -28,6 +29,8 @@ pytestmark = pytest.mark.django_db(transaction=True)
 
 JOUR = datetime.date(2026, 10, 12)
 NAISSANCE = datetime.date(2007, 3, 14)
+# Généré à chaque exécution : aucune chaîne qui ressemble à un secret dans le dépôt.
+MOT_DE_PASSE = secrets.token_urlsafe(16)
 
 
 def _client(compte: object) -> Client:
@@ -108,7 +111,7 @@ def test_a6_un_preparateur_ne_cree_aucun_compte() -> None:
     Preparateur.objects.create(user=compte, categorie=u19)
     reponse = _client(compte).post(
         "/admin/auth/user/add/",
-        {"username": "intrus", "password1": "Motdepasse-123", "password2": "Motdepasse-123"},
+        {"username": "intrus", "password1": MOT_DE_PASSE, "password2": MOT_DE_PASSE},
     )
     assert reponse.status_code == 302
     assert not get_user_model().objects.filter(username="intrus").exists()
@@ -118,7 +121,7 @@ def test_a6_le_superutilisateur_peut_creer_un_compte() -> None:
     admin = get_user_model().objects.create_superuser("admin")
     reponse = _client(admin).post(
         "/admin/auth/user/add/",
-        {"username": "nouveau", "password1": "Motdepasse-123", "password2": "Motdepasse-123"},
+        {"username": "nouveau", "password1": MOT_DE_PASSE, "password2": MOT_DE_PASSE},
     )
     assert reponse.status_code == 302
     assert get_user_model().objects.filter(username="nouveau").exists()

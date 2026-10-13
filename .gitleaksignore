@@ -1,0 +1,4 @@
+# Faux positifs de gitleaks : mot de passe fictif d'un test, retiré depuis (généré à l'exécution).
+# Le commit reste dans l'historique de la PR 2.4, qui ne se réécrit pas.
+ae8e1ff9bf268608422471852766c328656a0599:tests/integration/test_acces_staff.py:generic-api-key:111
+ae8e1ff9bf268608422471852766c328656a0599:tests/integration/test_acces_staff.py:generic-api-key:121
