@@ -1,0 +1,13 @@
+.git
+.github
+.claude
+.venv
+.env
+.env.*
+tests
+docs
+docker
+compose.yaml
+*_cache
+__pycache__
+staticfiles
