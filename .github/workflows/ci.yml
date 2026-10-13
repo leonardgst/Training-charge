@@ -39,6 +39,12 @@ jobs:
       - run: uv run mypy .
       # Sans base : `makemigrations --check` ne se connecte pas à Postgres.
       - run: uv run python manage.py makemigrations --check --dry-run
+      - name: Réglages de sécurité de production
+        run: uv run python manage.py check --deploy --fail-level WARNING
+        env:
+          DJANGO_HTTPS: "true"
+          DJANGO_SECRET_KEY: cle-de-ci-longue-et-aleatoire-0123456789-abcdefghijklmnopqrstuvwxyz
+          DJANGO_ALLOWED_HOSTS: .vercel.app
 
   tests:
     runs-on: ubuntu-latest

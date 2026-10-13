@@ -1,0 +1,107 @@
+name: Preview
+
+# Une branche Neon et un déploiement Vercel par PR du dépôt. Les PR venant d'un fork
+# n'ont pas accès aux secrets et ne sont pas déployées.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: preview-${{ github.event.number }}
+  cancel-in-progress: false
+
+env:
+  VERCEL_CLI: vercel@63.1.2
+
+jobs:
+  deployer:
+    if: >-
+      github.event.action != 'closed'
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Créer ou retrouver la branche Neon de la PR
+        id: branche
+        uses: neondatabase/create-branch-action@v6
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          branch_name: pr-${{ github.event.number }}
+          role: suivi_migration
+          database: suivi
+
+      - name: Lire les hôtes et le mot de passe de migration
+        env:
+          URL_DIRECTE: ${{ steps.branche.outputs.db_url }}
+          URL_POOLEE: ${{ steps.branche.outputs.db_url_pooled }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from urllib.parse import unquote, urlparse
+
+          directe = urlparse(os.environ["URL_DIRECTE"])
+          poolee = urlparse(os.environ["URL_POOLEE"])
+          mot_de_passe = unquote(directe.password or "")
+          print(f"::add-mask::{mot_de_passe}")
+          with open(os.environ["GITHUB_ENV"], "a") as env:
+              env.write(f"DB_HOST_DIRECT={directe.hostname}\n")
+              env.write(f"DB_HOST_POOLED={poolee.hostname}\n")
+              env.write(f"DB_MIGRATION_PASSWORD={mot_de_passe}\n")
+          PY
+
+      - run: uv sync --locked --no-dev
+
+      - name: Appliquer les migrations (rôle de migration, connexion directe)
+        run: uv run python manage.py migrate --noinput
+        env:
+          DJANGO_SECRET_KEY: migration-sans-signature
+          DB_NAME: suivi
+          DB_USER: suivi_migration
+          DB_PASSWORD: ${{ env.DB_MIGRATION_PASSWORD }}
+          DB_HOST: ${{ env.DB_HOST_DIRECT }}
+          DB_SSLMODE: require
+
+      - name: Déployer la preview sur Vercel
+        id: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+        run: |
+          url=$(npx --yes "$VERCEL_CLI" deploy --yes --token "$VERCEL_TOKEN" \
+            --env DJANGO_HTTPS=true \
+            --env DJANGO_DEBUG=false \
+            --env DJANGO_ALLOWED_HOSTS=.vercel.app \
+            --env DB_NAME=suivi \
+            --env DB_USER=suivi_execution \
+            --env DB_SSLMODE=require \
+            --env "DB_HOST=$DB_HOST_POOLED")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Indiquer l'adresse de la preview dans la PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment ${{ github.event.number }} --edit-last --create-if-none \
+            --body "Preview : ${{ steps.vercel.outputs.url }} (branche Neon \`pr-${{ github.event.number }}\`)"
+
+  nettoyer:
+    if: >-
+      github.event.action == 'closed'
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          branch: pr-${{ github.event.number }}

@@ -12,6 +12,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Une clé absente reste vide : Django refuse alors de s'en servir (refus par défaut).
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
 DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() == "true"
+# `true` quand l'application est servie en HTTPS derrière le proxy de l'hébergeur (Vercel).
+# Explicite plutôt que déduit de DEBUG : les tests et la CI tournent en HTTP.
+HTTPS = os.environ.get("DJANGO_HTTPS", "false").lower() == "true"
 ALLOWED_HOSTS = [
     hote.strip() for hote in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if hote.strip()
 ]
@@ -76,8 +79,22 @@ DATABASES = {
         "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
         "PORT": os.environ.get("DB_PORT", "5432"),
         "CONN_MAX_AGE": 0,
+        # Le pooler de Neon fonctionne par transaction : pas de curseur côté serveur.
+        "DISABLE_SERVER_SIDE_CURSORS": True,
+        "OPTIONS": {"sslmode": os.environ.get("DB_SSLMODE", "prefer")},
     },
 }
+
+if HTTPS:
+    # Vercel termine le TLS et transmet le protocole d'origine dans X-Forwarded-Proto.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # Le préchargement HSTS n'a pas de sens sur un sous-domaine de vercel.app.
+    SILENCED_SYSTEM_CHECKS = ["security.W021"]
 
 LOGIN_URL = "connexion"
 LOGIN_REDIRECT_URL = "accueil"

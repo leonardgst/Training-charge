@@ -28,11 +28,12 @@ Limites vérifiées le 2026-10-12 :
 
 Option 1 :
 
-- Application sur Vercel Hobby, avec une région de fonctions européenne, la plus proche de la base. Ce réglage reste à vérifier sur l'offre Hobby en phase 1.
+- Application sur Vercel Hobby, avec une région de fonctions européenne, la plus proche de la base. Vérifié en phase 1 : l'offre Hobby permet une seule région, réglée par `regions` dans `vercel.json` (`fra1`, près de la base de Francfort).
 - Base sur Neon Free, région européenne, chaîne de connexion passant par le pooler de Neon.
 - Déploiement piloté par GitHub Actions avec la CLI Vercel, sans l'intégration Git automatique :
   - **Sur chaque PR** : création d'une branche Neon, migrations, données de démonstration, déploiement de preview. La branche est supprimée à la fermeture de la PR.
   - **Sur `main`** : job dans l'environnement GitHub `production`, qui attend ton approbation, puis migrations avec le rôle de migration, déploiement en production et test de fumée.
+- Les migrations passent par la connexion directe de Neon, l'application par le pooler (mode transaction : pas de curseur côté serveur, connexions non persistantes).
 - Vercel ne connaît que l'identifiant du rôle d'exécution, stocké en variable « Sensitive ». L'identifiant du rôle de migration ne vit que dans les secrets de l'environnement GitHub.
 
 ## Conséquences

@@ -76,3 +76,39 @@ def test_env_exemple_declare_toutes_les_variables_lues_par_les_reglages() -> Non
 
     assert lues, "aucune variable détectée : le test ne vérifierait rien"
     assert lues <= variables_declarees(FICHIER_ENV_EXEMPLE)
+
+
+def _charger_reglages(monkeypatch: pytest.MonkeyPatch, **variables: str):  # noqa: ANN202
+    for nom in variables_lues(FICHIER_REGLAGES):
+        monkeypatch.delenv(nom, raising=False)
+    for nom, valeur in variables.items():
+        monkeypatch.setenv(nom, valeur)
+    specification = importlib.util.spec_from_file_location("reglages_https", FICHIER_REGLAGES)
+    assert specification is not None and specification.loader is not None
+    reglages = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(reglages)
+    return reglages
+
+
+def test_https_active_les_protections_de_production(monkeypatch: pytest.MonkeyPatch) -> None:
+    reglages = _charger_reglages(monkeypatch, DJANGO_HTTPS="true")
+
+    assert reglages.SECURE_SSL_REDIRECT is True
+    assert reglages.SESSION_COOKIE_SECURE is True
+    assert reglages.CSRF_COOKIE_SECURE is True
+    assert reglages.SECURE_HSTS_SECONDS >= 31536000
+    assert reglages.SECURE_PROXY_SSL_HEADER == ("HTTP_X_FORWARDED_PROTO", "https")
+
+
+def test_sans_https_aucune_redirection_ne_gene_les_tests(monkeypatch: pytest.MonkeyPatch) -> None:
+    reglages = _charger_reglages(monkeypatch)
+
+    assert not getattr(reglages, "SECURE_SSL_REDIRECT", False)
+    assert not getattr(reglages, "SESSION_COOKIE_SECURE", False)
+
+
+def test_la_base_n_utilise_ni_curseur_serveur_ni_connexion_persistante() -> None:
+    base = settings.DATABASES["default"]
+
+    assert base["DISABLE_SERVER_SIDE_CURSORS"] is True
+    assert base["CONN_MAX_AGE"] == 0

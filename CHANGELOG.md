@@ -13,6 +13,7 @@ Toutes les modifications notables du projet sont consignées ici, au format [Kee
 - Chaîne locale de qualité : uv (Python 3.12), Ruff, mypy avec `django-stubs`, pytest ; tests unitaires des liens de la documentation, des réglages et de l'accès d'un visiteur sans session.
 - Base locale : `compose.yaml` (Postgres 16), script d'initialisation des rôles de migration et d'exécution sans droit à `PUBLIC`, réglages `DATABASES` par variables d'environnement ; `pytest-django` et `psycopg` ; tests d'intégration des migrations depuis zéro et des droits des rôles.
 - Chaîne d'intégration continue : workflow GitHub Actions à six jobs (`qualite`, `tests`, `migrations`, `e2e`, `audit`, `build`), tests de bout en bout Playwright de la connexion sur ordinateur et téléphone, test d'intégration du catalogue des routes pour un visiteur (A1, squelette), `pip-audit` et gitleaks ; ruleset de `main` actif, six jobs obligatoires.
+- Déploiement : réglages HTTPS (`DJANGO_HTTPS`, `DB_SSLMODE`), `vercel.json` (région `fra1`), workflows de preview (branche Neon par PR) et de production (environnement `production`, migrations par le rôle de migration), test de fumée, `check --deploy` dans `qualite`, `docs/deploiement.md`.
 
 ### Modifié
 
