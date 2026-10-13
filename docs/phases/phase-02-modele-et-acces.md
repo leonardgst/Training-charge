@@ -8,7 +8,7 @@
 
 Un schéma contraint et un modèle d'accès prouvé, avant toute interface.
 
-Niveau de collaboration : 3 pour la phase entière. Claude Code commence par un plan, puis demande l'accord avant chaque action ; la session est en mode Manuel. Estimation : 20 heures (cadrage, section 9).
+Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mainteneur le 2026-10-13). Claude Code travaille sur une branche et ouvre les PR ; le mainteneur relit et fusionne. Estimation : 20 heures (cadrage, section 9).
 
 ## Livrables
 

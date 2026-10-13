@@ -35,28 +35,20 @@
       "Bash(gh pr diff *)",
       "Bash(gh run list *)",
       "Bash(gh run view *)",
-      "Bash(gh run watch *)"
+      "Bash(gh run watch *)",
+      "Bash(git *)",
+      "Bash(gh pr *)",
+      "Bash(gh run *)",
+      "Bash(uv run *)",
+      "Bash(docker compose *)"
     ],
     "ask": [
-      "Bash(rm *)",
-      "Bash(git rm *)",
       "Bash(git reset *)",
       "Bash(git rebase *)",
       "Bash(git clean *)",
-      "Bash(docker compose down *)",
-      "Bash(uv add *)",
-      "Bash(uv remove *)",
       "Bash(gh api *)",
       "Bash(gh workflow *)",
-      "Edit(/suivi/migrations/**)",
-      "Edit(/suivi/models.py)",
-      "Edit(/suivi/acces.py)",
-      "Edit(/suivi/views/joueur.py)",
-      "Edit(/engine/**)",
-      "Edit(/config/calcul.toml)",
-      "Edit(/config/settings.py)",
-      "Edit(/compose.yaml)",
-      "Edit(/.github/workflows/**)"
+      "Bash(docker compose down *)"
     ],
     "deny": [
       "Read(./.env)",
