@@ -124,6 +124,7 @@ Notes :
 - `updated_by_id` est nul quand l'auteur est un joueur passant par son lien.
 - `updated_at` est maintenu par Django (`auto_now`) ; un test vérifie qu'il change à chaque modification (annexe A, n° 18).
 - Aucune vue SQL ni fonction exposée en V1. Un test de catalogue détecte les index en double.
+- La démonstration (`generer_demo`) : graine fixe, deux catégories (U19 : sept jours de questionnaire ; U17 : du lundi au vendredi), 24 joueurs U19 actifs et un archivé, 8 joueurs U17 dont 3 s'entraînent avec les U19 (joueurs invités), 56 jours de séances et de sensations, une séance U19 laissée en brouillon, un joueur U19 dont la charge monte et les sensations se dégradent sur les 10 derniers jours. Elle refuse de charger une base qui contient déjà des données.
 - Les blessures n'ont pas de table en V1 : rien n'est créé « pour plus tard ».
 
 **Rôles Postgres.** Deux rôles, créés en local par le script d'initialisation du conteneur, en CI par une étape du workflow, et sur Neon à la mise en place :
@@ -182,6 +183,7 @@ Arborescence cible : chaque dossier n'est créé qu'avec son premier fichier.
 ├── suivi/                         application Django
 │   ├── models.py
 │   ├── acces.py                   périmètre de chaque profil
+│   ├── horloge.py                 date du jour (fonction unique)
 │   ├── calculs.py                 adaptateur base vers moteur
 │   ├── graphiques.py              spécifications Vega-Lite
 │   ├── forms.py

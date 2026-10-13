@@ -103,6 +103,18 @@ jobs:
       # Base vide : tout le jeu de migrations est rejoué depuis zéro (D3).
       - run: uv run python manage.py migrate --noinput
       - run: uv run python manage.py makemigrations --check --dry-run
+      # Démonstration chargée depuis la base vide (D3), puis effectifs contrôlés.
+      - run: uv run python manage.py generer_demo --mot-de-passe "$(openssl rand -hex 12)"
+      - name: Contrôler les effectifs chargés
+        run: |
+          uv run python manage.py shell -c "
+          from suivi.models import Categorie, Joueur, Seance
+          assert Categorie.objects.count() == 2
+          assert Joueur.objects.filter(actif=True).count() == 32
+          assert Joueur.objects.filter(actif=False).count() == 1
+          assert Seance.objects.filter(statut='brouillon').count() == 1
+          assert Seance.objects.filter(statut='validee').count() > 60
+          "
 
   e2e:
     runs-on: ubuntu-latest
