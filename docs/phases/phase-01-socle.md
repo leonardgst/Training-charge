@@ -28,7 +28,7 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 | 1.2 | `chore: initialiser le projet Django` | uv, Django 5.2, projet `config`, application `suivi`, réglages par variables d'environnement, français et Europe/Paris, `LoginRequiredMiddleware`, connexion minimale, contrôle de santé, Ruff, mypy, `.env.example` | Unitaires : liens de la documentation, redirection d'un visiteur vers la connexion | Fusionnée | [#2](https://github.com/leonardgst/Training-charge/pull/2) |
 | 1.3 | `chore: fournir la base locale et les rôles Postgres` | `compose.yaml`, script de création des rôles, droits par défaut, `pytest-django`, `psycopg` | Intégration : migrations depuis zéro, rôle d'exécution sans droit sur le schéma, aucun droit à `PUBLIC` | En revue | [#3](https://github.com/leonardgst/Training-charge/pull/3) |
 | 1.4 | `chore: ajouter la chaîne d'intégration continue` | Workflow à six jobs, Playwright, pip-audit, gitleaks ; ruleset complet sur `main` | Bout en bout : connexion sur ordinateur et téléphone ; intégration : squelette de A1 sur le catalogue des routes | Fusionnée | [#4](https://github.com/leonardgst/Training-charge/pull/4) |
-| 1.5 | `chore: déployer les previews et la production` | Projets Vercel et Neon, branche Neon par PR, environnement `production`, migrations par le rôle de migration, en-têtes de sécurité | Test de fumée après déploiement ; `check --deploy` | À faire | — |
+| 1.5 | `chore: déployer les previews et la production` | Projets Vercel et Neon, branche Neon par PR, environnement `production`, migrations par le rôle de migration, en-têtes de sécurité | Test de fumée après déploiement ; `check --deploy` | En cours | — |
 | 1.6 | `docs: compléter le README et démontrer le blocage` | README ; PR de démonstration avec un test en échec, bloquée puis fermée sans fusion | Recette : clone neuf | À faire | — |
 
 ## Critères de fin (Definition of Done)
@@ -83,6 +83,10 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 - PR 1.4 : `check --deploy` n'est pas dans le job `qualite` : les réglages de sécurité de production arrivent en PR 1.5, où il est ajouté. Le job `migrations` se limite à `migrate` et `makemigrations --check`, `generer_demo` n'existant pas encore. Aucun seuil de couverture n'est imposé : `engine/` n'existe pas.
 - PR 1.4 : ajout de `pytest-cov`, `pytest-playwright` et `pip-audit` (accord du mainteneur) ; `STATIC_ROOT` ajouté aux réglages pour `collectstatic` ; `docker/ci/creer-roles.sh` réutilise `docker/initdb/01-roles.sh` pour créer les rôles du service Postgres de la CI.
 - PR 1.4 : le ruleset « Protecting main » existait, désactivé et sans vérifications requises ; il a été activé et complété (six jobs obligatoires, aucun contournement) après le premier passage vert de la CI, pour ne pas exiger des jobs que GitHub n'avait jamais vus.
+- PR 1.5 : le nom de la variable Vercel du mot de passe d'exécution est `DB_PASSWORD` (celui que lisent les réglages), et non `DB_RUNTIME_PASSWORD`. Les valeurs non secrètes sont passées par les workflows (`--env`) plutôt que stockées dans Vercel.
+- PR 1.5 : le projet Vercel s'appelle `u19-load-tracking` ; son déploiement initial était un modèle Next.js, remplacé au premier déploiement.
+- PR 1.5 : `CSRF_TRUSTED_ORIGINS` n'est pas réglé : avec `SECURE_PROXY_SSL_HEADER`, Django valide l'origine sans lui. À rouvrir si un formulaire est refusé en production.
+- PR 1.5 : le test de fumée (`tests/smoke/`) est ignoré sans `SMOKE_URL`, seul cas d'usage d'un `skipif` ; il ne fait partie d'aucun job de CI.
 - PR 1.3 : `.claude/settings.json` : règles `deny` étendues à la lecture de `.env` par le shell, `disableAutoMode` retiré et mode par défaut `auto`, à la demande du mainteneur. Le niveau 3 de `CLAUDE.md` reste une règle de comportement : plan et accord avant chaque action sur ses zones, même en auto-mode.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé
