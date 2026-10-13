@@ -20,7 +20,7 @@ ALLOWED_HOSTS = [
 ]
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
+    "suivi.site_admin.AdminSuperutilisateurConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -38,6 +38,8 @@ MIDDLEWARE = [
     # Refus par défaut : toute vue exige une session, sauf celles marquées
     # `login_not_required` (ADR-0005).
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
+    # Profil préparateur exigé sur toute URL staff (ADR-0005, couche 3).
+    "suivi.middleware.ProfilPreparateurRequisMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
