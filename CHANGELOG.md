@@ -4,6 +4,10 @@ Toutes les modifications notables du projet sont consignées ici, au format [Kee
 
 ## [Non publié]
 
+## [0.1.0] - 2026-10-13
+
+Phase 1 : socle et chaîne de qualité.
+
 ### Ajouté
 
 - Documentation de cadrage : cadrage anonymisé et synthèse de la phase 0, spécifications, architecture, stratégie de tests, ADR 0001 à 0018, glossaire, journal, fiche de la phase 1.
