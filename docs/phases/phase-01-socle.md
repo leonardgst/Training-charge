@@ -13,11 +13,11 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 ## Livrables
 
 - [x] Dépôt public dans WSL, hors de tout dossier synchronisé, avec la documentation de cadrage
-- [ ] Projet Django 5.2 nettoyé de tout contenu du générateur, refus par défaut, page de connexion minimale
+- [x] Projet Django 5.2 nettoyé de tout contenu du générateur, refus par défaut, page de connexion minimale
 - [x] Ruff, mypy et pytest configurés, avec un test trivial à chaque niveau (unitaire, intégration, bout en bout)
 - [x] Base locale reproductible (`docker compose`) avec les rôles de migration et d'exécution
 - [x] CI complète (`qualite`, `tests`, `migrations`, `e2e`, `audit`, `build`), obligatoire par ruleset
-- [ ] Preview par PR sur une branche Neon ; production derrière l'environnement `production` et ton approbation
+- [x] Preview par PR sur une branche Neon ; production derrière l'environnement `production` et ton approbation
 - [ ] README d'installation, de lancement et de test
 
 ## PR de la phase
@@ -28,7 +28,7 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 | 1.2 | `chore: initialiser le projet Django` | uv, Django 5.2, projet `config`, application `suivi`, réglages par variables d'environnement, français et Europe/Paris, `LoginRequiredMiddleware`, connexion minimale, contrôle de santé, Ruff, mypy, `.env.example` | Unitaires : liens de la documentation, redirection d'un visiteur vers la connexion | Fusionnée | [#2](https://github.com/leonardgst/Training-charge/pull/2) |
 | 1.3 | `chore: fournir la base locale et les rôles Postgres` | `compose.yaml`, script de création des rôles, droits par défaut, `pytest-django`, `psycopg` | Intégration : migrations depuis zéro, rôle d'exécution sans droit sur le schéma, aucun droit à `PUBLIC` | En revue | [#3](https://github.com/leonardgst/Training-charge/pull/3) |
 | 1.4 | `chore: ajouter la chaîne d'intégration continue` | Workflow à six jobs, Playwright, pip-audit, gitleaks ; ruleset complet sur `main` | Bout en bout : connexion sur ordinateur et téléphone ; intégration : squelette de A1 sur le catalogue des routes | Fusionnée | [#4](https://github.com/leonardgst/Training-charge/pull/4) |
-| 1.5 | `chore: déployer les previews et la production` | Projets Vercel et Neon, branche Neon par PR, environnement `production`, migrations par le rôle de migration, en-têtes de sécurité | Test de fumée après déploiement ; `check --deploy` | En cours | — |
+| 1.5 | `chore: déployer les previews et la production` | Projets Vercel et Neon, branche Neon par PR, environnement `production`, migrations par le rôle de migration, en-têtes de sécurité | Test de fumée après déploiement ; `check --deploy` | Fusionnée | [#6](https://github.com/leonardgst/Training-charge/pull/6) |
 | 1.6 | `docs: compléter le README et démontrer le blocage` | README ; PR de démonstration avec un test en échec, bloquée puis fermée sans fusion | Recette : clone neuf | À faire | — |
 
 ## Critères de fin (Definition of Done)
@@ -36,7 +36,7 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 - [ ] Toutes les PR de la phase sont fusionnées, CI verte
 - [ ] Cas de test de la phase au vert : D3 (migrations depuis zéro, encore sans données de démonstration) ; squelette de A1
 - [ ] Une PR avec un test en échec est bloquée, démonstration faite et liée ci-dessous
-- [ ] L'application est joignable à une URL publique
+- [x] L'application est joignable à une URL publique
 - [ ] Un clone neuf s'installe, se lance et passe ses tests avec les seules commandes du README
 - [ ] Le dépôt est hors de tout dossier synchronisé
 - [ ] Recette manuelle faite
