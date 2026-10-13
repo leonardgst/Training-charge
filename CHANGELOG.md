@@ -9,6 +9,7 @@ Toutes les modifications notables du projet sont consignées ici, au format [Kee
 - Modèles `Categorie`, `Preparateur` et `Joueur` avec leur migration : contraintes en base (code unique, jours de questionnaire dans la semaine, nom et prénom non vides), archivage par `actif`, `updated_at` et `updated_by`, administration Django réservée au superutilisateur.
 - Modèles `Seance` et `Participation` : durée de 1 à 300, RPE de 0 à 10 (ou absents en brouillon), type et statut dans une liste fermée, `validated_at` cohérent avec le statut, une participation par joueur et par séance ; déclencheurs Postgres interdisant une participation incomplète dans une séance validée.
 - Modèles `Indicateur`, `EntreeSensations` et `Reponse` : bornes ordonnées, poids positif, types et sens en liste fermée, un indicateur sans sens ni de type note hors du score, une entrée par joueur et par jour, une réponse par indicateur et par entrée ; déclencheurs Postgres pour la valeur dans les bornes et pour l'échelle figée dès qu'une réponse existe ; indicateurs configurables dans l'administration.
+- Accès du staff : profil préparateur exigé sur toute URL hors liste blanche (403 sinon), administration réservée au superutilisateur, `suivi/acces.py` (joueurs suivis, annuaire, séances, participations et entrées visibles) ; tests A1 (routes connecté ou non, catalogue Postgres), A2 (méta-tests), A3 (deux catégories et joueur invité), A6 (aucune inscription), index en double.
 
 ## [0.1.0] - 2026-10-13
 

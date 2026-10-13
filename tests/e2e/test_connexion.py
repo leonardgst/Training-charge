@@ -3,6 +3,8 @@
 import pytest
 from playwright.sync_api import Page, ViewportSize, expect
 
+from suivi.models import Categorie, Preparateur
+
 pytestmark = pytest.mark.django_db(transaction=True)
 
 FORMATS: dict[str, ViewportSize] = {
@@ -27,7 +29,13 @@ def test_la_racine_mene_a_la_connexion(page_formatee: Page, live_server) -> None
 def test_la_connexion_aboutit_a_l_accueil(
     page_formatee: Page, live_server, django_user_model
 ) -> None:
-    django_user_model.objects.create_user("preparateur", password="mot-de-passe-de-test-1")  # noqa: S106
+    compte = django_user_model.objects.create_user(
+        "preparateur",
+        password="mot-de-passe-de-test-1",  # noqa: S106
+    )
+    Preparateur.objects.create(
+        user=compte, categorie=Categorie.objects.create(code="U19", libelle="U19")
+    )
 
     page_formatee.goto(live_server.url + "/connexion/")
     page_formatee.get_by_label("Nom d’utilisateur").fill("preparateur")
@@ -35,7 +43,7 @@ def test_la_connexion_aboutit_a_l_accueil(
     page_formatee.get_by_role("button", name="Se connecter").click()
 
     expect(page_formatee).to_have_url(live_server.url + "/")
-    expect(page_formatee.get_by_role("button", name="Se connecter")).to_have_count(0)
+    expect(page_formatee.get_by_role("heading", name="Suivi de charge U19")).to_be_visible()
 
 
 def test_un_mauvais_mot_de_passe_reste_sur_la_connexion(page_formatee: Page, live_server) -> None:

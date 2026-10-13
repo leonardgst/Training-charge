@@ -41,3 +41,11 @@ Règle du joueur invité, acceptée le 2026-10-12 : le préparateur organisateur
 - A2 vérifie que ces deux contrôles détectent bien une route non protégée et un objet trop ouvert.
 - Une vue qui interrogerait directement `Joueur.objects` contournerait le périmètre. La relecture le vérifie ; une règle d'analyse automatique pourra être ajoutée si le cas se présente.
 - Les en-têtes de sécurité (CSP, `X-Frame-Options`, `Referrer-Policy`, HSTS, cookies sécurisés) sont posés dès la phase 1 et vérifiés par `manage.py check --deploy` et par le test de fumée.
+
+## Mise en œuvre (phase 2)
+
+- **Couche 3** : `suivi.middleware.ProfilPreparateurRequisMiddleware`, placé après `LoginRequiredMiddleware`, répond 403 à tout compte connecté sans profil préparateur sur une vue qui n'est ni de la liste blanche (`login_not_required`) ni de l'administration. Un superutilisateur sans profil n'entre donc pas sur les pages du staff : l'administrateur n'est pas un préparateur.
+- **Administration** : `suivi.site_admin.SiteAdmin` remplace le site par défaut et exige `is_superuser` au lieu de `is_staff`. Un préparateur n'y entre pas, même si son drapeau `is_staff` était posé par erreur. La déconnexion de l'administration reste ouverte à tout compte connecté.
+- **Couche 4** : `suivi/acces.py` expose les cinq fonctions du tableau ; un test vérifie qu'aucune vue de `suivi/views/` n'utilise `.objects`.
+- **A1 et A2** : le catalogue de Postgres (droits de `PUBLIC` sur les tables, vues, séquences, fonctions et le schéma, fonctions `SECURITY DEFINER`, vues sans `security_invoker`, droit de création du rôle d'exécution) et le catalogue des routes sont des fonctions de `tests/integration/catalogue_acces.py`. A2 exécute les mêmes fonctions après avoir introduit exprès une table ouverte, une fonction `SECURITY DEFINER`, une vue sans garde, un droit de schéma ou une route publique oubliée, et exige que chacune soit détectée.
+- Le droit `CONNECT` de `PUBLIC` sur la base n'est pas dans le catalogue de la CI : la base de test est créée par `pytest-django`. Il est vérifié par la mise en place de la base (script des rôles) et le sera contre la base de production avant la mise en service (phase 7).
