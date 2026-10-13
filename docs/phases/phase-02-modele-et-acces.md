@@ -22,7 +22,7 @@ Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mai
 
 | # | Titre | Contenu | Tests apportés | Statut | Lien |
 | --- | --- | --- | --- | --- | --- |
-| 2.1 | `feat: ajouter les catégories, les préparateurs et les joueurs` | Modèles, contraintes, clé étrangère vers les comptes, archivage, administration | D1 (champs obligatoires), D4 (archivage), `updated_at` | À faire | — |
+| 2.1 | `feat: ajouter les catégories, les préparateurs et les joueurs` | Modèles, contraintes, clé étrangère vers les comptes, archivage, administration | D1 (champs obligatoires), D4 (archivage), `updated_at` | En revue | — |
 | 2.2 | `feat: ajouter les séances et les participations` | RPE de 0 à 10, durée de 1 à 300, unicité, déclencheur de complétude à la validation | D1, D2, déclencheur | À faire | — |
 | 2.3 | `feat: ajouter les indicateurs et les entrées de sensations` | Bornes contrôlées par déclencheur, une entrée par joueur et par jour, échelle figée après la première réponse | D1, D2, refus d'un changement d'échelle | À faire | — |
 | 2.4 | `feat: protéger les accès du staff` | Profil préparateur exigé par URL, `suivi/acces.py`, liste blanche, administration fermée aux préparateurs | A1 complet, A2, A3, A6, index en double | À faire | — |

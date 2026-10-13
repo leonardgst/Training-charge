@@ -4,6 +4,10 @@ Toutes les modifications notables du projet sont consignées ici, au format [Kee
 
 ## [Non publié]
 
+### Ajouté
+
+- Modèles `Categorie`, `Preparateur` et `Joueur` avec leur migration : contraintes en base (code unique, jours de questionnaire dans la semaine, nom et prénom non vides), archivage par `actif`, `updated_at` et `updated_by`, administration Django réservée au superutilisateur.
+
 ## [0.1.0] - 2026-10-13
 
 Phase 1 : socle et chaîne de qualité.
