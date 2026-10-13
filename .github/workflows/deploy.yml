@@ -1,0 +1,66 @@
+name: Déploiement
+
+# Production : après une CI verte sur `main`, et seulement après l'approbation du
+# mainteneur dans l'environnement `production`.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+env:
+  VERCEL_CLI: vercel@63.1.2
+  URL_PRODUCTION: https://u19-load-tracking.vercel.app
+
+jobs:
+  production:
+    if: >-
+      github.event.workflow_run.conclusion == 'success'
+      && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+
+      - name: Appliquer les migrations (rôle de migration, connexion directe)
+        run: uv run python manage.py migrate --noinput
+        env:
+          DJANGO_SECRET_KEY: migration-sans-signature
+          DB_NAME: suivi
+          DB_USER: suivi_migration
+          DB_PASSWORD: ${{ secrets.DB_MIGRATION_PASSWORD }}
+          DB_HOST: ${{ vars.DB_HOST_DIRECT }}
+          DB_SSLMODE: require
+
+      - name: Déployer en production sur Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+        run: |
+          npx --yes "$VERCEL_CLI" deploy --prod --yes --token "$VERCEL_TOKEN" \
+            --env DJANGO_HTTPS=true \
+            --env DJANGO_DEBUG=false \
+            --env DJANGO_ALLOWED_HOSTS=.vercel.app \
+            --env DB_NAME=suivi \
+            --env DB_USER=suivi_execution \
+            --env DB_SSLMODE=require \
+            --env "DB_HOST=${{ vars.DB_HOST_POOLED }}"
+
+      - name: Test de fumée
+        run: uv run pytest tests/smoke
+        env:
+          SMOKE_URL: ${{ env.URL_PRODUCTION }}
