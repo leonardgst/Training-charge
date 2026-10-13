@@ -120,6 +120,7 @@ erDiagram
 
 Notes :
 
+- Un indicateur de type `heure` stocke sa valeur en minutes depuis minuit (bornes 0 et 1439), hors du score ; un indicateur sans sens (`aucun`) n'entre jamais dans le score.
 - `updated_by_id` est nul quand l'auteur est un joueur passant par son lien.
 - `updated_at` est maintenu par Django (`auto_now`) ; un test vérifie qu'il change à chaque modification (annexe A, n° 18).
 - Aucune vue SQL ni fonction exposée en V1. Un test de catalogue détecte les index en double.

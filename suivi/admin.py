@@ -3,7 +3,7 @@ from typing import Any
 from django.contrib import admin
 from django.http import HttpRequest
 
-from suivi.models import Categorie, Joueur, Preparateur
+from suivi.models import Categorie, Indicateur, Joueur, Preparateur
 
 
 @admin.register(Categorie)
@@ -26,3 +26,9 @@ class JoueurAdmin(admin.ModelAdmin):
     def save_model(self, request: HttpRequest, obj: Joueur, form: Any, change: bool) -> None:
         obj.updated_by = request.user  # type: ignore[assignment]
         super().save_model(request, obj, form, change)
+
+
+@admin.register(Indicateur)
+class IndicateurAdmin(admin.ModelAdmin):
+    list_display = ("categorie", "ordre", "code", "libelle", "type", "poids", "actif")
+    list_filter = ("categorie", "actif")

@@ -11,6 +11,7 @@ RPE_MIN = 0
 RPE_MAX = 10
 DUREE_MIN = 1
 DUREE_MAX = 300
+MINUTES_PAR_JOUR = 1440
 
 
 def tous_les_jours() -> list[int]:
@@ -178,3 +179,104 @@ class Participation(models.Model):
 
     def __str__(self) -> str:
         return f"{self.joueur} à {self.seance}"
+
+
+class TypeIndicateur(models.TextChoices):
+    NOTE = "note", "Note"
+    # Valeur en minutes depuis minuit, de 0 à 1439.
+    HEURE = "heure", "Heure"
+
+
+class SensIndicateur(models.TextChoices):
+    HAUT_BON = "haut_bon", "Haut = bon"
+    BAS_BON = "bas_bon", "Bas = bon"
+    AUCUN = "aucun", "Sans sens"
+
+
+class Indicateur(models.Model):
+    categorie = models.ForeignKey(Categorie, on_delete=models.PROTECT, related_name="indicateurs")
+    code = models.CharField(max_length=40)
+    libelle = models.CharField(max_length=100)
+    type = models.CharField(max_length=20, choices=TypeIndicateur.choices)
+    borne_min = models.SmallIntegerField()
+    borne_max = models.SmallIntegerField()
+    sens = models.CharField(max_length=20, choices=SensIndicateur.choices)
+    poids = models.DecimalField(max_digits=5, decimal_places=2, default=1)
+    inclus_score = models.BooleanField(default=True)
+    ordre = models.SmallIntegerField(default=0)
+    # Désactiver un indicateur ne supprime jamais ses réponses (ADR-0016).
+    actif = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["categorie", "code"], name="indicateur_code_unique"),
+            models.CheckConstraint(
+                condition=GreaterThan(Length(Trim("code")), 0), name="indicateur_code_non_vide"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(borne_min__lt=models.F("borne_max")),
+                name="indicateur_bornes_ordonnees",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(poids__gte=0), name="indicateur_poids_positif"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(type__in=TypeIndicateur.values), name="indicateur_type_valide"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(sens__in=SensIndicateur.values), name="indicateur_sens_valide"
+            ),
+            # Un indicateur sans sens ne s'agrège pas dans le score (ADR-0014).
+            models.CheckConstraint(
+                condition=models.Q(inclus_score=False)
+                | (models.Q(type="note") & ~models.Q(sens="aucun")),
+                name="indicateur_score_note_orientee",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(type="note")
+                | models.Q(borne_min=0, borne_max=MINUTES_PAR_JOUR - 1),
+                name="indicateur_heure_en_minutes",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.categorie} · {self.libelle}"
+
+
+class EntreeSensations(models.Model):
+    joueur = models.ForeignKey(Joueur, on_delete=models.CASCADE, related_name="entrees")
+    date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # Nul quand l'auteur est le joueur passant par son lien (ADR-0008).
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    class Meta:
+        verbose_name_plural = "entrées de sensations"
+        constraints = [
+            models.UniqueConstraint(fields=["joueur", "date"], name="entree_unique_par_jour")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.joueur} le {self.date}"
+
+
+class Reponse(models.Model):
+    entree = models.ForeignKey(EntreeSensations, on_delete=models.CASCADE, related_name="reponses")
+    indicateur = models.ForeignKey(Indicateur, on_delete=models.PROTECT, related_name="reponses")
+    # Dans les bornes de l'indicateur : contrôlé par un déclencheur (migration 0005).
+    valeur = models.SmallIntegerField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["entree", "indicateur"], name="reponse_unique")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.indicateur.code} = {self.valeur}"
