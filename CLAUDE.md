@@ -65,7 +65,7 @@ Stratégie complète : [docs/03-strategie-tests.md](docs/03-strategie-tests.md).
 
 ## 9. Phase en cours
 
-Phase 1 — Socle et chaîne de qualité : [docs/phases/phase-01-socle.md](docs/phases/phase-01-socle.md).
+Phase 2 — Modèle de données et accès : [docs/phases/phase-02-modele-et-acces.md](docs/phases/phase-02-modele-et-acces.md). Niveau 3 pour toute la phase.
 
 ## 10. Interdits et pièges connus
 

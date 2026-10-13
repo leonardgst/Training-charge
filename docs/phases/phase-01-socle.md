@@ -2,7 +2,7 @@
 
 | Statut | Prévue | Terminée le | Tag Git |
 | --- | --- | --- | --- |
-| En cours | 2026-10-13 → 2026-10-26 | — | v0.1.0 |
+| Terminée | 2026-10-13 → 2026-10-26 | 2026-10-13 | v0.1.0 |
 
 ## Objectif
 
@@ -29,35 +29,35 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 | 1.3 | `chore: fournir la base locale et les rôles Postgres` | `compose.yaml`, script de création des rôles, droits par défaut, `pytest-django`, `psycopg` | Intégration : migrations depuis zéro, rôle d'exécution sans droit sur le schéma, aucun droit à `PUBLIC` | En revue | [#3](https://github.com/leonardgst/Training-charge/pull/3) |
 | 1.4 | `chore: ajouter la chaîne d'intégration continue` | Workflow à six jobs, Playwright, pip-audit, gitleaks ; ruleset complet sur `main` | Bout en bout : connexion sur ordinateur et téléphone ; intégration : squelette de A1 sur le catalogue des routes | Fusionnée | [#4](https://github.com/leonardgst/Training-charge/pull/4) |
 | 1.5 | `chore: déployer les previews et la production` | Projets Vercel et Neon, branche Neon par PR, environnement `production`, migrations par le rôle de migration, en-têtes de sécurité | Test de fumée après déploiement ; `check --deploy` | Fusionnée | [#6](https://github.com/leonardgst/Training-charge/pull/6) |
-| 1.6 | `docs: compléter le README et démontrer le blocage` | README ; PR de démonstration avec un test en échec, bloquée puis fermée sans fusion | Recette : clone neuf | En cours | — |
+| 1.6 | `docs: compléter le README et démontrer le blocage` | README ; PR de démonstration avec un test en échec, bloquée puis fermée sans fusion | Recette : clone neuf | Fusionnée | [#8](https://github.com/leonardgst/Training-charge/pull/8) ; démonstration : [#9](https://github.com/leonardgst/Training-charge/pull/9), fermée sans fusion |
 
 ## Critères de fin (Definition of Done)
 
-- [ ] Toutes les PR de la phase sont fusionnées, CI verte
-- [ ] Cas de test de la phase au vert : D3 (migrations depuis zéro, encore sans données de démonstration) ; squelette de A1
-- [ ] Une PR avec un test en échec est bloquée, démonstration faite et liée ci-dessous
+- [x] Toutes les PR de la phase sont fusionnées, CI verte
+- [x] Cas de test de la phase au vert : D3 (migrations depuis zéro, encore sans données de démonstration) ; squelette de A1
+- [x] Une PR avec un test en échec est bloquée, démonstration faite et liée ci-dessous : [PR #9](https://github.com/leonardgst/Training-charge/pull/9), CI rouge sur le job `tests`, fusion bloquée par le ruleset, fermée sans fusion
 - [x] L'application est joignable à une URL publique
-- [ ] Un clone neuf s'installe, se lance et passe ses tests avec les seules commandes du README
-- [ ] Le dépôt est hors de tout dossier synchronisé
-- [ ] Recette manuelle faite
-- [ ] Documentation à jour : fiche, journal, `CHANGELOG.md`, `CLAUDE.md` pointant vers la phase 2
+- [x] Un clone neuf s'installe, se lance et passe ses tests avec les seules commandes du README
+- [x] Le dépôt est hors de tout dossier synchronisé
+- [x] Recette manuelle faite
+- [x] Documentation à jour : fiche, journal, `CHANGELOG.md`, `CLAUDE.md` pointant vers la phase 2
 
 ## Recette manuelle
 
 À dérouler par toi, sur l'environnement déployé. Note le résultat à côté de chaque ligne.
 
-- [ ] L'URL de production s'ouvre en HTTPS sur ordinateur et sur téléphone.
-- [ ] La racine redirige vers la page de connexion, en français, sans titre, page ni logo du générateur.
-- [ ] Une adresse inexistante renvoie une page d'erreur sobre, sans trace de débogage.
-- [ ] L'administration demande une connexion.
-- [ ] Après 15 minutes sans visite, le premier affichage prend moins de 10 secondes. Durée mesurée : …
-- [ ] La preview d'une PR s'ouvre sur ton téléphone.
-- [ ] Le déploiement en production a attendu ton approbation dans l'environnement `production`.
-- [ ] Une poussée directe sur `main` est refusée par GitHub.
-- [ ] La PR de démonstration affiche une CI rouge et un bouton de fusion bloqué. Lien : …
-- [ ] Un clone neuf, dans un nouveau dossier de WSL, passe `uv sync` puis tous les tests avec les seules commandes du README. Durée : …
-- [ ] `pwd` dans le dépôt donne un chemin sous `/home/`, pas sous `/mnt/c/`.
-- [ ] Aucun fichier `.env` n'est suivi par Git (`git ls-files | grep .env` ne renvoie que `.env.example`).
+- [x] L'URL de production s'ouvre en HTTPS sur ordinateur et sur téléphone.
+- [x] La racine redirige vers la page de connexion, en français, sans titre, page ni logo du générateur.
+- [x] Une adresse inexistante renvoie une page d'erreur sobre, sans trace de débogage.
+- [x] L'administration demande une connexion.
+- [x] Après 15 minutes sans visite, le premier affichage prend moins de 10 secondes. Durée mesurée : 1,4 s (`curl` sur `/connexion/`, démarrage à froid de la fonction seul ; la page n'interroge pas la base, donc le réveil de Neon n'est pas mesuré).
+- [x] La preview d'une PR s'ouvre sur ton téléphone. Vérifiée sur la PR [#10](https://github.com/leonardgst/Training-charge/pull/10).
+- [x] Le déploiement en production a attendu ton approbation dans l'environnement `production`.
+- [x] Une poussée directe sur `main` est refusée par GitHub. Refus reçu : `GH013 Repository rule violations` — « Changes must be made through a pull request » et « 6 of 6 required status checks are expected ».
+- [x] La PR de démonstration affiche une CI rouge et un bouton de fusion bloqué. Lien : [#9](https://github.com/leonardgst/Training-charge/pull/9), fermée sans fusion.
+- [x] Un clone neuf, dans un nouveau dossier de WSL, passe `uv sync` puis tous les tests avec les seules commandes du README. Durée : non chronométrée ; `uv sync`, Ruff, mypy, 45 tests unitaires, 54 d'intégration et 6 de bout en bout au vert, base sur le port 5433 pour cohabiter avec la base de travail.
+- [x] `pwd` dans le dépôt donne un chemin sous `/home/`, pas sous `/mnt/c/`.
+- [x] Aucun fichier `.env` n'est suivi par Git (`git ls-files | grep .env` ne renvoie que `.env.example`).
 
 ## Décisions prises (liens vers les ADR)
 
@@ -89,6 +89,23 @@ Niveau de collaboration : 4. Les PR 1.3 (rôles Postgres et migrations) et 1.5 (
 - PR 1.5 : le test de fumée (`tests/smoke/`) est ignoré sans `SMOKE_URL`, seul cas d'usage d'un `skipif` ; il ne fait partie d'aucun job de CI.
 - PR 1.3 : `.claude/settings.json` : règles `deny` étendues à la lecture de `.env` par le shell, `disableAutoMode` retiré et mode par défaut `auto`, à la demande du mainteneur. Le niveau 3 de `CLAUDE.md` reste une règle de comportement : plan et accord avant chaque action sur ses zones, même en auto-mode.
 
+- PR 1.6 : le réveil de Neon après inactivité n'est pas mesuré : la page de connexion et `/sante/` n'interrogent pas la base. À mesurer en phase 2, avec une vraie connexion.
+- PR 1.6 : le refus de poussée directe sur `main` a été testé par le mainteneur dans un terminal : les permissions de Claude Code interdisent à l'assistant même cet essai, ce qui est voulu.
+- Clôture : la fiche de la phase 2 est créée avec cette PR, pour que `CLAUDE.md` puisse la citer sans lien cassé.
+
 ## Rétrospective : ce qui a marché, ce qui a coincé
 
-À remplir à la clôture.
+**Ce qui a marché**
+- Le ruleset et la CI ont bloqué une PR dont un test échouait dès la première démonstration (PR #9), et la première exécution de la preview a validé les hypothèses sur Neon sans retouche.
+- Les rôles Postgres séparés (migration et exécution) sont les mêmes en local, en CI et sur Neon ; les migrations de production ne passent que par l'environnement `production`, après approbation.
+- Un clone neuf passe tous les tests avec les seules commandes du README.
+
+**Ce qui a coincé**
+- Playwright demande les bibliothèques système de Chromium, donc `sudo`, que l'assistant ne peut pas utiliser : étape à faire par le mainteneur, y compris la réinitialisation du mot de passe WSL.
+- `npx` appelé depuis WSL a lancé la version Windows de Node, qui ne voit pas le dépôt Linux ; la CLI Vercel a donc été limitée à quelques lectures, une seule fois, sur accord.
+- Le nom du projet Vercel (`u19-load-tracking`) et le préréglage Next.js initial ont différé du plan ; sans conséquence, notés dans `docs/deploiement.md`.
+- Les permissions de Claude Code ont refusé deux commandes que l'assistant avait écrites par erreur (fusion de PR, poussée vers `main`) : le garde-fou a fonctionné.
+
+**À reprendre en phase 2**
+- Mesurer le réveil de Neon avec une vraie connexion.
+- Ajouter Dependabot, non prévu en phase 1.
