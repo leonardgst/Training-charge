@@ -51,9 +51,8 @@ Stratégie complète : [docs/03-strategie-tests.md](docs/03-strategie-tests.md).
 
 - **Niveau 4, par défaut** : tu travailles sur une branche, tu commites, tu pousses la branche et tu ouvres la PR avec `gh`. Le mainteneur relit et fusionne.
 - **Niveau 3** : phase 3 entière (moteur). Commence par un plan, puis demande l'accord avant chaque action. Le mainteneur passe la session en mode Manuel.
-- **Phase 2 : niveau 4**, par décision du mainteneur (2026-10-13). Les modifications de fichiers du projet, les suppressions de fichiers et les ajouts de dépendances ne demandent plus d'accord ; la protection repose sur le ruleset de `main`, la relecture des PR et les `deny` de [.claude/settings.json](.claude/settings.json).
 - **Jamais** : pousser sur `main`, fusionner une PR, forcer une poussée, lire `.env`, lancer la CLI Vercel ou Neon, agir sur une base déployée, créer une ressource payante.
-- **Avec accord seulement** : réinitialiser la base locale. Suppression de fichier, ajout de dépendance et modification d'un workflow de CI sont autorisés en phase 2 (décision du mainteneur, 2026-10-13).
+- **Avec accord seulement** : supprimer un fichier, ajouter une dépendance, réinitialiser la base locale, modifier un workflow de CI.
 - Le dépôt est poussé sur GitHub avant chaque session autonome.
 
 ## 8. Documentation
@@ -66,7 +65,7 @@ Stratégie complète : [docs/03-strategie-tests.md](docs/03-strategie-tests.md).
 
 ## 9. Phase en cours
 
-Phase 2 — Modèle de données et accès : [docs/phases/phase-02-modele-et-acces.md](docs/phases/phase-02-modele-et-acces.md). Niveau 4 (décision du 2026-10-13).
+Phase 3 — Moteur de calcul : [docs/phases/phase-03-moteur.md](docs/phases/phase-03-moteur.md). Niveau 3 pour toute la phase.
 
 ## 10. Interdits et pièges connus
 
