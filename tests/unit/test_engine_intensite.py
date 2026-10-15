@@ -11,7 +11,7 @@ from engine.charge import calendrier, charges_glissantes
 from engine.modeles import ChargesGlissantes, Etat, Parametres, ParticipationValidee
 from engine.zscore import intensite
 
-PARAMETRES = Parametres(10, 7, 28, 28, 21, 1e-9)
+PARAMETRES = Parametres(10, 7, 28, 28, 21, 1e-9, 0.5, 28, 6)
 DEBUT = datetime.date(2026, 1, 5)
 
 
@@ -24,7 +24,7 @@ def _glissantes(*ce: float, incompletes: int = 0) -> list[ChargesGlissantes]:
 
 def test_zscore_calcule_a_la_main() -> None:
     # Référence 1, 2, 3, 4 : m = 2,5 ; s² = 5/3 ; valeur du jour 6 : z = 3,5 / √(5/3).
-    parametres = Parametres(10, 7, 28, 28, 4, 1e-9)
+    parametres = Parametres(10, 7, 28, 28, 4, 1e-9, 0.5, 28, 6)
     z = intensite(_glissantes(1, 2, 3, 4, 6), parametres)[4]
     assert z.etat is Etat.OK
     assert z.valeur is not None
@@ -33,7 +33,7 @@ def test_zscore_calcule_a_la_main() -> None:
 
 def test_le_jour_courant_est_exclu_de_la_reference() -> None:
     # Avec le point courant, z serait borné par (n − 1)/√n ; sans lui il le dépasse.
-    parametres = Parametres(10, 7, 28, 28, 4, 1e-9)
+    parametres = Parametres(10, 7, 28, 28, 4, 1e-9, 0.5, 28, 6)
     z = intensite(_glissantes(1, 2, 1, 2, 1000), parametres)[4]
     assert z.valeur is not None and z.valeur > 1000
 
@@ -94,7 +94,7 @@ def _jours_reguliers() -> list[ParticipationValidee]:
 
 def test_charges_multipliees_zscores_identiques() -> None:
     fin = DEBUT + datetime.timedelta(days=40)
-    un, sept = PARAMETRES, Parametres(70, 7, 28, 28, 21, 1e-9)
+    un, sept = PARAMETRES, Parametres(70, 7, 28, 28, 21, 1e-9, 0.5, 28, 6)
     jours_un = calendrier(_jours_reguliers(), un, fin)
     jours_sept = calendrier(_jours_reguliers(), sept, fin)
     z_un = intensite(charges_glissantes(jours_un, un), un)
