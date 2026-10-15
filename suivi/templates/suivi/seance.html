@@ -1,6 +1,9 @@
 {% extends "suivi/base.html" %}
+{% load static %}
 
 {% block titre %}Séance du {{ seance.date|date:"d/m/Y" }}{% endblock %}
+
+{% block scripts %}{% if brouillon %}<script src="{% static 'suivi/js/grille.js' %}" defer></script>{% endif %}{% endblock %}
 
 {% block contenu %}
 <hgroup>
@@ -8,79 +11,139 @@
   <p>{{ seance.get_type_display }} · {{ seance.duree_min }} min · {{ seance.get_statut_display }}</p>
 </hgroup>
 
+{% if brouillon %}
+<h2>Grille RPE</h2>
+{% if grille.errors %}
+<div class="erreur" role="alert">
+  {% for erreur in grille.non_field_errors %}<p>{{ erreur }}</p>{% endfor %}
+  {% if grille.erreurs_de_cases %}
+  <ul>{% for erreur in grille.erreurs_de_cases %}<li>{{ erreur }}</li>{% endfor %}</ul>
+  {% endif %}
+</div>
+{% endif %}
+{% if grille.participations %}
+<form method="post" action="{% url 'seance_grille' seance.pk %}">
+  {% csrf_token %}
+  <p>Échelle de 0 à 10. La touche Tab passe à la case suivante, ligne après ligne.</p>
+  <div class="overflow-auto">
+    <table class="grille-rpe">
+      <thead>
+        <tr><th scope="col">Joueur</th>{% for long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for participation, cases in grille.lignes %}
+        <tr>
+          <th scope="row"><strong>{{ participation.joueur.nom }}</strong> {{ participation.joueur.prenom }}{% if participation.joueur.categorie_reference_id != seance.categorie_organisatrice_id %} <small>({{ participation.joueur.categorie_reference.code }})</small>{% endif %}</th>
+          {% for case in cases %}<td>{{ case }}</td>{% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="boutons">
+    <button type="submit" name="enregistrer" class="secondary">Enregistrer le brouillon</button>
+    <button type="submit" name="valider">Valider la séance</button>
+  </div>
+</form>
+{% else %}
+<p>Aucun participant : ajoutez-en ci-dessous.</p>
+{% endif %}
+
+<details{% if recherche or not participations %} open{% endif %}>
+  <summary><h2>Participants ({{ participations|length }})</h2></summary>
+  <p>Retirer un absent ou ajouter un joueur recharge la page : enregistrez d’abord le brouillon.</p>
+  {% if participations %}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr><th scope="col">Joueur</th><th scope="col">Catégorie</th><th scope="col">Action</th></tr>
+      </thead>
+      <tbody>
+        {% for participation in participations %}
+        <tr>
+          <td><strong>{{ participation.joueur.nom }}</strong> {{ participation.joueur.prenom }}</td>
+          <td>{{ participation.joueur.categorie_reference.code }}</td>
+          <td>
+            <div class="actions">
+              <form method="post" action="{% url 'participant_retirer' seance.pk participation.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="secondary outline" aria-label="Retirer {{ participation.joueur }}">Retirer</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <h3>Ajouter un joueur</h3>
+  <p>Un absent revenu, ou un joueur d’une autre catégorie qui s’entraîne avec le groupe.</p>
+  <form method="get" role="search">
+    <input type="search" name="q" value="{{ recherche }}" placeholder="Nom ou prénom" aria-label="Nom ou prénom du joueur">
+    <button type="submit">Rechercher</button>
+  </form>
+  {% if recherche %}
+  {% if resultats %}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr><th scope="col">Joueur</th><th scope="col">Catégorie</th><th scope="col">Action</th></tr>
+      </thead>
+      <tbody>
+        {% for ligne in resultats %}
+        <tr>
+          <td><strong>{{ ligne.nom }}</strong> {{ ligne.prenom }}</td>
+          <td>{{ ligne.categorie_reference__code }}</td>
+          <td>
+            <div class="actions">
+              <form method="post" action="{% url 'participant_ajouter' seance.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="joueur" value="{{ ligne.pk }}">
+                <input type="hidden" name="q" value="{{ recherche }}">
+                <button type="submit" class="secondary outline" aria-label="Ajouter {{ ligne.prenom }} {{ ligne.nom }}">Ajouter</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if resultats|length == limite %}
+  <p>Seuls les {{ limite }} premiers joueurs sont affichés : précisez la recherche.</p>
+  {% endif %}
+  {% else %}
+  <p>Aucun joueur de l’annuaire ne correspond à « {{ recherche }} », en dehors des participants.</p>
+  {% endif %}
+  {% endif %}
+</details>
+{% else %}
 <h2>Participants ({{ participations|length }})</h2>
-{% if participations %}
+{% if validees %}
 <div class="overflow-auto">
-  <table>
+  <table class="grille-rpe">
     <thead>
-      <tr><th scope="col">Joueur</th><th scope="col">Catégorie</th>{% if brouillon %}<th scope="col">Action</th>{% endif %}</tr>
+      <tr><th scope="col">Joueur</th>{% for long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}<th scope="col">Charge</th></tr>
     </thead>
     <tbody>
-      {% for participation in participations %}
+      {% for participation, charge in validees %}
       <tr>
-        <td><strong>{{ participation.joueur.nom }}</strong> {{ participation.joueur.prenom }}</td>
-        <td>{{ participation.joueur.categorie_reference.code }}</td>
-        {% if brouillon %}
-        <td>
-          <div class="actions">
-            <form method="post" action="{% url 'participant_retirer' seance.pk participation.pk %}">
-              {% csrf_token %}
-              <button type="submit" class="secondary outline" aria-label="Retirer {{ participation.joueur }}">Retirer</button>
-            </form>
-          </div>
-        </td>
-        {% endif %}
+        <th scope="row"><strong>{{ participation.joueur.nom }}</strong> {{ participation.joueur.prenom }}{% if participation.joueur.categorie_reference_id != seance.categorie_organisatrice_id %} <small>({{ participation.joueur.categorie_reference.code }})</small>{% endif %}</th>
+        <td><span class="rpe" data-niveau="{{ participation.rpe_cardio }}">{{ participation.rpe_cardio }}</span></td>
+        <td><span class="rpe" data-niveau="{{ participation.rpe_musculaire }}">{{ participation.rpe_musculaire }}</span></td>
+        <td><span class="rpe" data-niveau="{{ participation.rpe_teta }}">{{ participation.rpe_teta }}</span></td>
+        <td class="charge">{{ charge|floatformat:"0g" }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+<p><small>Charge de la séance = moyenne des trois RPE × durée en minutes × facteur d’échelle, calculée par le moteur.</small></p>
 {% else %}
 <p>Aucun participant.</p>
 {% endif %}
-
-{% if brouillon %}
-<h2>Ajouter un joueur</h2>
-<p>Un absent revenu, ou un joueur d’une autre catégorie qui s’entraîne avec le groupe.</p>
-<form method="get" role="search">
-  <input type="search" name="q" value="{{ recherche }}" placeholder="Nom ou prénom" aria-label="Nom ou prénom du joueur">
-  <button type="submit">Rechercher</button>
-</form>
-{% if recherche %}
-{% if resultats %}
-<div class="overflow-auto">
-  <table>
-    <thead>
-      <tr><th scope="col">Joueur</th><th scope="col">Catégorie</th><th scope="col">Action</th></tr>
-    </thead>
-    <tbody>
-      {% for ligne in resultats %}
-      <tr>
-        <td><strong>{{ ligne.nom }}</strong> {{ ligne.prenom }}</td>
-        <td>{{ ligne.categorie_reference__code }}</td>
-        <td>
-          <div class="actions">
-            <form method="post" action="{% url 'participant_ajouter' seance.pk %}">
-              {% csrf_token %}
-              <input type="hidden" name="joueur" value="{{ ligne.pk }}">
-              <input type="hidden" name="q" value="{{ recherche }}">
-              <button type="submit" class="secondary outline" aria-label="Ajouter {{ ligne.prenom }} {{ ligne.nom }}">Ajouter</button>
-            </form>
-          </div>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% if resultats|length == limite %}
-<p>Seuls les {{ limite }} premiers joueurs sont affichés : précisez la recherche.</p>
-{% endif %}
-{% else %}
-<p>Aucun joueur de l’annuaire ne correspond à « {{ recherche }} », en dehors des participants.</p>
-{% endif %}
-{% endif %}
-{% else %}
 <p>Cette séance est validée : ses participants ne changent plus ici.</p>
 {% endif %}
 {% endblock %}

@@ -29,6 +29,7 @@ urlpatterns = [
     path("joueurs/<int:pk>/reactiver/", staff.joueur_reactiver, name="joueur_reactiver"),
     path("seances/nouvelle/", staff.seance_creer, name="seance_creer"),
     path("seances/<int:pk>/", staff.seance_detail, name="seance"),
+    path("seances/<int:pk>/grille/", staff.seance_grille, name="seance_grille"),
     path(
         "seances/<int:pk>/participants/ajouter/",
         staff.participant_ajouter,

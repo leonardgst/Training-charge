@@ -167,6 +167,7 @@ flowchart LR
 
 - `engine/` n'importe jamais Django ; un test le vérifie en analysant les imports.
 - L'adaptateur est le seul endroit qui lit la base pour le moteur. Il filtre les séances validées (C5) et les données datées au plus tard de la date de calcul (C9).
+- Pour la page d'une séance validée, `charges_de_seance` ne lit pas la base : il reçoit les participations que la vue a lues dans son périmètre (`suivi/acces.py`) et appelle `charge_seance` du moteur. Une séance en brouillon n'y a aucune charge.
 - Chaque résultat est soit une valeur, soit un état explicite (`HISTORIQUE_INSUFFISANT`, `NON_CALCULABLE`) : l'interface n'a rien à recalculer.
 - Volume : 30 joueurs × environ 400 jours, avec quelques opérations par jour : le calcul à la demande prend quelques millisecondes. Une mise en cache ne sera envisagée que sur mesure, avec une ADR.
 

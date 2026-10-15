@@ -7,12 +7,13 @@ de la date de calcul (C9).
 
 import datetime
 import tomllib
+from collections.abc import Iterable
 from functools import cache
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
 
-from engine.charge import calendrier, charges_glissantes
+from engine.charge import calendrier, charge_seance, charges_glissantes
 from engine.modeles import (
     ChargesGlissantes,
     EntreeSensations,
@@ -31,6 +32,7 @@ from suivi.models import (
     Joueur,
     Participation,
     Reponse,
+    Seance,
     SensIndicateur,
     StatutSeance,
     TypeIndicateur,
@@ -111,6 +113,34 @@ def calculer_joueur(
             raise ValueError(f"participation incomplète dans une séance validée du {jour}")
         participations.append(ParticipationValidee(jour, duree, cardio, musculaire, teta))
     return calendrier(participations, parametres, date_calcul)
+
+
+def charges_de_seance(
+    seance: Seance, participations: Iterable[Participation], parametres: Parametres
+) -> dict[int, float]:
+    """Charge de séance de chaque participation, par identifiant de participation.
+
+    Les participations viennent de l'appelant, lues dans son périmètre (`suivi/acces.py`) ;
+    elles doivent toutes appartenir à `seance`. Une séance en brouillon n'entre dans aucun
+    calcul (C5) : rien n'est calculé.
+    """
+    if seance.statut != StatutSeance.VALIDEE:
+        return {}
+    charges = {}
+    for participation in participations:
+        if participation.seance_id != seance.pk:
+            raise ValueError(f"la participation {participation.pk} n'appartient pas à la séance")
+        cardio, musculaire, teta = (
+            participation.rpe_cardio,
+            participation.rpe_musculaire,
+            participation.rpe_teta,
+        )
+        if cardio is None or musculaire is None or teta is None:
+            # Le déclencheur de complétude l'interdit pour une séance validée (ADR-0008).
+            raise ValueError(f"participation incomplète dans une séance validée du {seance.date}")
+        entree = ParticipationValidee(seance.date, seance.duree_min, cardio, musculaire, teta)
+        charges[participation.pk] = charge_seance(entree, parametres)
+    return charges
 
 
 def calculer_charges_glissantes(

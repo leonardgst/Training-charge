@@ -15,7 +15,9 @@ from suivi.calculs import (
     calculer_intensite,
     calculer_joueur,
     calculer_sensations,
+    charges_de_seance,
 )
+from suivi.models import Categorie, Joueur, Participation, Seance
 from tests.reference.execution import charger_en_base, executer_sans_base, executer_sur_base
 from tests.reference.harnais import CasReference, lire_cas
 from tests.reference.synthese import ecrire_cas
@@ -284,3 +286,75 @@ def test_les_deux_chemins_donnent_les_memes_sensations(tmp_path: Path) -> None:
     assert sur_base[("J1", jour, "sensations_z")].etat == "ok"
     assert sur_base[("J1", LUNDI, "sensations_z")].etat == "historique_insuffisant"
     assert ("J2", LUNDI, "score_sensations") not in sur_base
+
+
+# --- Charges d'une séance, pour sa page (PR 4.4) ----------------------------------------
+
+
+def _seance_avec(statut: str, *rpe: tuple[int | None, int | None, int | None]) -> Seance:
+    u19 = Categorie.objects.create(code="U19", libelle="U19")
+    seance = Seance.objects.create(
+        categorie_organisatrice=u19, date=LUNDI, type="foot", duree_min=90
+    )
+    for numero, (cardio, musculaire, teta) in enumerate(rpe):
+        joueur = Joueur.objects.create(
+            nom=f"J{numero}",
+            prenom="Test",
+            date_naissance=datetime.date(2007, 3, 14),
+            categorie_reference=u19,
+        )
+        Participation.objects.create(
+            seance=seance,
+            joueur=joueur,
+            rpe_cardio=cardio,
+            rpe_musculaire=musculaire,
+            rpe_teta=teta,
+        )
+    if statut == "validee":
+        seance.statut = "validee"
+        seance.validated_at = datetime.datetime(2026, 1, 5, 20, 0, tzinfo=datetime.UTC)
+        seance.save()
+    return seance
+
+
+def test_charges_d_une_seance_validee_calculees_a_la_main() -> None:
+    seance = _seance_avec("validee", (5, 6, 4), (7, 7, 7), (0, 0, 0))
+    participations = list(seance.participations.order_by("joueur__nom"))
+
+    charges = charges_de_seance(seance, participations, PARAMETRES)
+
+    # (5 + 6 + 4) / 3 × 90 × 10 = 4500 ; 7 × 90 × 10 = 6300 ; 0.
+    assert charges == {
+        participations[0].pk: pytest.approx(4500.0, rel=1e-9),
+        participations[1].pk: pytest.approx(6300.0, rel=1e-9),
+        participations[2].pk: pytest.approx(0.0, abs=1e-12),
+    }
+
+
+def test_une_seance_en_brouillon_n_a_aucune_charge() -> None:
+    seance = _seance_avec("brouillon", (5, 6, 4), (None, 2, None))
+
+    assert charges_de_seance(seance, seance.participations.all(), PARAMETRES) == {}
+
+
+def test_une_participation_d_une_autre_seance_est_refusee() -> None:
+    seance = _seance_avec("validee", (5, 6, 4))
+    autre = Seance.objects.create(
+        categorie_organisatrice=seance.categorie_organisatrice,
+        date=LUNDI,
+        type="yoga",
+        duree_min=30,
+    )
+    intruse = Participation(seance=autre, joueur=Joueur.objects.get(), rpe_cardio=1)
+
+    with pytest.raises(ValueError, match="n'appartient pas"):
+        charges_de_seance(seance, [intruse], PARAMETRES)
+
+
+def test_une_participation_incomplete_d_une_seance_validee_est_une_anomalie() -> None:
+    seance = _seance_avec("validee", (5, 6, 4))
+    # Le déclencheur l'interdit en base : objet construit en mémoire seulement.
+    incomplete = Participation(seance=seance, joueur=Joueur.objects.get(), rpe_cardio=5)
+
+    with pytest.raises(ValueError, match="incomplète"):
+        charges_de_seance(seance, [incomplete], PARAMETRES)
