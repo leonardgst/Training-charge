@@ -12,7 +12,9 @@ class ProfilPreparateurRequisMiddleware:
 
     Sont exemptées : les vues de la liste blanche (`login_not_required`) et
     l'administration, qui exige le superutilisateur (`suivi.site_admin.SiteAdmin`).
-    Un compte connecté sans profil préparateur reçoit un refus 403.
+    Un compte connecté sans profil préparateur reçoit un refus 403. Sinon, le profil est
+    posé sur `request.preparateur`, avec sa catégorie : les vues et les gabarits du staff
+    le lisent là.
     """
 
     def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
@@ -33,6 +35,12 @@ class ProfilPreparateurRequisMiddleware:
         if request.resolver_match and "admin" in request.resolver_match.app_names:
             return None
         pk = request.user.pk
-        if pk is None or not Preparateur.objects.filter(user_id=pk).exists():
+        preparateur = (
+            Preparateur.objects.select_related("categorie").filter(user_id=pk).first()
+            if pk is not None
+            else None
+        )
+        if preparateur is None:
             raise PermissionDenied
+        request.preparateur = preparateur  # type: ignore[attr-defined]
         return None

@@ -1,19 +1,22 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Connexion · Suivi de charge U19</title>
-</head>
-<body>
-  <main>
-    <h1>Connexion</h1>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-      <button type="submit">Se connecter</button>
-    </form>
-  </main>
-</body>
-</html>
+{% extends "suivi/base.html" %}
+
+{% block titre %}Connexion{% endblock %}
+
+{% block contenu %}
+<article class="connexion">
+  <h1>Connexion</h1>
+  <form method="post">
+    {% csrf_token %}
+    {% for erreur in form.non_field_errors %}
+    <p class="erreur" role="alert">{{ erreur }}</p>
+    {% endfor %}
+    {% for champ in form %}
+    <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
+    {{ champ }}
+    {% for erreur in champ.errors %}<small class="erreur">{{ erreur }}</small>{% endfor %}
+    {% endfor %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    <button type="submit">Se connecter</button>
+  </form>
+</article>
+{% endblock %}
