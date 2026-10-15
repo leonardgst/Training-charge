@@ -75,6 +75,8 @@ jobs:
       - run: uv run pytest tests/unit tests/integration --cov=engine --cov=suivi --cov-branch
       - name: Seuil de couverture du moteur (95 % des branches)
         run: uv run coverage report --include='engine/*' --fail-under=95
+      - name: Seuil de couverture de la validation des saisies (90 % des branches)
+        run: uv run coverage report --include='suivi/forms.py' --fail-under=90
 
   migrations:
     runs-on: ubuntu-latest
