@@ -1,0 +1,5 @@
+# Paramètres de calcul du moteur. Chaque modification passe par une PR testée.
+# Valeurs provisoires tant que le préparateur ne les a pas validées (cadrage, règle 9).
+
+# ADR-0007 : charge de séance = moyenne des trois RPE × durée × facteur.
+facteur_echelle_charge = 10

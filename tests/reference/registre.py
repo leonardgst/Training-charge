@@ -27,6 +27,10 @@ PR_PREVUE: dict[str, str] = {
     "C15": "3.5",
 }
 CAS = tuple(f"C{numero:02d}" for numero in range(1, 16))
+# Cas d'intégration seulement (table de la section 8 de la stratégie de tests) : ils
+# vérifient ce que fait l'adaptateur (brouillons, date de rétrospection, catégories,
+# configuration en cours de saison) et ne tournent pas sans base.
+INTEGRATION_SEULE = frozenset({"C05", "C09", "C10", "C15"})
 
 # Seules ces exceptions signalent « pas encore écrit » ; tout autre échec (erreur du
 # harnais, par exemple) reste un échec franc.
@@ -41,8 +45,9 @@ def marque_xfail(cas: str) -> pytest.MarkDecorator:
     )
 
 
-def parametres_des_cas() -> list[object]:
+def parametres_des_cas(*, sans_base: bool = False) -> list[object]:
     return [
         pytest.param(cas, marks=marque_xfail(cas) if cas in PR_PREVUE else (), id=cas)
         for cas in CAS
+        if not (sans_base and cas in INTEGRATION_SEULE)
     ]

@@ -1,13 +1,16 @@
 """Exécution d'un cas : chargement en base et appels du moteur.
 
-`charger_en_base` fait partie du harnais et est testé dès la PR 3.1. Les deux fonctions
-`executer_*` sont les deux points de branchement sur le code testé ; elles seront écrites
-avec le moteur (PR 3.2) et en attendant refusent de s'exécuter.
+`charger_en_base` fait partie du harnais. Les deux fonctions `executer_*` sont les deux
+points de branchement sur le code testé : elles étendent leurs résultats à chaque PR de la
+phase 3 (ici, la charge du jour).
 """
 
+import dataclasses
 import datetime
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 
+from engine.charge import calendrier
+from engine.modeles import JourCalcule, Parametres, ParticipationValidee
 from tests.reference.harnais import CasReference, Cle, Resultat
 
 DATE_DE_NAISSANCE = datetime.date(2007, 1, 1)
@@ -93,13 +96,62 @@ def charger_en_base(cas: CasReference) -> dict[str, int]:
     return {nom: joueur.pk for nom, joueur in joueurs.items()}
 
 
+def _resultats(
+    nom: str, jours: Sequence[JourCalcule], date_calcul: datetime.date
+) -> dict[Cle, Resultat]:
+    return {
+        (nom, jour.jour, "charge_jour"): Resultat(jour.charge_jour, "ok")
+        for jour in jours
+        if jour.jour <= date_calcul
+    }
+
+
+def parametres_du_cas(cas: CasReference) -> Parametres:
+    """Paramètres de `config/calcul.toml`, surchargés par le `[parametres]` du cas."""
+    from suivi.calculs import lire_parametres
+
+    return dataclasses.replace(lire_parametres(), **cas.parametres)  # type: ignore[arg-type]
+
+
 def executer_sans_base(cas: CasReference, date_calcul: datetime.date) -> Mapping[Cle, Resultat]:
-    """Appelle directement le moteur sur les données du cas, sans base (retour rapide)."""
-    raise NotImplementedError("engine/ n'existe pas encore")
+    """Appelle directement le moteur sur les données du cas, sans base (retour rapide).
+
+    Réservé aux cas sans brouillon : écarter les brouillons est le rôle de l'adaptateur,
+    et les cas qui le vérifient (C5, C9, C10, C15) ne tournent que sur la base.
+    """
+    if any(seance.statut != "validee" for seance in cas.seances):
+        raise ValueError(f"{cas.nom} : un brouillon ne se teste que sur la base")
+    parametres = parametres_du_cas(cas)
+    dates = {seance.id: seance for seance in cas.seances}
+    obtenu: dict[Cle, Resultat] = {}
+    for nom in cas.joueurs:
+        participations = []
+        for p in cas.participations:
+            if p.joueur != nom:
+                continue
+            seance = dates[p.seance_id]
+            if p.rpe_cardio is None or p.rpe_musculaire is None or p.rpe_teta is None:
+                raise ValueError(f"{cas.nom} : RPE manquant dans une séance validée")
+            participations.append(
+                ParticipationValidee(
+                    seance.date, seance.duree_min, p.rpe_cardio, p.rpe_musculaire, p.rpe_teta
+                )
+            )
+        obtenu.update(
+            _resultats(nom, calendrier(participations, parametres, date_calcul), date_calcul)
+        )
+    return obtenu
 
 
 def executer_sur_base(
     cas: CasReference, joueurs: Mapping[str, int], date_calcul: datetime.date
 ) -> Mapping[Cle, Resultat]:
     """Appelle l'adaptateur puis le moteur sur la base chargée ; cette version fait foi."""
-    raise NotImplementedError("suivi/calculs.py n'existe pas encore")
+    from suivi.calculs import calculer_joueur
+
+    parametres = parametres_du_cas(cas)
+    obtenu: dict[Cle, Resultat] = {}
+    for nom, joueur_id in joueurs.items():
+        jours = calculer_joueur(joueur_id, date_calcul, parametres)
+        obtenu.update(_resultats(nom, jours, date_calcul))
+    return obtenu
