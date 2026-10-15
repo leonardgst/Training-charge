@@ -2,6 +2,7 @@
 
 import datetime
 from dataclasses import dataclass
+from enum import StrEnum
 
 
 @dataclass(frozen=True)
@@ -11,6 +12,9 @@ class Parametres:
     facteur_echelle_charge: float
     fenetre_courte_jours: int
     fenetre_longue_jours: int
+    reference_jours: int
+    reference_min_jours: int
+    tolerance_ecart_type_nul: float
 
 
 @dataclass(frozen=True)
@@ -41,3 +45,20 @@ class ChargesGlissantes:
     ce_longue: float
     courte_incomplete: bool
     longue_incomplete: bool
+
+
+class Etat(StrEnum):
+    """État d'une grandeur ; les valeurs sont celles de `attendu.csv`."""
+
+    OK = "ok"
+    HISTORIQUE_INSUFFISANT = "historique_insuffisant"
+    NON_CALCULABLE = "non_calculable"
+
+
+@dataclass(frozen=True)
+class ZScore:
+    """Z-score d'un jour : `valeur` n'existe que si `etat` vaut `Etat.OK`."""
+
+    jour: datetime.date
+    valeur: float | None
+    etat: Etat

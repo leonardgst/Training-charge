@@ -13,7 +13,14 @@ from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 
 from engine.charge import calendrier, charges_glissantes
-from engine.modeles import ChargesGlissantes, JourCalcule, Parametres, ParticipationValidee
+from engine.modeles import (
+    ChargesGlissantes,
+    JourCalcule,
+    Parametres,
+    ParticipationValidee,
+    ZScore,
+)
+from engine.zscore import intensite
 from suivi.models import Participation, StatutSeance
 
 CHEMIN_PARAMETRES = Path(__file__).resolve().parent.parent / "config" / "calcul.toml"
@@ -23,13 +30,20 @@ def lire_parametres(chemin: Path = CHEMIN_PARAMETRES) -> Parametres:
     """Lit et valide `config/calcul.toml` ; toute anomalie interrompt le démarrage."""
     with chemin.open("rb") as fichier:
         brut = tomllib.load(fichier)
-    entiers = ("fenetre_courte_jours", "fenetre_longue_jours")
-    attendues = {"facteur_echelle_charge", *entiers}
+    entiers = (
+        "fenetre_courte_jours",
+        "fenetre_longue_jours",
+        "reference_jours",
+        "reference_min_jours",
+    )
+    positifs = ("facteur_echelle_charge", "tolerance_ecart_type_nul")
+    attendues = {*positifs, *entiers}
     if set(brut) != attendues:
         raise ImproperlyConfigured(f"{chemin.name} : clés attendues {sorted(attendues)}")
-    facteur = brut["facteur_echelle_charge"]
-    if isinstance(facteur, bool) or not isinstance(facteur, int | float) or facteur <= 0:
-        raise ImproperlyConfigured(f"{chemin.name} : facteur_echelle_charge doit être positif")
+    for cle in positifs:
+        valeur = brut[cle]
+        if isinstance(valeur, bool) or not isinstance(valeur, int | float) or valeur <= 0:
+            raise ImproperlyConfigured(f"{chemin.name} : {cle} doit être positif")
     for cle in entiers:
         if isinstance(brut[cle], bool) or not isinstance(brut[cle], int) or brut[cle] < 1:
             raise ImproperlyConfigured(f"{chemin.name} : {cle} doit être un entier d'au moins 1")
@@ -37,10 +51,17 @@ def lire_parametres(chemin: Path = CHEMIN_PARAMETRES) -> Parametres:
         raise ImproperlyConfigured(
             f"{chemin.name} : fenetre_courte_jours doit être inférieure à fenetre_longue_jours"
         )
+    if not 2 <= brut["reference_min_jours"] <= brut["reference_jours"]:
+        raise ImproperlyConfigured(
+            f"{chemin.name} : reference_min_jours doit être compris entre 2 et reference_jours"
+        )
     return Parametres(
-        facteur_echelle_charge=float(facteur),
+        facteur_echelle_charge=float(brut["facteur_echelle_charge"]),
         fenetre_courte_jours=brut["fenetre_courte_jours"],
         fenetre_longue_jours=brut["fenetre_longue_jours"],
+        reference_jours=brut["reference_jours"],
+        reference_min_jours=brut["reference_min_jours"],
+        tolerance_ecart_type_nul=float(brut["tolerance_ecart_type_nul"]),
     )
 
 
@@ -72,3 +93,10 @@ def calculer_charges_glissantes(
 ) -> list[ChargesGlissantes]:
     """CE courte et CE longue d'un joueur pour chaque jour de son calendrier."""
     return charges_glissantes(calculer_joueur(joueur_id, date_calcul, parametres), parametres)
+
+
+def calculer_intensite(
+    joueur_id: int, date_calcul: datetime.date, parametres: Parametres
+) -> list[ZScore]:
+    """Z-score d'intensité d'un joueur pour chaque jour de son calendrier."""
+    return intensite(calculer_charges_glissantes(joueur_id, date_calcul, parametres), parametres)
