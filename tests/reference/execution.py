@@ -2,7 +2,7 @@
 
 `charger_en_base` fait partie du harnais. Les deux fonctions `executer_*` sont les deux
 points de branchement sur le code testé : elles étendent leurs résultats à chaque PR de la
-phase 3 (ici, la charge du jour, la CE courte et la CE longue).
+phase 3 (ici, la charge du jour, la CE courte, la CE longue et l'intensité).
 """
 
 import dataclasses
@@ -11,6 +11,7 @@ from collections.abc import Mapping, Sequence
 
 from engine.charge import calendrier, charges_glissantes
 from engine.modeles import JourCalcule, Parametres, ParticipationValidee
+from engine.zscore import intensite
 from tests.reference.harnais import CasReference, Cle, Resultat
 
 DATE_DE_NAISSANCE = datetime.date(2007, 1, 1)
@@ -103,10 +104,14 @@ def _resultats(
     for jour in jours:
         if jour.jour <= date_calcul:
             obtenu[(nom, jour.jour, "charge_jour")] = Resultat(jour.charge_jour, "ok")
-    for glissante in charges_glissantes(jours, parametres):
+    glissantes = charges_glissantes(jours, parametres)
+    for glissante in glissantes:
         if glissante.jour <= date_calcul:
             obtenu[(nom, glissante.jour, "ce_courte")] = Resultat(glissante.ce_courte, "ok")
             obtenu[(nom, glissante.jour, "ce_longue")] = Resultat(glissante.ce_longue, "ok")
+    for z in intensite(glissantes, parametres):
+        if z.jour <= date_calcul:
+            obtenu[(nom, z.jour, "intensite")] = Resultat(z.valeur, z.etat.value)
     return obtenu
 
 

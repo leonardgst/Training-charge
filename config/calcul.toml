@@ -7,3 +7,8 @@ facteur_echelle_charge = 10
 # ADR-0011 : fenêtres glissantes en jours, jour courant inclus.
 fenetre_courte_jours = 7
 fenetre_longue_jours = 28
+
+# ADR-0012 : référence du z-score d'intensité, jour courant exclu.
+reference_jours = 28
+reference_min_jours = 21
+tolerance_ecart_type_nul = 1e-9

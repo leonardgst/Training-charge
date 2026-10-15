@@ -9,15 +9,15 @@ from pathlib import Path
 
 import pytest
 
-from engine.modeles import ChargesGlissantes, JourCalcule, Parametres
-from suivi.calculs import calculer_charges_glissantes, calculer_joueur
+from engine.modeles import ChargesGlissantes, Etat, JourCalcule, Parametres
+from suivi.calculs import calculer_charges_glissantes, calculer_intensite, calculer_joueur
 from tests.reference.execution import charger_en_base, executer_sans_base, executer_sur_base
 from tests.reference.harnais import CasReference, lire_cas
 from tests.reference.synthese import ecrire_cas
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
-PARAMETRES = Parametres(10, 7, 28)
+PARAMETRES = Parametres(10, 7, 28, 28, 21, 1e-9)
 LUNDI = datetime.date(2026, 1, 5)
 MARDI = datetime.date(2026, 1, 6)
 ENTETE = "seance_id,joueur,rpe_cardio,rpe_musculaire,rpe_teta\n"
@@ -138,3 +138,30 @@ def test_les_ce_sont_comparees_par_les_deux_chemins(tmp_path: Path) -> None:
     assert sans_base[("J1", jour, "ce_courte")].valeur == 0.0
     assert sans_base[("J1", jour, "ce_longue")].valeur == 300.0
     assert sans_base[("J1", LUNDI + datetime.timedelta(days=6), "ce_courte")].valeur == 300.0
+
+
+def test_l_intensite_d_un_historique_court_est_insuffisante_et_les_deux_chemins_concordent(
+    tmp_path: Path,
+) -> None:
+    seances = "id,date,categorie,type,duree_min,statut\nS1,2026-01-05,U19,foot,60,validee\n"
+    cas = _cas(
+        tmp_path,
+        **{
+            "seances.csv": seances,
+            "participations.csv": ENTETE + "S1,J1,5,6,4\n",
+            "joueurs.csv": "joueur,categorie\nJ1,U19\n",
+            "indicateurs.csv": None,
+            "reponses.csv": None,
+            "attendu.csv": None,
+        },
+    )
+    joueurs = charger_en_base(cas)
+    jour = LUNDI + datetime.timedelta(days=40)
+    z = calculer_intensite(joueurs["J1"], jour, PARAMETRES)
+    assert len(z) == 41
+    # Une seule séance suivie de jours à 0 : la référence est constante ou trop courte.
+    assert all(r.etat in Etat for r in z)
+    assert executer_sans_base(cas, jour) == executer_sur_base(cas, joueurs, jour)
+    assert executer_sur_base(cas, joueurs, jour)[("J1", LUNDI, "intensite")].etat == (
+        "historique_insuffisant"
+    )
