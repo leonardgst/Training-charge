@@ -3,16 +3,22 @@
 
 {% block titre %}Séance du {{ seance.date|date:"d/m/Y" }}{% endblock %}
 
-{% block scripts %}{% if brouillon %}<script src="{% static 'suivi/js/grille.js' %}" defer></script>{% endif %}{% endblock %}
+{% block scripts %}{% if edition %}<script src="{% static 'suivi/js/grille.js' %}" defer></script>{% endif %}{% endblock %}
 
 {% block contenu %}
 <hgroup>
   <h1>Séance du {{ seance.date|date:"l j F Y" }}</h1>
   <p>{{ seance.get_type_display }} · {{ seance.duree_min }} min · {{ seance.get_statut_display }}</p>
 </hgroup>
+<p class="trace"><small>Dernière modification le {{ seance.updated_at|date:"d/m/Y à H:i" }}{% if seance.updated_by %} par {{ seance.updated_by.get_username }}{% endif %}.</small></p>
+<p class="liens">
+  <a href="{% url 'seance_modifier' seance.pk %}">Modifier l’en-tête</a>
+  <a href="{% url 'seance_supprimer' seance.pk %}">Supprimer la séance</a>
+  <a href="{% url 'seances' %}">Toutes les séances</a>
+</p>
 
-{% if brouillon %}
-<h2>Grille RPE</h2>
+{% if edition %}
+<h2>{% if correction %}Corriger la grille RPE{% else %}Grille RPE{% endif %}</h2>
 {% if grille.errors %}
 <div class="erreur" role="alert">
   {% for erreur in grille.non_field_errors %}<p>{{ erreur }}</p>{% endfor %}
@@ -24,11 +30,11 @@
 {% if grille.participations %}
 <form method="post" action="{% url 'seance_grille' seance.pk %}">
   {% csrf_token %}
-  <p>Échelle de 0 à 10. La touche Tab passe à la case suivante, ligne après ligne.</p>
+  <p>Échelle de 0 à 10. La touche Tab passe à la case suivante, ligne après ligne.{% if correction %} La séance reste validée : chaque case doit rester remplie.{% endif %}</p>
   <div class="overflow-auto">
     <table class="grille-rpe">
       <thead>
-        <tr><th scope="col">Joueur</th>{% for long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}</tr>
+        <tr><th scope="col">Joueur</th>{% for champ, long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}</tr>
       </thead>
       <tbody>
         {% for participation, cases in grille.lignes %}
@@ -41,8 +47,13 @@
     </table>
   </div>
   <div class="boutons">
+    {% if correction %}
+    <button type="submit" name="corriger">Enregistrer les corrections</button>
+    <a href="{% url 'seance' seance.pk %}" role="button" class="secondary outline">Annuler</a>
+    {% else %}
     <button type="submit" name="enregistrer" class="secondary">Enregistrer le brouillon</button>
     <button type="submit" name="valider">Valider la séance</button>
+    {% endif %}
   </div>
 </form>
 {% else %}
@@ -51,7 +62,7 @@
 
 <details{% if recherche or not participations %} open{% endif %}>
   <summary><h2>Participants ({{ participations|length }})</h2></summary>
-  <p>Retirer un absent ou ajouter un joueur recharge la page : enregistrez d’abord le brouillon.</p>
+  <p>Retirer un absent ou ajouter un joueur recharge la page : enregistrez d’abord {% if correction %}vos corrections{% else %}le brouillon{% endif %}.</p>
   {% if participations %}
   <div class="overflow-auto">
     <table>
@@ -79,7 +90,7 @@
   {% endif %}
 
   <h3>Ajouter un joueur</h3>
-  <p>Un absent revenu, ou un joueur d’une autre catégorie qui s’entraîne avec le groupe.</p>
+  <p>Un absent revenu, ou un joueur d’une autre catégorie qui s’entraîne avec le groupe.{% if correction %} Dans une séance validée, ses trois RPE se saisissent avec l’ajout.{% endif %}</p>
   <form method="get" role="search">
     <input type="search" name="q" value="{{ recherche }}" placeholder="Nom ou prénom" aria-label="Nom ou prénom du joueur">
     <button type="submit">Rechercher</button>
@@ -87,18 +98,25 @@
   {% if recherche %}
   {% if resultats %}
   <div class="overflow-auto">
-    <table>
+    <table{% if correction %} class="grille-rpe"{% endif %}>
       <thead>
-        <tr><th scope="col">Joueur</th><th scope="col">Catégorie</th><th scope="col">Action</th></tr>
+        <tr><th scope="col">Joueur</th>{% if correction %}{% for champ, long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}{% else %}<th scope="col">Catégorie</th>{% endif %}<th scope="col">Action</th></tr>
       </thead>
       <tbody>
         {% for ligne in resultats %}
         <tr>
+          {% if correction %}
+          <td><strong>{{ ligne.nom }}</strong> {{ ligne.prenom }} <small>({{ ligne.categorie_reference__code }})</small></td>
+          {% for champ, long, court in colonnes %}
+          <td><input class="rpe" form="ajout-{{ ligne.pk }}" name="{{ champ }}" inputmode="numeric" pattern="(?:0|1|2|3|4|5|6|7|8|9|10)" maxlength="2" autocomplete="off" required aria-label="RPE {{ long|lower }} de {{ ligne.prenom }} {{ ligne.nom }}"></td>
+          {% endfor %}
+          {% else %}
           <td><strong>{{ ligne.nom }}</strong> {{ ligne.prenom }}</td>
           <td>{{ ligne.categorie_reference__code }}</td>
+          {% endif %}
           <td>
             <div class="actions">
-              <form method="post" action="{% url 'participant_ajouter' seance.pk %}">
+              <form method="post" action="{% url 'participant_ajouter' seance.pk %}" id="ajout-{{ ligne.pk }}">
                 {% csrf_token %}
                 <input type="hidden" name="joueur" value="{{ ligne.pk }}">
                 <input type="hidden" name="q" value="{{ recherche }}">
@@ -125,7 +143,7 @@
 <div class="overflow-auto">
   <table class="grille-rpe">
     <thead>
-      <tr><th scope="col">Joueur</th>{% for long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}<th scope="col">Charge</th></tr>
+      <tr><th scope="col">Joueur</th>{% for champ, long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}<th scope="col">Charge</th></tr>
     </thead>
     <tbody>
       {% for participation, charge in validees %}
@@ -144,6 +162,6 @@
 {% else %}
 <p>Aucun participant.</p>
 {% endif %}
-<p>Cette séance est validée : ses participants ne changent plus ici.</p>
+<p><a href="{% url 'seance_corriger' seance.pk %}" role="button">Corriger les RPE ou les participants</a></p>
 {% endif %}
 {% endblock %}

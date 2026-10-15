@@ -1,0 +1,39 @@
+{% extends "suivi/base.html" %}
+
+{% block titre %}Séances{% endblock %}
+
+{% block contenu %}
+<h1>Séances</h1>
+<p><a href="{% url 'seance_creer' %}" role="button">Nouvelle séance</a></p>
+{% if page.object_list %}
+<div class="overflow-auto">
+  <table>
+    <thead>
+      <tr><th scope="col">Date</th><th scope="col">Type</th><th scope="col" class="large">Durée</th><th scope="col" class="large">Participants</th><th scope="col">Statut</th></tr>
+    </thead>
+    <tbody>
+      {% for seance in page.object_list %}
+      <tr>
+        <td><a href="{% url 'seance' seance.pk %}">{{ seance.date|date:"D d/m/Y" }}</a></td>
+        <td>{{ seance.get_type_display }}</td>
+        <td class="large">{{ seance.duree_min }} min</td>
+        <td class="large">{{ seance.nombre_participants }}</td>
+        <td>{% if seance.statut == "brouillon" %}<mark>Brouillon</mark>{% else %}Validée{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if page.has_other_pages %}
+<nav aria-label="Pages de l’historique">
+  <ul>
+    {% if page.has_previous %}<li><a href="?page={{ page.previous_page_number }}">Plus récentes</a></li>{% endif %}
+    <li>Page {{ page.number }} sur {{ page.paginator.num_pages }}</li>
+    {% if page.has_next %}<li><a href="?page={{ page.next_page_number }}">Plus anciennes</a></li>{% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% else %}
+<p>Aucune séance dans la catégorie.</p>
+{% endif %}
+{% endblock %}

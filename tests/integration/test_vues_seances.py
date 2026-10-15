@@ -394,16 +394,33 @@ def test_a3_l_autre_preparateur_n_ajoute_rien_a_ses_seances(monde: Monde) -> Non
     assert _nombres() == (1, 0)
 
 
-def test_rien_ne_s_ajoute_a_une_seance_validee(monde: Monde) -> None:
+def test_a_une_seance_validee_un_joueur_ne_s_ajoute_qu_avec_ses_trois_rpe(monde: Monde) -> None:
+    # PR 4.5 : une séance validée se corrige, participants compris (ADR-0008, US-06) ; jusqu'à
+    # la PR 4.4, rien ne s'y ajoutait. Sans ses trois RPE, l'ajout reste refusé.
     seance = monde.seance_validee()
     client = monde.client()
+    url = f"/seances/{seance.pk}/participants/ajouter/"
 
-    reponse = client.post(f"/seances/{seance.pk}/participants/ajouter/", {"joueur": monde.leroy.pk})
+    reponse = client.post(url, {"joueur": monde.leroy.pk})
 
-    assert reponse["Location"] == f"/seances/{seance.pk}/"
+    assert reponse["Location"] == f"/seances/{seance.pk}/corriger/"
     assert Participation.objects.filter(seance=seance).count() == 1
     page = client.get(reponse["Location"]).content.decode()
-    assert "Cette séance est validée : ses participants ne changent plus ici." in page
+    assert (
+        "Pour ajouter Noah Leroy à une séance validée, saisissez ses trois RPE, de 0 à 10." in page
+    )
+
+    rpe = {"rpe_cardio": "6", "rpe_musculaire": "11", "rpe_teta": "4"}
+    client.post(url, {"joueur": monde.leroy.pk, **rpe})
+    assert Participation.objects.filter(seance=seance).count() == 1
+
+    client.post(url, {"joueur": monde.leroy.pk, **rpe, "rpe_musculaire": "5"})
+    ajoutee = Participation.objects.get(seance=seance, joueur=monde.leroy)
+    assert (ajoutee.rpe_cardio, ajoutee.rpe_musculaire, ajoutee.rpe_teta) == (6, 5, 4)
+    assert ajoutee.updated_by == monde.compte19
+    seance.refresh_from_db()
+    assert seance.statut == "validee"
+    assert seance.updated_by == monde.compte19
 
 
 # --- Retrait d'un absent --------------------------------------------------------------
@@ -452,16 +469,37 @@ def test_a3_l_autre_preparateur_ne_retire_personne_de_ses_seances(monde: Monde) 
     assert _nombres() == (1, 1)
 
 
-def test_personne_ne_se_retire_d_une_seance_validee(monde: Monde) -> None:
+def test_le_dernier_participant_d_une_seance_validee_ne_se_retire_pas(monde: Monde) -> None:
+    # PR 4.5 : un absent se retire d'une séance validée (test suivant) ; jusqu'à la PR 4.4,
+    # personne ne s'en retirait. Le dernier reste : une séance validée vide n'a pas de sens.
     seance = monde.seance_validee()
     participation = Participation.objects.get(seance=seance)
+    client = monde.client()
+
+    reponse = client.post(f"/seances/{seance.pk}/participations/{participation.pk}/retirer/")
+
+    assert reponse["Location"] == f"/seances/{seance.pk}/corriger/"
+    assert Participation.objects.filter(seance=seance).count() == 1
+    page = client.get(reponse["Location"]).content.decode()
+    assert "Une séance validée garde au moins un participant" in page
+
+
+def test_un_absent_se_retire_d_une_seance_validee_qui_reste_validee(monde: Monde) -> None:
+    seance = monde.seance_validee()
+    Participation.objects.create(
+        seance=seance, joueur=monde.abel, rpe_cardio=3, rpe_musculaire=3, rpe_teta=3
+    )
+    participation = Participation.objects.get(seance=seance, joueur=monde.abel)
 
     reponse = monde.client().post(
         f"/seances/{seance.pk}/participations/{participation.pk}/retirer/"
     )
 
-    assert reponse["Location"] == f"/seances/{seance.pk}/"
-    assert Participation.objects.filter(seance=seance).count() == 1
+    assert reponse["Location"] == f"/seances/{seance.pk}/corriger/"
+    assert [p.joueur for p in Participation.objects.filter(seance=seance)] == [monde.dupont]
+    seance.refresh_from_db()
+    assert seance.statut == "validee"
+    assert seance.updated_by == monde.compte19
 
 
 @pytest.mark.parametrize("action", ["participants/ajouter", "participations/1/retirer"])

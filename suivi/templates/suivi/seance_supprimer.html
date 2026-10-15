@@ -1,0 +1,16 @@
+{% extends "suivi/base.html" %}
+
+{% block titre %}Supprimer la séance du {{ seance.date|date:"d/m/Y" }}{% endblock %}
+
+{% block contenu %}
+<h1>Supprimer la séance du {{ seance.date|date:"l j F Y" }} ?</h1>
+<p>{{ seance.get_type_display }} · {{ seance.duree_min }} min · {{ seance.get_statut_display }} · {{ participants }} participant{{ participants|pluralize }}.</p>
+<p><strong>La suppression est définitive</strong> : la séance et les RPE de ses participants disparaissent, et les charges de ces joueurs sont recalculées sans elle.</p>
+<form method="post">
+  {% csrf_token %}
+  <div class="boutons">
+    <button type="submit" class="supprimer">Supprimer définitivement</button>
+    <a href="{% url 'seance' seance.pk %}" role="button" class="secondary outline">Annuler</a>
+  </div>
+</form>
+{% endblock %}

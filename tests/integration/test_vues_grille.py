@@ -279,18 +279,46 @@ def test_une_grille_perimee_est_refusee(monde: Monde) -> None:
     assert _rpe(monde.abel) == (None, None, None)
 
 
-def test_une_seance_validee_ne_se_modifie_pas_par_la_grille(monde: Monde) -> None:
+def test_une_seance_validee_ne_perd_jamais_un_rpe_par_la_grille(monde: Monde) -> None:
+    # PR 4.5 : une séance validée se corrige par la grille (test suivant) ; jusqu'à la PR 4.4,
+    # sa grille était refusée. Une case vidée reste refusée : elle garde ses trois RPE.
     monde.poster(monde.grille(**COMPLETE), action="valider")
+
+    reponse = monde.poster(monde.grille(**{**COMPLETE, "abel": ("5", "", "4")}))
+
+    assert reponse.status_code == 200
+    page = reponse.content.decode()
+    assert (
+        "Une séance validée garde les trois RPE de chaque participant : 1 case(s) vide(s)." in page
+    )
+    assert "Enregistrer les corrections" in page
+    assert _rpe(monde.abel) == (5, 6, 4)
+    monde.seance.refresh_from_db()
+    assert monde.seance.statut == "validee"
+
+
+def test_une_seance_validee_se_corrige_et_reste_validee(monde: Monde) -> None:
+    monde.poster(monde.grille(**COMPLETE), action="valider")
+    avant = Seance.objects.get(pk=monde.seance.pk).validated_at
     client = monde.client()
 
-    reponse = client.post(
-        f"/seances/{monde.seance.pk}/grille/", {**monde.grille(**COMPLETE), "abel": ""}
+    reponse = monde.poster(
+        monde.grille(**{**COMPLETE, "dupont": ("9", "7", "7")}), action="corriger", client=client
     )
 
     assert reponse["Location"] == f"/seances/{monde.seance.pk}/"
-    assert _rpe(monde.abel) == (5, 6, 4)
-    page = client.get(reponse["Location"]).content.decode()
-    assert "Cette séance est validée : ses RPE ne se modifient plus ici." in page
+    assert _rpe(monde.dupont) == (9, 7, 7)
+    assert monde.dupont.updated_by == monde.compte19
+    monde.seance.refresh_from_db()
+    assert monde.seance.statut == "validee"
+    assert monde.seance.validated_at == avant
+    reponse = client.get(reponse["Location"])
+    assert "Les corrections sont enregistrées : les charges sont recalculées." in (
+        reponse.content.decode()
+    )
+    # Calculée à la main : (9 + 7 + 7) / 3 × 90 × 10 = 6900.
+    charges = {p.joueur.nom: charge for p, charge in reponse.context["validees"]}
+    assert charges["Dupont"] == pytest.approx(6900.0, rel=1e-9)
 
 
 def test_a3_l_autre_preparateur_ne_saisit_rien_dans_ses_seances(monde: Monde) -> None:

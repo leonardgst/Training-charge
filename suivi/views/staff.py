@@ -7,8 +7,9 @@ Le préparateur connecté est posé sur `request.preparateur` par
 from urllib.parse import urlencode
 
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q, QuerySet
+from django.db.models import Count, Q, QuerySet
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -17,13 +18,22 @@ from django.views.decorators.http import require_http_methods, require_POST, req
 
 from suivi.acces import annuaire, joueurs_suivis, participations_visibles, seances_organisees
 from suivi.calculs import charges_de_seance, parametres
-from suivi.forms import COLONNES_RPE, GrilleRpeForm, JoueurForm, SeanceForm
+from suivi.forms import (
+    COLONNES_RPE,
+    GrilleRpeForm,
+    JoueurForm,
+    RpeParticipantForm,
+    SeanceEnteteForm,
+    SeanceForm,
+)
 from suivi.horloge import aujourd_hui
 from suivi.middleware import RequeteStaff
 from suivi.models import Joueur, Participation, Seance, StatutSeance, TypeSeance
 
 # Nombre maximal de joueurs affichés par une recherche dans l'annuaire.
 RESULTATS_ANNUAIRE = 20
+# Séances par page de l'historique.
+SEANCES_PAR_PAGE = 30
 
 
 def _joueur_suivi(request: RequeteStaff, pk: int) -> Joueur:
@@ -141,6 +151,18 @@ def seance_creer(request: RequeteStaff) -> HttpResponse:
     return render(request, "suivi/seance_creer.html", {"rubrique": "nouvelle_seance", "form": form})
 
 
+@require_safe
+def seances(request: RequeteStaff) -> HttpResponse:
+    """Historique des séances de sa catégorie, des plus récentes aux plus anciennes (US-06)."""
+    toutes = (
+        seances_organisees(request.preparateur)
+        .annotate(nombre_participants=Count("participations"))
+        .order_by("-date", "-pk")
+    )
+    page = Paginator(toutes, SEANCES_PAR_PAGE).get_page(request.GET.get("page"))
+    return render(request, "suivi/seances.html", {"rubrique": "seances", "page": page})
+
+
 def _participations(request: RequeteStaff, seance: Seance) -> list[Participation]:
     return list(
         participations_visibles(request.preparateur)
@@ -151,14 +173,18 @@ def _participations(request: RequeteStaff, seance: Seance) -> list[Participation
 
 
 def _page_seance(
-    request: RequeteStaff, seance: Seance, grille: GrilleRpeForm | None = None
+    request: RequeteStaff,
+    seance: Seance,
+    grille: GrilleRpeForm | None = None,
+    correction: bool = False,
 ) -> HttpResponse:
-    """En brouillon : grille RPE, puis participants et annuaire. Validée : RPE et charges."""
+    """Brouillon ou correction : grille RPE, puis participants et annuaire.
+    Séance validée, en lecture : RPE et charges calculées par le moteur."""
     participations = _participations(request, seance)
-    brouillon = seance.statut == StatutSeance.BROUILLON
+    edition = seance.statut == StatutSeance.BROUILLON or correction
     recherche = request.GET.get("q", "").strip()
     resultats = []
-    if recherche and brouillon:
+    if recherche and edition:
         resultats = list(
             annuaire(request.preparateur)
             .filter(Q(nom__icontains=recherche) | Q(prenom__icontains=recherche))
@@ -166,24 +192,31 @@ def _page_seance(
                 :RESULTATS_ANNUAIRE
             ]
         )
-    if brouillon and grille is None:
-        grille = GrilleRpeForm(participations=participations)
+    if edition and grille is None:
+        grille = GrilleRpeForm(participations=participations, correction=correction)
     # Charges calculées par le moteur (phase 3) : aucune formule n'est réécrite ici.
-    charges = charges_de_seance(seance, participations, parametres())
+    charges = {} if edition else charges_de_seance(seance, participations, parametres())
     return render(
         request,
         "suivi/seance.html",
         {
+            "rubrique": "seances",
             "seance": seance,
-            "brouillon": brouillon,
+            "brouillon": seance.statut == StatutSeance.BROUILLON,
+            "edition": edition,
+            "correction": correction,
             "grille": grille,
             "participations": participations,
-            "validees": [(p, charges[p.pk]) for p in participations] if not brouillon else [],
+            "validees": [(p, charges[p.pk]) for p in participations] if not edition else [],
             "recherche": recherche,
             "resultats": resultats,
             "limite": RESULTATS_ANNUAIRE,
-            # Libellé de chaque colonne de RPE, et sa forme courte sur téléphone.
-            "colonnes": [("Cardio", "Card."), ("Musculaire", "Musc."), ("TETA", "TETA")],
+            # Champ de chaque colonne de RPE, son libellé, et sa forme courte sur téléphone.
+            "colonnes": [
+                ("rpe_cardio", "Cardio", "Card."),
+                ("rpe_musculaire", "Musculaire", "Musc."),
+                ("rpe_teta", "TETA", "TETA"),
+            ],
         },
     )
 
@@ -194,19 +227,30 @@ def seance_detail(request: RequeteStaff, pk: int) -> HttpResponse:
     return _page_seance(request, _seance_organisee(request, pk))
 
 
+@require_safe
+def seance_corriger(request: RequeteStaff, pk: int) -> HttpResponse:
+    """Correction directe d'une séance validée : elle reste validée (ADR-0008, US-06)."""
+    seance = _seance_organisee(request, pk)
+    if seance.statut != StatutSeance.VALIDEE:
+        return redirect("seance", pk=pk)  # un brouillon se modifie sur sa propre page
+    return _page_seance(request, seance, correction=True)
+
+
 @require_POST
 def seance_grille(request: RequeteStaff, pk: int) -> HttpResponse:
-    """Enregistre la grille en brouillon (RPE facultatifs) ou valide la séance (US-05)."""
+    """Brouillon (RPE facultatifs), validation (US-05) ou correction d'une séance validée,
+    qui garde les trois RPE de chaque participant (US-06)."""
     seance = _seance_organisee(request, pk)
-    if seance.statut != StatutSeance.BROUILLON:
-        messages.error(request, "Cette séance est validée : ses RPE ne se modifient plus ici.")
-        return _retour_a_la_seance(pk)
-    valider = "valider" in request.POST
+    correction = seance.statut == StatutSeance.VALIDEE
+    valider = not correction and "valider" in request.POST
     grille = GrilleRpeForm(
-        request.POST, participations=_participations(request, seance), valider=valider
+        request.POST,
+        participations=_participations(request, seance),
+        valider=valider,
+        correction=correction,
     )
     if not grille.is_valid():
-        return _page_seance(request, seance, grille)
+        return _page_seance(request, seance, grille, correction=correction)
     champs = [champ for champ, _ in COLONNES_RPE]
     with transaction.atomic():
         for participation in grille.participations_modifiees():
@@ -218,24 +262,57 @@ def seance_grille(request: RequeteStaff, pk: int) -> HttpResponse:
             seance.statut = StatutSeance.VALIDEE
             seance.validated_at = timezone.now()
         seance.save()
-    if valider:
+    if correction:
+        messages.success(
+            request, "Les corrections sont enregistrées : les charges sont recalculées."
+        )
+    elif valider:
         messages.success(request, "La séance est validée : les charges sont calculées.")
     else:
         messages.success(request, "Le brouillon est enregistré.")
-    return _retour_a_la_seance(pk)
+    return redirect("seance", pk=pk)
 
 
-def _seance_en_brouillon(request: RequeteStaff, pk: int) -> Seance | None:
-    """Les participants ne se changent ici que sur un brouillon ; sinon, un message."""
+@require_http_methods(["GET", "HEAD", "POST"])
+def seance_modifier(request: RequeteStaff, pk: int) -> HttpResponse:
+    """Corrige la date, le type ou la durée ; la séance garde son statut (US-06)."""
     seance = _seance_organisee(request, pk)
-    if seance.statut != StatutSeance.BROUILLON:
-        messages.error(request, "Cette séance est validée : ses participants ne changent plus ici.")
-        return None
-    return seance
+    titre = seance.date
+    form = SeanceEnteteForm(request.POST if request.method == "POST" else None, instance=seance)
+    if form.is_valid():
+        seance = form.save(commit=False)
+        seance.updated_by = request.user
+        seance.save()
+        messages.success(request, "L’en-tête de la séance est modifié.")
+        return redirect("seance", pk=pk)
+    return render(
+        request,
+        "suivi/seance_modifier.html",
+        {"rubrique": "seances", "form": form, "seance": seance, "titre": titre},
+    )
 
 
-def _retour_a_la_seance(pk: int, recherche: str = "") -> HttpResponse:
-    url = reverse("seance", kwargs={"pk": pk})
+@require_http_methods(["GET", "HEAD", "POST"])
+def seance_supprimer(request: RequeteStaff, pk: int) -> HttpResponse:
+    """Suppression confirmée : la séance et ses participations disparaissent (ADR-0008)."""
+    seance = _seance_organisee(request, pk)
+    if request.method == "POST":
+        date = seance.date
+        seance.delete()
+        messages.success(request, f"La séance du {date:%d/%m/%Y} est supprimée.")
+        return redirect("seances")
+    participants = participations_visibles(request.preparateur).filter(seance=seance).count()
+    return render(
+        request,
+        "suivi/seance_supprimer.html",
+        {"rubrique": "seances", "seance": seance, "participants": participants},
+    )
+
+
+def _retour_a_la_seance(seance: Seance, recherche: str = "") -> HttpResponse:
+    """Retour à la grille où l'on était : la page du brouillon, ou la correction."""
+    vue = "seance" if seance.statut == StatutSeance.BROUILLON else "seance_corriger"
+    url = reverse(vue, kwargs={"pk": seance.pk})
     return redirect(url + ("?" + urlencode({"q": recherche}) if recherche else ""))
 
 
@@ -247,11 +324,12 @@ def _toucher(seance: Seance, request: RequeteStaff) -> None:
 
 @require_POST
 def participant_ajouter(request: RequeteStaff, pk: int) -> HttpResponse:
-    """Ajoute un joueur de l'annuaire : un absent revenu, ou un joueur invité (R24)."""
-    seance = _seance_en_brouillon(request, pk)
+    """Ajoute un joueur de l'annuaire : un absent revenu, ou un joueur invité (R24).
+
+    Dans une séance validée, ses trois RPE sont saisis d'emblée (ADR-0008).
+    """
+    seance = _seance_organisee(request, pk)
     recherche = request.POST.get("q", "").strip()
-    if seance is None:
-        return _retour_a_la_seance(pk)
     saisi = request.POST.get("joueur", "")
     # L'annuaire ne contient que des joueurs actifs : un archivé est introuvable ici.
     ligne = annuaire(request.preparateur).filter(pk=int(saisi)).first() if saisi.isdigit() else None
@@ -261,30 +339,42 @@ def participant_ajouter(request: RequeteStaff, pk: int) -> HttpResponse:
     deja = participations_visibles(request.preparateur).filter(seance=seance, joueur_id=ligne["pk"])
     if deja.exists():
         messages.info(request, f"{nom} participe déjà à la séance.")
-    else:
-        with transaction.atomic():
-            seance.participations.create(joueur_id=ligne["pk"], updated_by=request.user)
-            _toucher(seance, request)
-        messages.success(request, f"{nom} est ajouté à la séance.")
-    return _retour_a_la_seance(pk, recherche)
+        return _retour_a_la_seance(seance, recherche)
+    rpe = {}
+    if seance.statut == StatutSeance.VALIDEE:
+        saisie = RpeParticipantForm(request.POST)
+        if not saisie.is_valid():
+            messages.error(
+                request,
+                f"Pour ajouter {nom} à une séance validée, saisissez ses trois RPE, de 0 à 10.",
+            )
+            return _retour_a_la_seance(seance, recherche)
+        rpe = saisie.cleaned_data
+    with transaction.atomic():
+        seance.participations.create(joueur_id=ligne["pk"], updated_by=request.user, **rpe)
+        _toucher(seance, request)
+    messages.success(request, f"{nom} est ajouté à la séance.")
+    return _retour_a_la_seance(seance, recherche)
 
 
 @require_POST
 def participant_retirer(request: RequeteStaff, pk: int, participation_pk: int) -> HttpResponse:
     """Retire un absent ; ses éventuels RPE disparaissent avec sa participation."""
-    seance = _seance_en_brouillon(request, pk)
-    if seance is None:
-        return _retour_a_la_seance(pk)
+    seance = _seance_organisee(request, pk)
+    visibles = participations_visibles(request.preparateur)
     participation = (
-        participations_visibles(request.preparateur)
-        .filter(pk=participation_pk, seance=seance)
-        .select_related("joueur")
-        .first()
+        visibles.filter(pk=participation_pk, seance=seance).select_related("joueur").first()
     )
     if participation is None:
         raise Http404
+    if seance.statut == StatutSeance.VALIDEE and visibles.filter(seance=seance).count() == 1:
+        messages.error(
+            request,
+            "Une séance validée garde au moins un participant : pour l’annuler, supprimez-la.",
+        )
+        return _retour_a_la_seance(seance)
     with transaction.atomic():
         participation.delete()
         _toucher(seance, request)
     messages.success(request, f"{participation.joueur} est retiré de la séance.")
-    return _retour_a_la_seance(pk)
+    return _retour_a_la_seance(seance)

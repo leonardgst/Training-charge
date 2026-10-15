@@ -144,3 +144,16 @@ nav ul {
 summary h2 {
   display: inline;
 }
+
+/* Liens d'action sous l'en-tête d'une page. */
+.liens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--pico-spacing) / 2) var(--pico-spacing);
+}
+
+/* Bouton d'une action définitive. */
+button.supprimer {
+  --pico-background-color: var(--pico-del-color);
+  --pico-border-color: var(--pico-del-color);
+}
