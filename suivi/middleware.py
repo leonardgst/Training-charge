@@ -6,6 +6,36 @@ from django.http import HttpRequest, HttpResponse
 
 from suivi.models import Preparateur
 
+# Architecture, section 5 : tout vient de l'origine du site, rien en ligne. Scripts, styles,
+# polices et requêtes retombent sur `default-src`.
+POLITIQUE_DE_SECURITE_DU_CONTENU = "; ".join(
+    [
+        "default-src 'self'",
+        # Pico CSS dessine ses icônes (listes, cases, champs invalides) en SVG intégrés.
+        "img-src 'self' data:",
+        "object-src 'none'",
+        "base-uri 'none'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+    ]
+)
+
+
+class PolitiqueDeSecuriteDuContenuMiddleware:
+    """Pose la politique de sécurité du contenu sur chaque réponse.
+
+    Placé juste après `SecurityMiddleware` : il enveloppe toutes les autres couches, donc
+    les redirections vers la connexion, les refus et les pages d'erreur la portent aussi.
+    """
+
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest) -> HttpResponse:
+        reponse = self.get_response(request)
+        reponse.headers.setdefault("Content-Security-Policy", POLITIQUE_DE_SECURITE_DU_CONTENU)
+        return reponse
+
 
 class ProfilPreparateurRequisMiddleware:
     """Toute URL staff exige un profil préparateur (ADR-0005, couche 3).

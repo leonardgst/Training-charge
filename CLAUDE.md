@@ -82,4 +82,5 @@ Repris de l'annexe A du cadrage et des choix de la phase 0 :
 - **Neon** : le pooler fonctionne par transaction, donc pas de curseur côté serveur ni de connexion persistante en production.
 - **Nombres** : comparer avec une tolérance, jamais après arrondi.
 - **Vega** : son évaluateur d'expressions par défaut est incompatible avec une politique de sécurité du contenu stricte (phase 6).
+- **Referrer-Policy** : `no-referrer` fait envoyer `Origin: null` sur chaque formulaire POST, que le contrôle CSRF de Django refuse ; le site est en `same-origin`, et la page du lien joueur (phase 5) doit en tenir compte.
 - **Méthode** : pas de dossier vide, pas de commit au message inexact, pas de branche dont le nom ment sur son contenu.
