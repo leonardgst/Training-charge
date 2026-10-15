@@ -14,6 +14,7 @@ CHEMINS = catalogue_des_routes()
 def test_le_catalogue_contient_les_routes_connues() -> None:
     connues = {"/", "/deconnexion/", "/joueurs/", "/joueurs/1/archiver/", "/seances/nouvelle/"}
     assert connues | {"/seances/1/participations/1/retirer/"} <= set(CHEMINS)
+    assert {"/seances/", "/seances/1/corriger/", "/seances/1/supprimer/"} <= set(CHEMINS)
     assert LISTE_BLANCHE == {"/connexion/", "/sante/", "/admin/login/"}
 
 

@@ -1,0 +1,21 @@
+{% extends "suivi/base.html" %}
+
+{% block titre %}Modifier la séance du {{ titre|date:"d/m/Y" }}{% endblock %}
+
+{% block contenu %}
+<h1>Modifier la séance du {{ titre|date:"d/m/Y" }}</h1>
+<p>La séance reste {% if seance.statut == "brouillon" %}en brouillon{% else %}validée : ses charges sont recalculées{% endif %}.</p>
+<form method="post" class="formulaire">
+  {% csrf_token %}
+  {% for erreur in form.non_field_errors %}
+  <p class="erreur" role="alert">{{ erreur }}</p>
+  {% endfor %}
+  {% include "suivi/_champ.html" with champ=form.date %}
+  {% include "suivi/_champ.html" with champ=form.type %}
+  {% include "suivi/_champ.html" with champ=form.duree_min %}
+  <div class="boutons">
+    <button type="submit">Enregistrer</button>
+    <a href="{% url 'seance' seance.pk %}" role="button" class="secondary outline">Annuler</a>
+  </div>
+</form>
+{% endblock %}

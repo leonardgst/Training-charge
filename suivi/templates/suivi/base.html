@@ -16,6 +16,7 @@
         <li><a href="{% url 'accueil' %}"><strong>Suivi de charge U19</strong></a></li>
         {% if request.preparateur %}
         <li><a href="{% url 'joueurs' %}"{% if rubrique == "joueurs" %} aria-current="page"{% endif %}>Joueurs</a></li>
+        <li><a href="{% url 'seances' %}"{% if rubrique == "seances" %} aria-current="page"{% endif %}>Séances</a></li>
         <li><a href="{% url 'seance_creer' %}"{% if rubrique == "nouvelle_seance" %} aria-current="page"{% endif %}>Nouvelle séance</a></li>
         {% endif %}
       </ul>

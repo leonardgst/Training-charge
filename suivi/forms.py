@@ -49,12 +49,11 @@ class _ChoixJoueurs(forms.ModelMultipleChoiceField):
         return f"{obj.nom} {obj.prenom}"
 
 
-class SeanceForm(forms.ModelForm):
-    """En-tête d'une séance, saisi une seule fois, et ses participants (US-03).
+class SeanceEnteteForm(forms.ModelForm):
+    """En-tête d'une séance : date, type et durée, saisis une seule fois (US-03), corrigés
+    au besoin, la séance restant dans son statut (US-06).
 
-    La catégorie organisatrice est celle du préparateur, posée par la vue. Les
-    participants possibles sont les joueurs que la vue fournit : un identifiant hors de
-    cette liste est refusé.
+    La catégorie organisatrice est celle du préparateur, posée par la vue.
     """
 
     duree_min = forms.IntegerField(
@@ -63,12 +62,6 @@ class SeanceForm(forms.ModelForm):
         max_value=DUREE_MAX,
         widget=forms.NumberInput(attrs={"inputmode": "numeric"}),
     )
-    participants = _ChoixJoueurs(
-        queryset=Joueur.objects.none(),
-        required=False,
-        widget=forms.CheckboxSelectMultiple,
-        label="Participants",
-    )
 
     class Meta:
         model = Seance
@@ -76,11 +69,29 @@ class SeanceForm(forms.ModelForm):
         labels = {"date": "Date", "type": "Type"}
         widgets = {"date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        # Pas de choix vide : le type est l'une des quatre valeurs de la liste fermée.
+        cast(forms.ChoiceField, self.fields["type"]).choices = TypeSeance.choices
+
+
+class SeanceForm(SeanceEnteteForm):
+    """En-tête et participants d'une nouvelle séance (US-03).
+
+    Les participants possibles sont les joueurs que la vue fournit : un identifiant hors de
+    cette liste est refusé.
+    """
+
+    participants = _ChoixJoueurs(
+        queryset=Joueur.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label="Participants",
+    )
+
     def __init__(self, *args: Any, joueurs: QuerySet[Joueur], **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         cast(_ChoixJoueurs, self.fields["participants"]).queryset = joueurs
-        # Pas de choix vide : le type est l'une des quatre valeurs de la liste fermée.
-        cast(forms.ChoiceField, self.fields["type"]).choices = TypeSeance.choices
 
 
 # Les trois RPE d'une participation, dans l'ordre des colonnes de la grille (US-04).
@@ -99,6 +110,14 @@ def niveau_rpe(valeur: object) -> str | None:
     return texte if VALEUR_RPE.match(texte) else "invalide"
 
 
+class RpeParticipantForm(forms.Form):
+    """Les trois RPE d'un joueur ajouté à une séance validée, saisis d'emblée (ADR-0008)."""
+
+    rpe_cardio = forms.IntegerField(min_value=RPE_MIN, max_value=RPE_MAX)
+    rpe_musculaire = forms.IntegerField(min_value=RPE_MIN, max_value=RPE_MAX)
+    rpe_teta = forms.IntegerField(min_value=RPE_MIN, max_value=RPE_MAX)
+
+
 class GrilleRpeForm(forms.Form):
     """Trois RPE par participant, au clavier : facultatifs en brouillon, exigés pour valider.
 
@@ -111,11 +130,14 @@ class GrilleRpeForm(forms.Form):
         *args: Any,
         participations: Sequence[Participation],
         valider: bool = False,
+        correction: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(*args, **kwargs)
         self.participations = list(participations)
-        self.valider = valider
+        # Corriger une séance validée exige, comme la valider, les trois RPE de chacun.
+        self.valider = valider or correction
+        self.correction = correction
         for participation in self.participations:
             for champ, libelle in COLONNES_RPE:
                 nom = self.nom(participation, champ)
@@ -162,6 +184,11 @@ class GrilleRpeForm(forms.Form):
             ]
             for nom in vides:
                 self.add_error(nom, forms.ValidationError("Obligatoire.", code="manquant"))
+            if vides and self.correction:
+                raise forms.ValidationError(
+                    "Une séance validée garde les trois RPE de chaque participant : "
+                    f"{len(vides)} case(s) vide(s)."
+                )
             if vides:
                 raise forms.ValidationError(
                     "La validation exige les trois RPE de chaque participant : "

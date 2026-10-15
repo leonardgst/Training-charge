@@ -61,6 +61,13 @@ Recommandations acceptées le 2026-10-12 :
 - Q4 : `updated_at` et `updated_by` sur les séances, les participations et les entrées de sensations.
 - Q5 : la rétrospection au jour D utilise les valeurs corrigées et filtre sur la date de la séance ou de l'entrée.
 
+## Mise en œuvre (phase 4)
+
+- Une séance se crée en brouillon. Sa grille s'enregistre avec des RPE manquants, puis la validation exige les trois RPE de chaque participant, contrôlés par le formulaire puis par le déclencheur. Une séance sans participant ne se valide pas (PR 4.4).
+- Correction directe d'une séance validée, qui reste validée : grille corrigée avec les trois RPE de chacun, en-tête (date, type, durée), retrait d'un participant (sauf le dernier : on supprime alors la séance) et ajout d'un joueur avec ses trois RPE saisis d'emblée. Les participants en font partie par décision du mainteneur du 2026-10-15 (PR 4.5).
+- Suppression d'une séance, brouillon ou validée, par un préparateur de la catégorie organisatrice, après une page de confirmation ; ses participations disparaissent en cascade (PR 4.5).
+- `updated_at` et `updated_by` : sur la séance à chaque modification, participants compris ; sur une participation seulement quand ses RPE changent. La page d'une séance affiche la date et l'auteur de sa dernière modification (PR 4.4 et 4.5).
+
 ## Tests concernés
 
 C5, C9, D1, D2, A4 ; test de `updated_at`.
