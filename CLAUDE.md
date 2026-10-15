@@ -50,7 +50,7 @@ Stratégie complète : [docs/03-strategie-tests.md](docs/03-strategie-tests.md).
 ## 7. Collaboration
 
 - **Niveau 4, par défaut** : tu travailles sur une branche, tu commites, tu pousses la branche et tu ouvres la PR avec `gh`. Le mainteneur relit et fusionne.
-- **Niveau 3** : aucune phase n'y est plus en cours. Il ne s'applique que si le mainteneur le redemande pour une PR : plan d'abord, puis accord avant chaque action, session en mode Manuel. La phase 3 (moteur) a été relevée de 3 à 4 par le mainteneur le 2026-10-15.
+- **Niveau 3** : aucune phase n'y est plus en cours. Il ne s'applique que si le mainteneur le redemande pour une PR : plan d'abord, puis accord avant chaque action, session en mode Manuel. La phase 3 (moteur) a été relevée de 3 à 4 par le mainteneur le 2026-10-15, et la phase 4 est entièrement au niveau 4, accès et migrations compris (même date).
 - **Jamais** : pousser sur `main`, fusionner une PR, forcer une poussée, lire `.env`, lancer la CLI Vercel ou Neon, agir sur une base déployée, créer une ressource payante.
 - **Avec accord seulement** : supprimer un fichier, ajouter une dépendance, réinitialiser la base locale, modifier un workflow de CI.
 - Le dépôt est poussé sur GitHub avant chaque session autonome.
@@ -65,7 +65,7 @@ Stratégie complète : [docs/03-strategie-tests.md](docs/03-strategie-tests.md).
 
 ## 9. Phase en cours
 
-Phase 4 — Saisie des séances : [docs/phases/phase-04-saisie-des-seances.md](docs/phases/phase-04-saisie-des-seances.md). Elle commence quand la phase 3 est fermée (recette du mainteneur, tag `v0.3.0`) et que sa fiche est validée par le mainteneur, niveau de collaboration compris : 4 par défaut, la fiche propose 3 pour la PR 4.2 et ce qui touche aux accès ou aux migrations (cadrage, sections 6 et 9).
+Phase 4 — Saisie des séances : [docs/phases/phase-04-saisie-des-seances.md](docs/phases/phase-04-saisie-des-seances.md). La phase 3 est fermée (tag `v0.3.0`) et la fiche est validée par le mainteneur le 2026-10-15 : niveau 4 pour toute la phase, accès et migrations compris.
 
 ## 10. Interdits et pièges connus
 
