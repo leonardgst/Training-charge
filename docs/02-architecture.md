@@ -150,7 +150,8 @@ Règles de détail :
 - Un préparateur n'a jamais `is_staff = True` : l'administration Django lui est fermée.
 - Pour un joueur invité, le préparateur organisateur ne voit ni l'historique, ni les charges calculées, ni les sensations du joueur (règle R24, décidée le 2026-10-12).
 - La configuration des indicateurs par le préparateur est reportée après la V1 : en V1, seul l'administrateur la modifie.
-- Les réponses portent les en-têtes `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY`, une politique de sécurité du contenu limitée à l'origine du site et, sur la page du lien joueur, `Cache-Control: no-store`.
+- Les réponses portent les en-têtes `Referrer-Policy: same-origin`, `X-Frame-Options: DENY`, une politique de sécurité du contenu limitée à l'origine du site et, sur la page du lien joueur, `Cache-Control: no-store`. La politique est `default-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'` : ni script ni style en ligne, et les seules images intégrées (`data:`) sont les icônes de Pico CSS.
+- `Referrer-Policy` vaut `same-origin` et non `no-referrer` (décision du mainteneur le 2026-10-15) : avec `no-referrer`, le navigateur envoie `Origin: null` sur chaque formulaire POST, et le contrôle CSRF de Django refuse la requête. `same-origin` ne transmet aucun référent à un autre site. La page du lien joueur, qui prévoit `no-referrer` ([ADR-0006](adr/0006-lien-joueur-a-jeton-hache.md)), devra tenir compte de cette contrainte en phase 5.
 
 ## 6. Emplacement du moteur de calcul
 
