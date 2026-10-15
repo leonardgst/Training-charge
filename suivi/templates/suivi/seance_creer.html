@@ -1,0 +1,30 @@
+{% extends "suivi/base.html" %}
+
+{% block titre %}Nouvelle séance{% endblock %}
+
+{% block contenu %}
+<h1>Nouvelle séance</h1>
+<form method="post">
+  {% csrf_token %}
+  {% for erreur in form.non_field_errors %}
+  <p class="erreur" role="alert">{{ erreur }}</p>
+  {% endfor %}
+  <div class="grid">
+    <div>{% include "suivi/_champ.html" with champ=form.date %}</div>
+    <div>{% include "suivi/_champ.html" with champ=form.type %}</div>
+    <div>{% include "suivi/_champ.html" with champ=form.duree_min %}</div>
+  </div>
+  <fieldset>
+    <legend>Participants : décochez les absents</legend>
+    <div class="participants">
+      {% for case in form.participants %}
+      <label for="{{ case.id_for_label }}">{{ case.tag }} {{ case.choice_label }}</label>
+      {% empty %}
+      <p>Aucun joueur actif dans la catégorie. Les joueurs invités s’ajoutent une fois la séance créée.</p>
+      {% endfor %}
+    </div>
+    {% for erreur in form.participants.errors %}<small class="erreur">{{ erreur }}</small>{% endfor %}
+  </fieldset>
+  <button type="submit">Créer la séance</button>
+</form>
+{% endblock %}
