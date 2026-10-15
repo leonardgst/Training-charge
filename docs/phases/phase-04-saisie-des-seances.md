@@ -25,8 +25,8 @@ Niveau de collaboration : 4 pour la phase entière, PR 4.2 et PR qui touchent au
 | 4.1 | `feat: ajouter la connexion et la structure des pages` | Gabarit de base, navigation, connexion et déconnexion (message générique), mise en page tablette et téléphone | Intégration de la connexion ; bout en bout de la connexion | Fusionnée | [#29](https://github.com/leonardgst/Training-charge/pull/29) |
 | 4.1 bis | `fix: poser la politique de sécurité du contenu` | Politique limitée à l'origine du site sur toute réponse, `Referrer-Policy: same-origin` explicite, test de fumée étendu (ajoutée en cours de phase, écarts) | Intégration des en-têtes ; bout en bout sans violation, administration comprise | Fusionnée | [#30](https://github.com/leonardgst/Training-charge/pull/30) |
 | 4.2 | `feat: gérer les joueurs de sa catégorie` | Liste, création, modification, archivage (US-15) | A3 étendu, D1 | Fusionnée | [#31](https://github.com/leonardgst/Training-charge/pull/31) |
-| 4.3 | `feat: créer une séance et ses participants` | En-tête, pré-remplissage avec les joueurs actifs, annuaire, retrait d'un absent | D1 (durée), A3 (joueur invité) | En revue | [#32](https://github.com/leonardgst/Training-charge/pull/32) |
-| 4.4 | `feat: saisir la grille RPE puis la valider` | Grille au clavier, code couleur, brouillon, validation, charges affichées sur la séance validée (moteur de la phase 3) | D1, E1 sur ordinateur et tablette | À commencer | — |
+| 4.3 | `feat: créer une séance et ses participants` | En-tête, pré-remplissage avec les joueurs actifs, annuaire, retrait d'un absent | D1 (durée), A3 (joueur invité) | Fusionnée | [#32](https://github.com/leonardgst/Training-charge/pull/32) |
+| 4.4 | `feat: saisir la grille RPE puis la valider` | Grille au clavier, code couleur, brouillon, validation, charges affichées sur la séance validée (moteur de la phase 3) | D1, E1 sur ordinateur et tablette | En revue | [#33](https://github.com/leonardgst/Training-charge/pull/33) |
 | 4.5 | `feat: lister, corriger et supprimer les séances` | Historique, correction directe, suppression confirmée, traçabilité (ADR-0008) | Intégration, `updated_by` | À commencer | — |
 
 ## Critères de fin (Definition of Done)
@@ -65,6 +65,10 @@ Liste préparée à la fin de la phase ; elle comprendra la saisie chronométré
 - PR 4.3 : la recherche dans l'annuaire porte sur le nom et le prénom, écarte les participants et les joueurs archivés, et s'arrête à 20 résultats. Elle sert aussi à rajouter un joueur de sa catégorie retiré par erreur.
 - PR 4.3 : aucune plage n'est imposée à la date d'une séance, faute de règle dans les spécifications ; une séance datée dans le futur n'entre dans les calculs qu'à sa date (C9). Une séance peut être créée sans participant.
 - PR 4.3 : une séance créée s'ouvre sur sa page ; la liste des séances arrive avec l'historique (PR 4.5).
+- PR 4.4 : les charges affichées sur une séance validée sont les charges de séance de chaque participant, calculées par le moteur (`charges_de_seance` dans l'adaptateur). Elles sont montrées aussi pour un joueur invité : elles ne dépendent que des RPE et de la durée de cette séance, que le préparateur organisateur voit déjà, et non de l'historique de l'invité (R24). Les tableaux de bord arrivent en phase 6.
+- PR 4.4 : une séance sans participant ne se valide pas, règle ajoutée faute de sens à une séance validée vide ; une grille ouverte avant un changement de participants est refusée, plutôt que d'effacer des RPE.
+- PR 4.4 : code couleur provisoire, du vert (effort léger) au rouge (effort maximal), en onze teintes, à confirmer avec le préparateur. Une valeur hors échelle est signalée pendant la frappe et bloquée par le navigateur (`pattern`), puis refusée par le serveur.
+- PR 4.4 : sur une séance en brouillon, la grille ouvre la page et les participants passent dans un bloc repliable : un bouton « Retirer » dans la grille aurait coupé l'ordre de la touche Tab. Le test de bout en bout de la PR 4.3 ouvre désormais ce bloc avant de chercher un joueur, ses vérifications sont inchangées. Une séance validée s'affiche en lecture seule ; sa correction est l'objet de la PR 4.5.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé
 
