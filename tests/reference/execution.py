@@ -2,7 +2,7 @@
 
 `charger_en_base` fait partie du harnais. Les deux fonctions `executer_*` sont les deux
 points de branchement sur le code testé : elles étendent leurs résultats à chaque PR de la
-phase 3 (ici, la charge du jour, la CE courte, la CE longue et l'intensité).
+phase 3 (ici, jusqu'au score et au z-score de sensations).
 """
 
 import dataclasses
@@ -10,7 +10,16 @@ import datetime
 from collections.abc import Mapping, Sequence
 
 from engine.charge import calendrier, charges_glissantes
-from engine.modeles import JourCalcule, Parametres, ParticipationValidee
+from engine.modeles import (
+    EntreeSensations,
+    IndicateurScore,
+    JourCalcule,
+    Parametres,
+    ParticipationValidee,
+    ScoreEntree,
+    ZScore,
+)
+from engine.sensations import scores, sensations_z
 from engine.zscore import intensite
 from tests.reference.harnais import CasReference, Cle, Resultat
 
@@ -115,6 +124,47 @@ def _resultats(
     return obtenu
 
 
+def _resultats_sensations(
+    nom: str, scores_entrees: Sequence[ScoreEntree], z: Sequence[ZScore], date_calcul: datetime.date
+) -> dict[Cle, Resultat]:
+    obtenu: dict[Cle, Resultat] = {}
+    for score in scores_entrees:
+        if score.jour <= date_calcul:
+            obtenu[(nom, score.jour, "score_sensations")] = Resultat(score.valeur, score.etat.value)
+    for zscore in z:
+        if zscore.jour <= date_calcul:
+            obtenu[(nom, zscore.jour, "sensations_z")] = Resultat(zscore.valeur, zscore.etat.value)
+    return obtenu
+
+
+def _sensations_sans_base(
+    cas: CasReference, nom: str, parametres: Parametres, date_calcul: datetime.date
+) -> dict[Cle, Resultat]:
+    """Sensations d'un joueur calculées depuis les CSV du cas, comme le fait l'adaptateur."""
+    categorie = cas.joueurs[nom]
+    indicateurs = [
+        IndicateurScore(
+            code=i.code,
+            borne_min=i.borne_min,
+            borne_max=i.borne_max,
+            haut_est_bon=i.sens == "haut_bon",
+            poids=float(i.poids),
+        )
+        for i in cas.indicateurs
+        if i.categorie == categorie and i.inclus_score and i.type == "note"
+    ]
+    codes = {i.code for i in indicateurs}
+    par_date: dict[datetime.date, dict[str, int]] = {}
+    for r in cas.reponses:
+        if r.joueur == nom and r.date <= date_calcul:
+            reponses = par_date.setdefault(r.date, {})
+            if r.indicateur in codes:
+                reponses[r.indicateur] = r.valeur
+    entrees = [EntreeSensations(jour, reponses) for jour, reponses in par_date.items()]
+    resultats = scores(entrees, indicateurs, parametres)
+    return _resultats_sensations(nom, resultats, sensations_z(resultats, parametres), date_calcul)
+
+
 def parametres_du_cas(cas: CasReference) -> Parametres:
     """Paramètres de `config/calcul.toml`, surchargés par le `[parametres]` du cas."""
     from suivi.calculs import lire_parametres
@@ -148,6 +198,7 @@ def executer_sans_base(cas: CasReference, date_calcul: datetime.date) -> Mapping
             )
         jours = calendrier(participations, parametres, date_calcul)
         obtenu.update(_resultats(nom, jours, parametres, date_calcul))
+        obtenu.update(_sensations_sans_base(cas, nom, parametres, date_calcul))
     return obtenu
 
 
@@ -162,4 +213,5 @@ def executer_sur_base(
     for nom, joueur_id in joueurs.items():
         jours = calculer_joueur(joueur_id, date_calcul, parametres)
         obtenu.update(_resultats(nom, jours, parametres, date_calcul))
+        obtenu.update(_sensations_sans_base(cas, nom, parametres, date_calcul))
     return obtenu

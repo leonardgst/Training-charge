@@ -15,13 +15,26 @@ from django.core.exceptions import ImproperlyConfigured
 from engine.charge import calendrier, charges_glissantes
 from engine.modeles import (
     ChargesGlissantes,
+    EntreeSensations,
+    IndicateurScore,
     JourCalcule,
     Parametres,
     ParticipationValidee,
+    ScoreEntree,
     ZScore,
 )
+from engine.sensations import scores, sensations_z
 from engine.zscore import intensite
-from suivi.models import Participation, StatutSeance
+from suivi.models import EntreeSensations as EntreeEnBase
+from suivi.models import (
+    Indicateur,
+    Joueur,
+    Participation,
+    Reponse,
+    SensIndicateur,
+    StatutSeance,
+    TypeIndicateur,
+)
 
 CHEMIN_PARAMETRES = Path(__file__).resolve().parent.parent / "config" / "calcul.toml"
 
@@ -35,8 +48,10 @@ def lire_parametres(chemin: Path = CHEMIN_PARAMETRES) -> Parametres:
         "fenetre_longue_jours",
         "reference_jours",
         "reference_min_jours",
+        "sensations_reference_jours",
+        "sensations_reference_min_entrees",
     )
-    positifs = ("facteur_echelle_charge", "tolerance_ecart_type_nul")
+    positifs = ("facteur_echelle_charge", "tolerance_ecart_type_nul", "score_poids_min")
     attendues = {*positifs, *entiers}
     if set(brut) != attendues:
         raise ImproperlyConfigured(f"{chemin.name} : clés attendues {sorted(attendues)}")
@@ -55,6 +70,13 @@ def lire_parametres(chemin: Path = CHEMIN_PARAMETRES) -> Parametres:
         raise ImproperlyConfigured(
             f"{chemin.name} : reference_min_jours doit être compris entre 2 et reference_jours"
         )
+    if not 2 <= brut["sensations_reference_min_entrees"] <= brut["sensations_reference_jours"]:
+        raise ImproperlyConfigured(
+            f"{chemin.name} : sensations_reference_min_entrees doit être compris entre 2 et "
+            "sensations_reference_jours"
+        )
+    if brut["score_poids_min"] > 1:
+        raise ImproperlyConfigured(f"{chemin.name} : score_poids_min doit être au plus 1")
     return Parametres(
         facteur_echelle_charge=float(brut["facteur_echelle_charge"]),
         fenetre_courte_jours=brut["fenetre_courte_jours"],
@@ -62,6 +84,9 @@ def lire_parametres(chemin: Path = CHEMIN_PARAMETRES) -> Parametres:
         reference_jours=brut["reference_jours"],
         reference_min_jours=brut["reference_min_jours"],
         tolerance_ecart_type_nul=float(brut["tolerance_ecart_type_nul"]),
+        score_poids_min=float(brut["score_poids_min"]),
+        sensations_reference_jours=brut["sensations_reference_jours"],
+        sensations_reference_min_entrees=brut["sensations_reference_min_entrees"],
     )
 
 
@@ -100,3 +125,43 @@ def calculer_intensite(
 ) -> list[ZScore]:
     """Z-score d'intensité d'un joueur pour chaque jour de son calendrier."""
     return intensite(calculer_charges_glissantes(joueur_id, date_calcul, parametres), parametres)
+
+
+def calculer_sensations(
+    joueur_id: int, date_calcul: datetime.date, parametres: Parametres
+) -> tuple[list[ScoreEntree], list[ZScore]]:
+    """Score et z-score de chaque entrée de sensations d'un joueur, jusqu'à `date_calcul`.
+
+    La configuration est celle d'aujourd'hui, pour tout le passé (ADR-0016) : les
+    indicateurs actifs, notés et inclus dans le score de la catégorie de référence du joueur.
+    """
+    categorie_id = Joueur.objects.values_list("categorie_reference_id", flat=True).get(pk=joueur_id)
+    indicateurs = {
+        i.pk: IndicateurScore(
+            code=i.code,
+            borne_min=i.borne_min,
+            borne_max=i.borne_max,
+            haut_est_bon=i.sens == SensIndicateur.HAUT_BON,
+            poids=float(i.poids),
+        )
+        for i in Indicateur.objects.filter(
+            categorie_id=categorie_id,
+            actif=True,
+            inclus_score=True,
+            type=TypeIndicateur.NOTE,
+        )
+    }
+    par_date: dict[datetime.date, dict[str, int]] = {
+        jour: {}
+        for jour in EntreeEnBase.objects.filter(joueur_id=joueur_id, date__lte=date_calcul)
+        .order_by("date")
+        .values_list("date", flat=True)
+    }
+    for jour, indicateur_id, valeur in Reponse.objects.filter(
+        entree__joueur_id=joueur_id, entree__date__lte=date_calcul
+    ).values_list("entree__date", "indicateur_id", "valeur"):
+        if indicateur_id in indicateurs:
+            par_date[jour][indicateurs[indicateur_id].code] = valeur
+    entrees = [EntreeSensations(jour, reponses) for jour, reponses in par_date.items()]
+    resultats = scores(entrees, list(indicateurs.values()), parametres)
+    return resultats, sensations_z(resultats, parametres)

@@ -12,3 +12,10 @@ fenetre_longue_jours = 28
 reference_jours = 28
 reference_min_jours = 21
 tolerance_ecart_type_nul = 1e-9
+
+# ADR-0014 : part minimale du poids total des indicateurs inclus qui doit être répondue.
+score_poids_min = 0.5
+
+# ADR-0015 : référence du z-score de sensations, entrée courante exclue.
+sensations_reference_jours = 28
+sensations_reference_min_entrees = 6

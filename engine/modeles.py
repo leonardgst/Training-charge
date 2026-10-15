@@ -1,6 +1,7 @@
 """Entrées, paramètres et sorties du moteur : enregistrements immuables."""
 
 import datetime
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -15,6 +16,9 @@ class Parametres:
     reference_jours: int
     reference_min_jours: int
     tolerance_ecart_type_nul: float
+    score_poids_min: float
+    sensations_reference_jours: int
+    sensations_reference_min_entrees: int
 
 
 @dataclass(frozen=True)
@@ -53,11 +57,40 @@ class Etat(StrEnum):
     OK = "ok"
     HISTORIQUE_INSUFFISANT = "historique_insuffisant"
     NON_CALCULABLE = "non_calculable"
+    REPONSES_INSUFFISANTES = "reponses_insuffisantes"
 
 
 @dataclass(frozen=True)
 class ZScore:
     """Z-score d'un jour : `valeur` n'existe que si `etat` vaut `Etat.OK`."""
+
+    jour: datetime.date
+    valeur: float | None
+    etat: Etat
+
+
+@dataclass(frozen=True)
+class IndicateurScore:
+    """Indicateur noté qui entre dans le score de sensations (ADR-0010, ADR-0014)."""
+
+    code: str
+    borne_min: int
+    borne_max: int
+    haut_est_bon: bool
+    poids: float
+
+
+@dataclass(frozen=True)
+class EntreeSensations:
+    """Réponses d'un joueur pour un jour, par code d'indicateur."""
+
+    jour: datetime.date
+    reponses: Mapping[str, int]
+
+
+@dataclass(frozen=True)
+class ScoreEntree:
+    """Score d'une entrée, dans [0, 1] (1 = meilleur état), défini si `etat` vaut OK."""
 
     jour: datetime.date
     valeur: float | None

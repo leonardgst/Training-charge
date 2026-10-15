@@ -10,7 +10,7 @@ import math
 from engine.charge import calendrier, charge_seance
 from engine.modeles import JourCalcule, Parametres, ParticipationValidee
 
-PARAMETRES = Parametres(10, 7, 28, 28, 21, 1e-9)
+PARAMETRES = Parametres(10, 7, 28, 28, 21, 1e-9, 0.5, 28, 6)
 LUNDI = datetime.date(2026, 1, 5)
 
 
@@ -24,7 +24,7 @@ def test_charge_d_une_seance() -> None:
 
 
 def test_le_facteur_d_echelle_multiplie_la_charge() -> None:
-    sept = Parametres(70, 7, 28, 28, 21, 1e-9)
+    sept = Parametres(70, 7, 28, 28, 21, 1e-9, 0.5, 28, 6)
     assert math.isclose(charge_seance(_participation(LUNDI, 60, 5, 6, 4), sept), 21000.0)
 
 
