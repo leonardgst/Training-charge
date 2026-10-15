@@ -50,7 +50,7 @@ Stratégie complète : [docs/03-strategie-tests.md](docs/03-strategie-tests.md).
 ## 7. Collaboration
 
 - **Niveau 4, par défaut** : tu travailles sur une branche, tu commites, tu pousses la branche et tu ouvres la PR avec `gh`. Le mainteneur relit et fusionne.
-- **Niveau 3** : phase 3 entière (moteur). Commence par un plan, puis demande l'accord avant chaque action. Le mainteneur passe la session en mode Manuel.
+- **Niveau 3** : aucune phase n'y est plus en cours. Il ne s'applique que si le mainteneur le redemande pour une PR : plan d'abord, puis accord avant chaque action, session en mode Manuel. La phase 3 (moteur) a été relevée de 3 à 4 par le mainteneur le 2026-10-15.
 - **Jamais** : pousser sur `main`, fusionner une PR, forcer une poussée, lire `.env`, lancer la CLI Vercel ou Neon, agir sur une base déployée, créer une ressource payante.
 - **Avec accord seulement** : supprimer un fichier, ajouter une dépendance, réinitialiser la base locale, modifier un workflow de CI.
 - Le dépôt est poussé sur GitHub avant chaque session autonome.
@@ -65,7 +65,7 @@ Stratégie complète : [docs/03-strategie-tests.md](docs/03-strategie-tests.md).
 
 ## 9. Phase en cours
 
-Phase 3 — Moteur de calcul : [docs/phases/phase-03-moteur.md](docs/phases/phase-03-moteur.md). Niveau 3 pour toute la phase.
+Phase 3 — Moteur de calcul : [docs/phases/phase-03-moteur.md](docs/phases/phase-03-moteur.md). Niveau 4 pour toute la phase (relevé de 3 à 4 le 2026-10-15) : je travaille seul sur des branches et j'ouvre les PR ; les `attendu.csv` et `provenance.md` du jeu de référence restent écrits par le mainteneur seul, et la PR 3.1 attend ses fichiers.
 
 ## 10. Interdits et pièges connus
 
