@@ -61,3 +61,13 @@ nav ul {
   flex-wrap: wrap;
   gap: var(--pico-spacing);
 }
+
+/* Cases des participants : en colonnes sur un écran large. */
+.participants {
+  column-width: 14rem;
+  column-gap: var(--pico-spacing);
+}
+
+.participants label {
+  break-inside: avoid;
+}
