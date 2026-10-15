@@ -29,5 +29,5 @@ $ uv run pytest …
 - [ ] Aucune valeur attendue recopiée de la sortie du code ; `attendu.csv` et `provenance.md` non modifiés par Claude
 - [ ] Documentation à jour dans la même PR : fiche de phase, ADR, spécifications, journal
 - [ ] Aucun secret ni aucune donnée réelle
-- [ ] Niveau de collaboration respecté (niveau 3 pour les migrations, les accès, le jeton joueur et le moteur)
+- [ ] Niveau de collaboration respecté (niveau fixé par la fiche de la phase en cours ; niveau 3 seulement si le mainteneur le redemande)
 - [ ] Commits au format Conventional Commits, à l'impératif, au message exact

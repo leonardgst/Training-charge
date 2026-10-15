@@ -8,7 +8,7 @@
 
 Des chiffres justes, prouvés indépendamment de l'implémentation.
 
-Niveau de collaboration : 3 pour la phase entière. Claude Code commence par un plan, puis demande l'accord avant chaque action ; le mainteneur passe la session en mode Manuel. Les fichiers `tests/reference/**/attendu.csv` et `provenance.md` sont écrits par le mainteneur seul. Estimation : 24 heures, plus environ 10 heures pour le jeu de référence du mainteneur (cadrage, section 9).
+Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mainteneur le 2026-10-15). Claude Code travaille sur une branche, commite, pousse et ouvre les PR ; le mainteneur relit et fusionne. Les règles « Jamais » et « Avec accord seulement » de `CLAUDE.md` restent en vigueur. Les fichiers `tests/reference/**/attendu.csv` et `provenance.md` sont écrits par le mainteneur seul. Estimation : 24 heures, plus environ 10 heures pour le jeu de référence du mainteneur (cadrage, section 9).
 
 ## Livrables
 
@@ -49,7 +49,7 @@ Niveau de collaboration : 3 pour la phase entière. Claude Code commence par un 
 
 ## Écarts par rapport au plan
 
-Aucun pour l'instant.
+- Niveau de collaboration relevé de 3 à 4 par le mainteneur le 2026-10-15, avant la PR 3.1 (le cadrage prévoyait le niveau 3 pour toute la phase). Les `attendu.csv` et `provenance.md` restent réservés au mainteneur : le passage au niveau 4 ne change pas cette règle, qui est aussi appliquée par `.claude/settings.json`.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé
 
