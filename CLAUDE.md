@@ -65,7 +65,7 @@ Stratégie complète : [docs/03-strategie-tests.md](docs/03-strategie-tests.md).
 
 ## 9. Phase en cours
 
-Phase 3 — Moteur de calcul : [docs/phases/phase-03-moteur.md](docs/phases/phase-03-moteur.md). Niveau 4 pour toute la phase (relevé de 3 à 4 le 2026-10-15) : je travaille seul sur des branches et j'ouvre les PR ; les `attendu.csv` et `provenance.md` du jeu de référence restent écrits par le mainteneur seul, et la PR 3.1 attend ses fichiers.
+Phase 4 — Saisie des séances : [docs/phases/phase-04-saisie-des-seances.md](docs/phases/phase-04-saisie-des-seances.md). Elle commence quand la phase 3 est fermée (recette du mainteneur, tag `v0.3.0`) et que sa fiche est validée par le mainteneur, niveau de collaboration compris : 4 par défaut, la fiche propose 3 pour la PR 4.2 et ce qui touche aux accès ou aux migrations (cadrage, sections 6 et 9).
 
 ## 10. Interdits et pièges connus
 

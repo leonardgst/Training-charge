@@ -2,7 +2,7 @@
 
 | Outil | Auteur | Date | Contrôle du mainteneur |
 | --- | --- | --- | --- |
-| [`outils/generer_attendu.py`](../outils/generer_attendu.py) | Claude Code (Sonnet 5.5), à la demande du mainteneur | 2026-10-15 | À consigner par le mainteneur |
+| [`outils/generer_attendu.py`](../outils/generer_attendu.py) | Claude Code (Sonnet 5.5), à la demande du mainteneur | 2026-10-15 | Renoncé par le mainteneur le 2026-10-15 |
 
 ## Méthode
 
@@ -14,6 +14,10 @@ Comparées ensuite aux résultats du moteur, elles concordaient sans aucun ajust
 
 poids total 6, minimum 3 : le 2026-01-07, (0,7 + 0,8 + 0,6) / 3 = 0,7 sur 3 de poids répondu (exactement le minimum) ; le 2026-01-08, 2 de poids répondu, donc `reponses_insuffisantes`. Le z-score n'est pas attendu ici : les ADR ne disent pas quel état il prend pour une entrée sans score.
 
+## Contrôle du mainteneur
+
+Le 2026-10-15, le mainteneur a renoncé à recalculer ces valeurs lui-même et a accepté le calcul du script tel quel. Ce renoncement est consigné dans les écarts de la fiche de la phase 3.
+
 ## Limites
 
-Les entrées, le moteur et ce calcul ont le même auteur : l'indépendance vient d'un script écrit à partir des ADR sans réutiliser le code du moteur (que son auteur connaissait), et du contrôle du mainteneur, non encore consigné.
+Les entrées, le moteur et ce calcul ont le même auteur. L'indépendance repose sur un script écrit à partir des ADR, sans réutiliser le code du moteur (que son auteur connaissait), et sur la concordance des deux calculs. Aucun contrôle humain indépendant n'a été fait : une erreur de lecture d'une ADR commune au script et au moteur ne serait pas détectée.
