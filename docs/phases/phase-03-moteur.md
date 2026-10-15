@@ -2,7 +2,7 @@
 
 | Statut | Prévue | Terminée le | Tag Git |
 | --- | --- | --- | --- |
-| En clôture : recette à faire | — | — | v0.3.0 (à poser après la recette) |
+| Terminée | — | 2026-10-15 | v0.3.0 (à poser après la fusion de cette PR) |
 
 ## Objectif
 
@@ -34,7 +34,7 @@ Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mai
 - [x] Couverture de `engine/` d'au moins 95 % des branches (100 %, seuil imposé en CI)
 - [x] Contrôle indépendant du mainteneur consigné dans chaque `provenance.md` : le mainteneur y a renoncé le 2026-10-15, et ce renoncement est consigné dans chaque `provenance.md` (écarts)
 - [x] Aucune interface dans cette phase
-- [ ] Recette manuelle faite (section ci-dessous, par le mainteneur)
+- [x] Recette manuelle faite (section ci-dessous, par le mainteneur)
 - [x] Documentation à jour : fiche, journal, `CHANGELOG.md`, `CLAUDE.md` pointant vers la phase 4
 
 ## Décisions prises (liens vers les ADR)
@@ -52,11 +52,11 @@ Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mai
 
 À dérouler par toi sur ton poste, `main` à jour après la fusion de la PR de clôture ; je ne coche rien à ta place. La phase n'a pas d'interface : la recette porte sur les tests, la configuration et un calcul sur la démonstration.
 
-- [ ] `uv run pytest tests/unit` puis `uv run --env-file .env pytest tests/integration` : tout est vert, aucun `xfail` ni `xpass` dans le résumé.
-- [ ] Dans `config/calcul.toml`, mettre `facteur_echelle_charge = 0` : `uv run --env-file .env python manage.py runserver` refuse de démarrer avec un message qui nomme le paramètre. Remettre `10` (le fichier ne doit pas apparaître dans `git status`).
-- [ ] Sur la base locale chargée par `generer_demo`, `uv run --env-file .env python manage.py shell -c "from suivi.calculs import calculer_intensite, parametres; from suivi.horloge import aujourd_hui; print(calculer_intensite(1, aujourd_hui(), parametres())[-1])"` affiche une valeur ou un état explicite, sans erreur.
-- [ ] Ouvrir `tests/reference/C06-charge-extreme/provenance.md` et `attendu.csv` sur GitHub : le renoncement au contrôle et le point de contrôle à la main sont lisibles.
-- [ ] Après la fusion, le déploiement de production attend ton approbation, puis `/sante/` répond (la phase n'ajoute aucune migration).
+- [x] `uv run pytest tests/unit` puis `uv run --env-file .env pytest tests/integration` : tout est vert, aucun `xfail` ni `xpass` dans le résumé.
+- [x] Dans `config/calcul.toml`, mettre `facteur_echelle_charge = 0` : `uv run --env-file .env python manage.py runserver` refuse de démarrer avec un message qui nomme le paramètre. Remettre `10` (le fichier ne doit pas apparaître dans `git status`).
+- [x] Sur la base locale chargée par `generer_demo`, `uv run --env-file .env python manage.py shell -c "from suivi.calculs import calculer_intensite, parametres; from suivi.horloge import aujourd_hui; print(calculer_intensite(1, aujourd_hui(), parametres())[-1])"` affiche une valeur ou un état explicite, sans erreur.
+- [x] Ouvrir `tests/reference/C06-charge-extreme/provenance.md` et `attendu.csv` sur GitHub : le renoncement au contrôle et le point de contrôle à la main sont lisibles.
+- [x] Après la fusion, le déploiement de production attend ton approbation, puis `/sante/` répond (la phase n'ajoute aucune migration).
 
 ## Écarts par rapport au plan
 
