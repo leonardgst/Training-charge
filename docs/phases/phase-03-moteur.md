@@ -56,7 +56,7 @@ Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mai
 - PR 3.2 : `config/calcul.toml` ne contient que `facteur_echelle_charge` ; chaque PR suivante y ajoute les paramètres qu'elle utilise (rien n'est créé « pour plus tard »). Le fichier est validé au démarrage (`SuiviConfig.ready`).
 - PR 3.2 : C5, C9, C10 et C15 sont « Intégration » dans la table de la stratégie de tests : le harnais ne les exécute pas sans base (`INTEGRATION_SEULE`). Écarter les brouillons est le rôle de l'adaptateur.
 - PR 3.2 : les marques `xfail` de C1, C2, C5 et C10 restent en place, car les dossiers du mainteneur n'existent pas encore ; elles se retirent (la CI l'impose, `strict=True`) dès que ses fichiers sont fusionnés. Les formules sont en attendant prouvées par des tests à valeurs calculées à la main (ADR-0007), qui ne remplacent pas le jeu de référence.
-- PR 3.2 : le seuil de 95 % des branches de `engine/` est mesuré en local (100 % ici) mais pas encore imposé en CI : l'option `--cov=engine` demande de modifier `ci.yml`, soumis à l'accord du mainteneur.
+- PR 3.2 : seuil de 95 % des branches de `engine/` imposé en CI, avec l'accord du mainteneur (modification de `ci.yml`) : le job `tests` mesure `engine` et `suivi`, puis `coverage report --include='engine/*' --fail-under=95` échoue sous le seuil. Le seuil de 90 % de la validation des saisies reste à poser avec la phase 4.
 - PR 3.2 : mypy strict sur `engine/` passe par les options individuelles d'une section `[[tool.mypy.overrides]]`, `strict = true` n'étant accepté que globalement (il casserait les tests et Django).
 
 ## Rétrospective : ce qui a marché, ce qui a coincé

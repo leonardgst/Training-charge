@@ -72,7 +72,9 @@ jobs:
         env:
           PGHOST: 127.0.0.1
           PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
-      - run: uv run pytest tests/unit tests/integration --cov=suivi --cov-branch
+      - run: uv run pytest tests/unit tests/integration --cov=engine --cov=suivi --cov-branch
+      - name: Seuil de couverture du moteur (95 % des branches)
+        run: uv run coverage report --include='engine/*' --fail-under=95
 
   migrations:
     runs-on: ubuntu-latest
