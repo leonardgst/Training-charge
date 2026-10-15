@@ -1,0 +1,1 @@
+description = "Une entrée avec trois indicateurs d'échelles 0-10, 1-5 et 0-100, tous de poids 1 : chacun est ramené dans [0, 1] par ses bornes avant d'être agrégé. Date de calcul utile : 2026-01-05."

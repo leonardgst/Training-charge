@@ -1,0 +1,4 @@
+categorie,code,type,borne_min,borne_max,sens,poids,inclus_score
+U19,plaisir,note,0,10,haut_bon,1,true
+U19,fatigue,note,0,10,bas_bon,1,true
+U19,energie,note,0,10,haut_bon,1,true

@@ -1,0 +1,5 @@
+description = "Rejoue C06 avec facteur_echelle_charge multiplié par 7 (10 devient 70) : charges multipliées par 7, z-scores identiques. Mêmes dates de calcul que C06."
+reprend = "C06"
+
+[parametres]
+facteur_echelle_charge = 70

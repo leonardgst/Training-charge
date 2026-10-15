@@ -1,0 +1,10 @@
+joueur,date,indicateur,valeur
+J1,2026-01-05,plaisir,8
+J1,2026-01-05,fatigue,2
+J1,2026-01-05,douleurs,2
+J1,2026-01-06,plaisir,0
+J1,2026-01-06,fatigue,10
+J1,2026-01-06,douleurs,5
+J1,2026-01-07,plaisir,10
+J1,2026-01-07,fatigue,0
+J1,2026-01-07,douleurs,1
