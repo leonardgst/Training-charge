@@ -1,0 +1,58 @@
+# Phase 04 — Saisie des séances
+
+| Statut | Prévue | Terminée le | Tag Git |
+| --- | --- | --- | --- |
+| À commencer : fiche à valider par le mainteneur | — | — | v0.4.0 |
+
+## Objectif
+
+Le préparateur remplace son fichier Excel : il se connecte, crée une séance, saisit la grille RPE au clavier, l'enregistre en brouillon puis la valide, et retrouve, corrige ou supprime ses séances.
+
+Niveau de collaboration proposé : 4 pour la phase (cadrage, section 9), et 3 pour la PR 4.2 et pour toute PR qui touche aux règles d'accès ou aux migrations (cadrage, section 6). `CLAUDE.md` ne prévoit plus le niveau 3 que si le mainteneur le redemande : **à trancher par le mainteneur en validant cette fiche**. Les règles « Jamais » et « Avec accord seulement » de `CLAUDE.md` restent en vigueur. Estimation : 18 heures (cadrage, section 9).
+
+## Livrables
+
+- [ ] Connexion et structure des pages (gabarit de base, navigation, mise en page tablette et téléphone)
+- [ ] Gestion des joueurs de sa catégorie (US-15)
+- [ ] Création d'une séance et de ses participants (US-03)
+- [ ] Grille RPE, brouillon puis validation, charges affichées sur la séance validée (US-04, US-05)
+- [ ] Historique, correction et suppression des séances (US-06)
+
+## PR de la phase
+
+| # | Titre | Contenu | Tests apportés | Statut | Lien |
+| --- | --- | --- | --- | --- | --- |
+| 4.1 | `feat: ajouter la connexion et la structure des pages` | Gabarit de base, navigation, connexion et déconnexion (message générique), mise en page tablette et téléphone | Intégration de la connexion ; bout en bout de la connexion | À commencer | — |
+| 4.2 | `feat: gérer les joueurs de sa catégorie` | Liste, création, modification, archivage (US-15) ; niveau 3 proposé | A3 étendu, D1 | À commencer | — |
+| 4.3 | `feat: créer une séance et ses participants` | En-tête, pré-remplissage avec les joueurs actifs, annuaire, retrait d'un absent | D1 (durée), A3 (joueur invité) | À commencer | — |
+| 4.4 | `feat: saisir la grille RPE puis la valider` | Grille au clavier, code couleur, brouillon, validation, charges affichées sur la séance validée (moteur de la phase 3) | D1, E1 sur ordinateur et tablette | À commencer | — |
+| 4.5 | `feat: lister, corriger et supprimer les séances` | Historique, correction directe, suppression confirmée, traçabilité (ADR-0008) | Intégration, `updated_by` | À commencer | — |
+
+## Critères de fin (Definition of Done)
+
+- [ ] Toutes les PR de la phase sont fusionnées, CI verte
+- [ ] Parcours E1 au vert, sur ordinateur et tablette émulés
+- [ ] Couverture de la validation des saisies (`suivi/forms.py` et validateurs du modèle) d'au moins 90 % des branches, imposée en CI
+- [ ] Toute requête d'une vue staff passe par `suivi/acces.py` ; A1 et A3 étendus aux nouvelles routes
+- [ ] Utilisable sur tablette
+- [ ] Recette manuelle faite, avec une séance de 25 joueurs chronométrée
+- [ ] Documentation à jour : fiche, journal, `CHANGELOG.md`, `CLAUDE.md` pointant vers la phase 5
+
+## Recette manuelle
+
+Liste préparée à la fin de la phase ; elle comprendra la saisie chronométrée d'une séance de 25 joueurs sur tablette.
+
+## Décisions prises (liens vers les ADR)
+
+- [ADR-0005](../adr/0005-controle-d-acces-applicatif.md) — Contrôle d'accès applicatif et refus par défaut
+- [ADR-0007](../adr/0007-echelle-rpe-et-formule-de-charge.md) — Échelle RPE et formule de charge
+- [ADR-0008](../adr/0008-cycle-de-vie-des-saisies.md) — Cycle de vie des saisies
+- [ADR-0009](../adr/0009-suppression-et-archivage-d-un-joueur.md) — Suppression et archivage d'un joueur
+
+## Écarts par rapport au plan
+
+Aucun pour l'instant.
+
+## Rétrospective : ce qui a marché, ce qui a coincé
+
+À remplir à la clôture.

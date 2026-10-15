@@ -4,6 +4,24 @@ Toutes les modifications notables du projet sont consignées ici, au format [Kee
 
 ## [Non publié]
 
+## [0.3.0] - 2026-10-15
+
+Phase 3 : moteur de calcul.
+
+### Ajouté
+
+- Moteur pur `engine/` (sans Django, typage strict, 100 % des branches couvertes, seuil de 95 % imposé en CI) : charge de séance et charge du jour sur un calendrier continu ; CE courte (7 jours) et CE longue (28 jours) avec drapeau de fenêtre incomplète ; z-score d'intensité (référence à la veille, fenêtres complètes, au moins 21 jours, écart-type d'échantillon, états `historique_insuffisant` et `non_calculable`) ; score de sensations normalisé par les bornes, orienté et pondéré (au moins 50 % du poids répondu, état `reponses_insuffisantes`) ; z-score de sensations (au moins 6 entrées dans les 28 jours précédents).
+- Adaptateur `suivi/calculs.py` : séances validées seulement, données datées au plus tard de la date de calcul, configuration des indicateurs rétroactive.
+- `config/calcul.toml` : paramètres de calcul validés au démarrage.
+- Jeu de référence `tests/reference/` : format, harnais sur base et sans base, cas C01 à C15 avec leurs entrées, leurs valeurs attendues et leur provenance, script de calcul indépendant du moteur en arithmétique exacte.
+- Fiche de la phase 4 (saisie des séances).
+
+### Modifié
+
+- Phase 3 en niveau 4 de collaboration (décision du mainteneur).
+- Écriture des `attendu.csv` et `provenance.md` confiée à Claude Code, et contrôle indépendant du mainteneur levé, par décision du mainteneur ; consigné dans chaque `provenance.md`.
+- `CLAUDE.md` pointe vers la phase 4.
+
 ## [0.2.0] - 2026-10-13
 
 Phase 2 : modèle de données et accès.
