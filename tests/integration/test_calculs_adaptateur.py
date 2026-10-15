@@ -9,15 +9,15 @@ from pathlib import Path
 
 import pytest
 
-from engine.modeles import JourCalcule, Parametres
-from suivi.calculs import calculer_joueur
+from engine.modeles import ChargesGlissantes, JourCalcule, Parametres
+from suivi.calculs import calculer_charges_glissantes, calculer_joueur
 from tests.reference.execution import charger_en_base, executer_sans_base, executer_sur_base
 from tests.reference.harnais import CasReference, lire_cas
 from tests.reference.synthese import ecrire_cas
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
-PARAMETRES = Parametres(facteur_echelle_charge=10)
+PARAMETRES = Parametres(10, 7, 28)
 LUNDI = datetime.date(2026, 1, 5)
 MARDI = datetime.date(2026, 1, 6)
 ENTETE = "seance_id,joueur,rpe_cardio,rpe_musculaire,rpe_teta\n"
@@ -104,3 +104,37 @@ def test_les_deux_chemins_donnent_le_meme_resultat(tmp_path: Path) -> None:
 def test_un_brouillon_est_refuse_sans_base(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="sur la base"):
         executer_sans_base(_cas(tmp_path), LUNDI)
+
+
+def test_les_charges_glissantes_ignorent_brouillons_et_donnees_posterieures(tmp_path: Path) -> None:
+    joueurs = charger_en_base(_cas(tmp_path))
+    # J1 : S1 validée le 5 (3000), S2 brouillon le 6 ignorée ; fenêtres incomplètes.
+    assert calculer_charges_glissantes(joueurs["J1"], MARDI, PARAMETRES) == [
+        ChargesGlissantes(LUNDI, 3000.0, 3000.0, True, True),
+        ChargesGlissantes(MARDI, 3000.0, 3000.0, True, True),
+    ]
+    assert calculer_charges_glissantes(joueurs["J1"], LUNDI, PARAMETRES) == [
+        ChargesGlissantes(LUNDI, 3000.0, 3000.0, True, True)
+    ]
+
+
+def test_les_ce_sont_comparees_par_les_deux_chemins(tmp_path: Path) -> None:
+    seances = "id,date,categorie,type,duree_min,statut\nS1,2026-01-05,U19,foot,60,validee\n"
+    cas = _cas(
+        tmp_path,
+        **{
+            "seances.csv": seances,
+            "participations.csv": ENTETE + "S1,J1,5,6,4\nS1,J2,7,7,7\n",
+            "indicateurs.csv": None,
+            "reponses.csv": None,
+            "attendu.csv": None,
+        },
+    )
+    joueurs = charger_en_base(cas)
+    jour = LUNDI + datetime.timedelta(days=7)
+    sans_base = executer_sans_base(cas, jour)
+    assert sans_base == executer_sur_base(cas, joueurs, jour)
+    # Facteur 1 : J1 vaut 300 le 5. Le 12 (8e jour), la CE courte l'a perdu, la longue la garde.
+    assert sans_base[("J1", jour, "ce_courte")].valeur == 0.0
+    assert sans_base[("J1", jour, "ce_longue")].valeur == 300.0
+    assert sans_base[("J1", LUNDI + datetime.timedelta(days=6), "ce_courte")].valeur == 300.0
