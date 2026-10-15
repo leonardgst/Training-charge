@@ -1,10 +1,18 @@
 from collections.abc import Callable
 from typing import Any
 
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest, HttpResponse
 
 from suivi.models import Preparateur
+
+
+class RequeteStaff(HttpRequest):
+    """Requête d'une vue staff, après le passage de `ProfilPreparateurRequisMiddleware`."""
+
+    user: User
+    preparateur: Preparateur
 
 
 class ProfilPreparateurRequisMiddleware:

@@ -14,3 +14,50 @@ nav ul {
 .erreur {
   color: var(--pico-del-color);
 }
+
+.message {
+  padding: var(--pico-spacing);
+  border-left: 0.25rem solid var(--pico-ins-color);
+  background: var(--pico-card-sectioning-background-color);
+}
+
+/* Colonnes secondaires d'un tableau, masquées sur téléphone. */
+@media (max-width: 576px) {
+  .large {
+    display: none;
+  }
+}
+
+/* Actions d'une ligne de tableau : côte à côte, ou l'une sous l'autre sur un écran étroit. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--pico-spacing) / 2) var(--pico-spacing);
+}
+
+.actions form {
+  margin: 0;
+}
+
+/* Pico étire les boutons d'envoi sur toute la largeur : ici, largeur naturelle. */
+.actions button,
+.boutons > * {
+  width: auto;
+  margin: 0;
+}
+
+.actions button {
+  padding: calc(var(--pico-form-element-spacing-vertical) / 2)
+    calc(var(--pico-form-element-spacing-horizontal) / 2);
+}
+
+.formulaire {
+  max-width: 32rem;
+}
+
+.boutons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pico-spacing);
+}

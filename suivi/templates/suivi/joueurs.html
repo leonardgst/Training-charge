@@ -1,0 +1,21 @@
+{% extends "suivi/base.html" %}
+
+{% block titre %}Joueurs{% endblock %}
+
+{% block contenu %}
+<h1>Joueurs</h1>
+<p><a href="{% url 'joueur_creer' %}" role="button">Ajouter un joueur</a></p>
+{% if actifs %}
+{% include "suivi/_joueurs_tableau.html" with joueurs=actifs %}
+{% else %}
+<p>Aucun joueur actif dans la catégorie.</p>
+{% endif %}
+
+<h2>Joueurs archivés</h2>
+<p>Un joueur archivé n’apparaît plus dans les listes de saisie ; son historique est conservé.</p>
+{% if archives %}
+{% include "suivi/_joueurs_tableau.html" with joueurs=archives %}
+{% else %}
+<p>Aucun joueur archivé.</p>
+{% endif %}
+{% endblock %}
