@@ -1,10 +1,10 @@
-"""Charge de séance et charge du jour sur un calendrier continu (ADR-0007, ADR-0011)."""
+"""Charge de séance, charge du jour et charges glissantes (ADR-0007, ADR-0011)."""
 
 import datetime
 from collections import defaultdict
 from collections.abc import Sequence
 
-from engine.modeles import JourCalcule, Parametres, ParticipationValidee
+from engine.modeles import ChargesGlissantes, JourCalcule, Parametres, ParticipationValidee
 
 
 def charge_seance(participation: ParticipationValidee, parametres: Parametres) -> float:
@@ -33,3 +33,27 @@ def calendrier(
         JourCalcule(jour=jour, charge_jour=par_jour.get(jour, 0.0))
         for jour in (debut + datetime.timedelta(days=i) for i in range((fin - debut).days + 1))
     ]
+
+
+def charges_glissantes(
+    jours: Sequence[JourCalcule], parametres: Parametres
+) -> list[ChargesGlissantes]:
+    """CE courte et CE longue de chaque jour : somme des `fenetre` derniers jours, jour inclus.
+
+    `jours` est un calendrier continu. Au début du calendrier, la somme porte sur les jours
+    disponibles et la fenêtre est signalée incomplète.
+    """
+    resultat = []
+    for i, jour in enumerate(jours):
+        courte = jours[max(0, i + 1 - parametres.fenetre_courte_jours) : i + 1]
+        longue = jours[max(0, i + 1 - parametres.fenetre_longue_jours) : i + 1]
+        resultat.append(
+            ChargesGlissantes(
+                jour=jour.jour,
+                ce_courte=sum(j.charge_jour for j in courte),
+                ce_longue=sum(j.charge_jour for j in longue),
+                courte_incomplete=i + 1 < parametres.fenetre_courte_jours,
+                longue_incomplete=i + 1 < parametres.fenetre_longue_jours,
+            )
+        )
+    return resultat

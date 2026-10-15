@@ -2,14 +2,14 @@
 
 `charger_en_base` fait partie du harnais. Les deux fonctions `executer_*` sont les deux
 points de branchement sur le code testé : elles étendent leurs résultats à chaque PR de la
-phase 3 (ici, la charge du jour).
+phase 3 (ici, la charge du jour, la CE courte et la CE longue).
 """
 
 import dataclasses
 import datetime
 from collections.abc import Mapping, Sequence
 
-from engine.charge import calendrier
+from engine.charge import calendrier, charges_glissantes
 from engine.modeles import JourCalcule, Parametres, ParticipationValidee
 from tests.reference.harnais import CasReference, Cle, Resultat
 
@@ -97,13 +97,17 @@ def charger_en_base(cas: CasReference) -> dict[str, int]:
 
 
 def _resultats(
-    nom: str, jours: Sequence[JourCalcule], date_calcul: datetime.date
+    nom: str, jours: Sequence[JourCalcule], parametres: Parametres, date_calcul: datetime.date
 ) -> dict[Cle, Resultat]:
-    return {
-        (nom, jour.jour, "charge_jour"): Resultat(jour.charge_jour, "ok")
-        for jour in jours
-        if jour.jour <= date_calcul
-    }
+    obtenu: dict[Cle, Resultat] = {}
+    for jour in jours:
+        if jour.jour <= date_calcul:
+            obtenu[(nom, jour.jour, "charge_jour")] = Resultat(jour.charge_jour, "ok")
+    for glissante in charges_glissantes(jours, parametres):
+        if glissante.jour <= date_calcul:
+            obtenu[(nom, glissante.jour, "ce_courte")] = Resultat(glissante.ce_courte, "ok")
+            obtenu[(nom, glissante.jour, "ce_longue")] = Resultat(glissante.ce_longue, "ok")
+    return obtenu
 
 
 def parametres_du_cas(cas: CasReference) -> Parametres:
@@ -137,9 +141,8 @@ def executer_sans_base(cas: CasReference, date_calcul: datetime.date) -> Mapping
                     seance.date, seance.duree_min, p.rpe_cardio, p.rpe_musculaire, p.rpe_teta
                 )
             )
-        obtenu.update(
-            _resultats(nom, calendrier(participations, parametres, date_calcul), date_calcul)
-        )
+        jours = calendrier(participations, parametres, date_calcul)
+        obtenu.update(_resultats(nom, jours, parametres, date_calcul))
     return obtenu
 
 
@@ -153,5 +156,5 @@ def executer_sur_base(
     obtenu: dict[Cle, Resultat] = {}
     for nom, joueur_id in joueurs.items():
         jours = calculer_joueur(joueur_id, date_calcul, parametres)
-        obtenu.update(_resultats(nom, jours, date_calcul))
+        obtenu.update(_resultats(nom, jours, parametres, date_calcul))
     return obtenu

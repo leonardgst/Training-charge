@@ -22,8 +22,8 @@ Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mai
 | # | Titre | Contenu | Tests apportés | Statut | Lien |
 | --- | --- | --- | --- | --- | --- |
 | 3.1 | `test: ajouter le jeu de référence et les cas C1 à C15` | Format, harnais sur base et sans base, cas en `xfail(strict=True)`. Les `attendu.csv` et `provenance.md` sont écrits par le mainteneur. | C1 à C15, en échec attendu | En revue | [#20](https://github.com/leonardgst/Training-charge/pull/20) |
-| 3.2 | `feat: calculer la charge du jour sur un calendrier continu` | Types, paramètres, charge de séance, calendrier, adaptateur | C1, C2, C5, C10 | En revue | [#21](https://github.com/leonardgst/Training-charge/pull/21) |
-| 3.3 | `feat: calculer la CE courte et la CE longue` | Sommes glissantes, drapeau de fenêtre incomplète | C3, C9 | À commencer | — |
+| 3.2 | `feat: calculer la charge du jour sur un calendrier continu` | Types, paramètres, charge de séance, calendrier, adaptateur | C1, C2, C5, C10 | Fusionnée | [#21](https://github.com/leonardgst/Training-charge/pull/21) |
+| 3.3 | `feat: calculer la CE courte et la CE longue` | Sommes glissantes, drapeau de fenêtre incomplète | C3, C9 | En revue | [#22](https://github.com/leonardgst/Training-charge/pull/22) |
 | 3.4 | `feat: calculer l'intensité` | Référence, historique minimal, écart-type nul | C4, C6, C7 et C8 pour l'intensité, C14 | À commencer | — |
 | 3.5 | `feat: calculer le score et le z-score de sensations` | Normalisation, orientation, pondération, référence | C7 et C8 pour les sensations, C11, C12, C13, C15 | À commencer | — |
 
@@ -58,6 +58,7 @@ Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mai
 - PR 3.2 : les marques `xfail` de C1, C2, C5 et C10 restent en place, car les dossiers du mainteneur n'existent pas encore ; elles se retirent (la CI l'impose, `strict=True`) dès que ses fichiers sont fusionnés. Les formules sont en attendant prouvées par des tests à valeurs calculées à la main (ADR-0007), qui ne remplacent pas le jeu de référence.
 - PR 3.2 : seuil de 95 % des branches de `engine/` imposé en CI, avec l'accord du mainteneur (modification de `ci.yml`) : le job `tests` mesure `engine` et `suivi`, puis `coverage report --include='engine/*' --fail-under=95` échoue sous le seuil. Le seuil de 90 % de la validation des saisies reste à poser avec la phase 4.
 - PR 3.2 : mypy strict sur `engine/` passe par les options individuelles d'une section `[[tool.mypy.overrides]]`, `strict = true` n'étant accepté que globalement (il casserait les tests et Django).
+- PR 3.3 : `config/calcul.toml` reçoit `fenetre_courte_jours` (7) et `fenetre_longue_jours` (28), validés au démarrage (entiers d'au moins 1, la courte strictement inférieure à la longue). Le drapeau « fenêtre incomplète » est porté par `ChargesGlissantes` (`courte_incomplete`, `longue_incomplete`) ; `attendu.csv` n'a pas de colonne pour lui, l'état de la CE reste donc `ok` et le drapeau est vérifié par des tests à valeurs calculées à la main. Les marques `xfail` de C3 et C9 restent, les dossiers du mainteneur étant absents.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé
 
