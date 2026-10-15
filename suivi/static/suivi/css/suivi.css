@@ -1,0 +1,16 @@
+/* Ajustements propres à l'application, par-dessus Pico CSS. */
+
+/* Sur téléphone, la navigation passe à la ligne plutôt que de déborder. */
+nav,
+nav ul {
+  flex-wrap: wrap;
+}
+
+.connexion {
+  max-width: 28rem;
+  margin-inline: auto;
+}
+
+.erreur {
+  color: var(--pico-del-color);
+}

@@ -100,6 +100,7 @@ if HTTPS:
 
 LOGIN_URL = "connexion"
 LOGIN_REDIRECT_URL = "accueil"
+LOGOUT_REDIRECT_URL = "connexion"
 
 LANGUAGE_CODE = "fr"
 TIME_ZONE = "Europe/Paris"

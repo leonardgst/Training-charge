@@ -1,0 +1,8 @@
+{% extends "suivi/base.html" %}
+
+{% block titre %}Page introuvable{% endblock %}
+
+{% block contenu %}
+<h1>Page introuvable</h1>
+<p>Cette adresse ne correspond à aucune page. <a href="{% url 'accueil' %}">Revenir à l’accueil</a>.</p>
+{% endblock %}

@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 from django.contrib.auth.decorators import login_not_required
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
 from django.views.generic import TemplateView
 
@@ -20,6 +20,7 @@ urlpatterns = [
         ),
         name="connexion",
     ),
+    path("deconnexion/", LogoutView.as_view(), name="deconnexion"),
     path("sante/", sante, name="sante"),
     path("admin/", admin.site.urls),
 ]

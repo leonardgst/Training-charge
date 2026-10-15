@@ -1,13 +1,8 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Suivi de charge U19</title>
-</head>
-<body>
-  <main>
-    <h1>Suivi de charge U19</h1>
-  </main>
-</body>
-</html>
+{% extends "suivi/base.html" %}
+
+{% block titre %}Accueil{% endblock %}
+
+{% block contenu %}
+<h1>Suivi de charge U19</h1>
+<p>Catégorie {{ request.preparateur.categorie.libelle }}.</p>
+{% endblock %}
