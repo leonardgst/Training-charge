@@ -1,7 +1,7 @@
 """Cas C1 à C15 sur un vrai Postgres : l'adaptateur puis le moteur (cette version fait foi).
 
 Le chargement du cas dans la base est testé ici avec le cas fictif du harnais ; les cas
-de référence sont en `xfail(strict=True)` jusqu'à la PR qui les implémente.
+de référence sont ceux de `tests/reference/`.
 """
 
 import datetime

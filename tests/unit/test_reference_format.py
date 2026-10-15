@@ -3,8 +3,6 @@
 import ast
 from pathlib import Path
 
-import pytest
-
 from tests.reference.harnais import RACINE, CasAbsent, lire_cas, trouver_dossier, verifier_coherence
 from tests.reference.registre import CAS
 
@@ -46,11 +44,6 @@ def test_les_outils_du_mainteneur_n_importent_ni_le_moteur_ni_l_application() ->
     assert fautes == []
 
 
-@pytest.mark.xfail(
-    reason="jeu de référence du mainteneur : C01 à C15 avec attendu.csv et provenance.md",
-    raises=AssertionError,
-    strict=True,
-)
 def test_le_jeu_de_reference_est_complet() -> None:
     manquants = []
     for cas in CAS:

@@ -1,0 +1,11 @@
+joueur,date,grandeur,valeur,etat
+J1,2026-01-14,score_sensations,0.666666666666667,ok
+J1,2026-01-14,sensations_z,,non_calculable
+J1,2026-02-01,ce_courte,21000,ok
+J1,2026-02-01,ce_longue,84000,ok
+J1,2026-02-01,charge_jour,3000,ok
+J1,2026-02-01,intensite,,non_calculable
+J1,2026-02-13,ce_courte,21000,ok
+J1,2026-02-13,ce_longue,84000,ok
+J1,2026-02-13,charge_jour,3000,ok
+J1,2026-02-13,intensite,,non_calculable

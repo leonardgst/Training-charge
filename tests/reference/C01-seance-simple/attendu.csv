@@ -1,0 +1,5 @@
+joueur,date,grandeur,valeur,etat
+J1,2026-01-05,ce_courte,3000,ok
+J1,2026-01-05,ce_longue,3000,ok
+J1,2026-01-05,charge_jour,3000,ok
+J1,2026-01-05,intensite,,historique_insuffisant

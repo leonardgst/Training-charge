@@ -1,0 +1,13 @@
+joueur,date,grandeur,valeur,etat
+J1,2026-02-01,ce_courte,14100,ok
+J1,2026-02-01,ce_longue,72600,ok
+J1,2026-02-01,charge_jour,0,ok
+J1,2026-02-01,intensite,-1.60037391207560,ok
+J1,2026-02-08,ce_courte,21733.3333333333,ok
+J1,2026-02-08,ce_longue,73533.3333333333,ok
+J1,2026-02-08,charge_jour,0,ok
+J1,2026-02-08,intensite,1.00843572124811,ok
+J1,2026-02-09,ce_courte,33266.6666666667,ok
+J1,2026-02-09,ce_longue,85066.6666666667,ok
+J1,2026-02-09,charge_jour,15000,ok
+J1,2026-02-09,intensite,4.34927058493721,ok
