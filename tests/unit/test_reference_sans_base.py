@@ -18,7 +18,7 @@ from tests.reference.harnais import (
 from tests.reference.registre import parametres_des_cas
 
 
-@pytest.mark.parametrize("cas_id", parametres_des_cas())
+@pytest.mark.parametrize("cas_id", parametres_des_cas(sans_base=True))
 def test_cas_de_reference_sans_base(cas_id: str) -> None:
     cas = lire_cas(trouver_dossier(cas_id))
     verifier_coherence(cas)
