@@ -4,7 +4,7 @@ Application web de suivi de la charge d'entraînement et de l'état de forme des
 
 La version 1 est une démonstration sur **données fictives**. Le dépôt est public : aucune donnée réelle, jamais.
 
-> **État** : phase 1 (socle et chaîne de qualité). L'application affiche pour l'instant une page de connexion ; les fonctionnalités arrivent à partir de la phase 2. Démonstration en ligne : https://u19-load-tracking.vercel.app
+> **État** : phase 4 (saisie des séances) en cours. Le moteur de calcul est en place (phase 3) ; côté interface, le préparateur se connecte et se déconnecte. Démonstration en ligne : https://u19-load-tracking.vercel.app
 
 ## Documentation
 
@@ -17,7 +17,7 @@ La version 1 est une démonstration sur **données fictives**. Le dépôt est pu
 | [Déploiement](docs/deploiement.md) | Neon, Vercel, GitHub et emplacement des secrets |
 | [Glossaire](docs/glossaire.md) | Vocabulaire métier |
 | [ADR](docs/adr/README.md) | Décisions d'architecture |
-| [Phase en cours](docs/phases/phase-01-socle.md) | Fiche de la phase 1 |
+| [Phase en cours](docs/phases/phase-04-saisie-des-seances.md) | Fiche de la phase 4 |
 
 ## Prérequis
 
@@ -60,7 +60,15 @@ docker compose down -v && docker compose up -d db   # efface les données locale
 uv run --env-file .env python manage.py runserver
 ```
 
-Puis ouvre http://127.0.0.1:8000/. Un visiteur sans session est renvoyé vers la page de connexion ; aucun compte n'existe encore.
+Puis ouvre http://127.0.0.1:8000/. Un visiteur sans session est renvoyé vers la page de connexion.
+
+Pour se connecter, charge d'abord les données de démonstration dans une base vide :
+
+```bash
+uv run --env-file .env python manage.py generer_demo
+```
+
+La commande crée trois comptes, `prep_u19`, `prep_u17` (préparateurs) et `admin_demo` (administrateur, pour `/admin/`), et affiche une seule fois leur mot de passe commun ; `--mot-de-passe` permet de le choisir. Les pages du staff sont réservées aux préparateurs : `admin_demo` n'y entre pas.
 
 ## Tests et qualité
 
