@@ -12,13 +12,15 @@ from django.db.models import Q, QuerySet
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST, require_safe
 
 from suivi.acces import annuaire, joueurs_suivis, participations_visibles, seances_organisees
-from suivi.forms import JoueurForm, SeanceForm
+from suivi.calculs import charges_de_seance, parametres
+from suivi.forms import COLONNES_RPE, GrilleRpeForm, JoueurForm, SeanceForm
 from suivi.horloge import aujourd_hui
 from suivi.middleware import RequeteStaff
-from suivi.models import Joueur, Seance, StatutSeance, TypeSeance
+from suivi.models import Joueur, Participation, Seance, StatutSeance, TypeSeance
 
 # Nombre maximal de joueurs affichés par une recherche dans l'annuaire.
 RESULTATS_ANNUAIRE = 20
@@ -139,19 +141,24 @@ def seance_creer(request: RequeteStaff) -> HttpResponse:
     return render(request, "suivi/seance_creer.html", {"rubrique": "nouvelle_seance", "form": form})
 
 
-@require_safe
-def seance_detail(request: RequeteStaff, pk: int) -> HttpResponse:
-    """Une séance, ses participants et, en brouillon, la recherche dans l'annuaire."""
-    seance = _seance_organisee(request, pk)
-    participations = (
+def _participations(request: RequeteStaff, seance: Seance) -> list[Participation]:
+    return list(
         participations_visibles(request.preparateur)
         .filter(seance=seance)
         .select_related("joueur__categorie_reference")
         .order_by("joueur__nom", "joueur__prenom", "pk")
     )
+
+
+def _page_seance(
+    request: RequeteStaff, seance: Seance, grille: GrilleRpeForm | None = None
+) -> HttpResponse:
+    """En brouillon : grille RPE, puis participants et annuaire. Validée : RPE et charges."""
+    participations = _participations(request, seance)
+    brouillon = seance.statut == StatutSeance.BROUILLON
     recherche = request.GET.get("q", "").strip()
     resultats = []
-    if recherche and seance.statut == StatutSeance.BROUILLON:
+    if recherche and brouillon:
         resultats = list(
             annuaire(request.preparateur)
             .filter(Q(nom__icontains=recherche) | Q(prenom__icontains=recherche))
@@ -159,18 +166,63 @@ def seance_detail(request: RequeteStaff, pk: int) -> HttpResponse:
                 :RESULTATS_ANNUAIRE
             ]
         )
+    if brouillon and grille is None:
+        grille = GrilleRpeForm(participations=participations)
+    # Charges calculées par le moteur (phase 3) : aucune formule n'est réécrite ici.
+    charges = charges_de_seance(seance, participations, parametres())
     return render(
         request,
         "suivi/seance.html",
         {
             "seance": seance,
-            "brouillon": seance.statut == StatutSeance.BROUILLON,
+            "brouillon": brouillon,
+            "grille": grille,
             "participations": participations,
+            "validees": [(p, charges[p.pk]) for p in participations] if not brouillon else [],
             "recherche": recherche,
             "resultats": resultats,
             "limite": RESULTATS_ANNUAIRE,
+            # Libellé de chaque colonne de RPE, et sa forme courte sur téléphone.
+            "colonnes": [("Cardio", "Card."), ("Musculaire", "Musc."), ("TETA", "TETA")],
         },
     )
+
+
+@require_safe
+def seance_detail(request: RequeteStaff, pk: int) -> HttpResponse:
+    """Une séance : sa grille RPE tant qu'elle est en brouillon, ses charges une fois validée."""
+    return _page_seance(request, _seance_organisee(request, pk))
+
+
+@require_POST
+def seance_grille(request: RequeteStaff, pk: int) -> HttpResponse:
+    """Enregistre la grille en brouillon (RPE facultatifs) ou valide la séance (US-05)."""
+    seance = _seance_organisee(request, pk)
+    if seance.statut != StatutSeance.BROUILLON:
+        messages.error(request, "Cette séance est validée : ses RPE ne se modifient plus ici.")
+        return _retour_a_la_seance(pk)
+    valider = "valider" in request.POST
+    grille = GrilleRpeForm(
+        request.POST, participations=_participations(request, seance), valider=valider
+    )
+    if not grille.is_valid():
+        return _page_seance(request, seance, grille)
+    champs = [champ for champ, _ in COLONNES_RPE]
+    with transaction.atomic():
+        for participation in grille.participations_modifiees():
+            participation.updated_by = request.user
+            participation.save(update_fields=[*champs, "updated_by", "updated_at"])
+        seance.updated_by = request.user
+        if valider:
+            # Le déclencheur de l'ADR-0008 refuserait une participation incomplète.
+            seance.statut = StatutSeance.VALIDEE
+            seance.validated_at = timezone.now()
+        seance.save()
+    if valider:
+        messages.success(request, "La séance est validée : les charges sont calculées.")
+    else:
+        messages.success(request, "Le brouillon est enregistré.")
+    return _retour_a_la_seance(pk)
 
 
 def _seance_en_brouillon(request: RequeteStaff, pk: int) -> Seance | None:

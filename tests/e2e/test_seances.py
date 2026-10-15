@@ -75,6 +75,9 @@ def test_creer_une_seance_retirer_un_absent_et_ajouter_un_invite(
     expect(page.get_by_text("Musculation · 75 min · Brouillon")).to_be_visible()
     expect(page.get_by_role("heading", name="Participants (2)")).to_be_visible()
 
+    # Depuis la PR 4.4, la grille RPE ouvre la page ; les participants sont dans un bloc
+    # repliable, ouvert par son titre.
+    page.get_by_role("heading", name="Participants (2)").click()
     page.get_by_role("searchbox", name="Nom ou prénom du joueur").fill("ler")
     page.get_by_role("button", name="Rechercher").click()
     page.get_by_role("button", name="Ajouter Noah Leroy").click()
