@@ -25,7 +25,7 @@ Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mai
 | 3.2 | `feat: calculer la charge du jour sur un calendrier continu` | Types, paramètres, charge de séance, calendrier, adaptateur | C1, C2, C5, C10 | Fusionnée | [#21](https://github.com/leonardgst/Training-charge/pull/21) |
 | 3.3 | `feat: calculer la CE courte et la CE longue` | Sommes glissantes, drapeau de fenêtre incomplète | C3, C9 | Fusionnée | [#22](https://github.com/leonardgst/Training-charge/pull/22) |
 | 3.4 | `feat: calculer l'intensité` | Référence, historique minimal, écart-type nul | C4, C6, C7 et C8 pour l'intensité, C14 | Fusionnée | [#23](https://github.com/leonardgst/Training-charge/pull/23) |
-| 3.5 | `feat: calculer le score et le z-score de sensations` | Normalisation, orientation, pondération, référence | C7 et C8 pour les sensations, C11, C12, C13, C15 | En revue | PR à ouvrir |
+| 3.5 | `feat: calculer le score et le z-score de sensations` | Normalisation, orientation, pondération, référence | C7 et C8 pour les sensations, C11, C12, C13, C15 | En revue | [#24](https://github.com/leonardgst/Training-charge/pull/24) |
 
 ## Critères de fin (Definition of Done)
 
