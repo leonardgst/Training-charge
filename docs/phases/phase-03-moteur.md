@@ -8,7 +8,7 @@
 
 Des chiffres justes, prouvés indépendamment de l'implémentation.
 
-Niveau de collaboration : 3 pour la phase entière. Claude Code commence par un plan, puis demande l'accord avant chaque action ; le mainteneur passe la session en mode Manuel. Les fichiers `tests/reference/**/attendu.csv` et `provenance.md` sont écrits par le mainteneur seul. Estimation : 24 heures, plus environ 10 heures pour le jeu de référence du mainteneur (cadrage, section 9).
+Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mainteneur le 2026-10-15). Claude Code travaille sur une branche, commite, pousse et ouvre les PR ; le mainteneur relit et fusionne. Les règles « Jamais » et « Avec accord seulement » de `CLAUDE.md` restent en vigueur. Les fichiers `tests/reference/**/attendu.csv` et `provenance.md` sont écrits par le mainteneur seul. Estimation : 24 heures, plus environ 10 heures pour le jeu de référence du mainteneur (cadrage, section 9).
 
 ## Livrables
 
@@ -49,6 +49,7 @@ Niveau de collaboration : 3 pour la phase entière. Claude Code commence par un 
 
 ## Écarts par rapport au plan
 
+- Niveau de collaboration relevé de 3 à 4 par le mainteneur le 2026-10-15, avant la PR 3.1 (le cadrage prévoyait le niveau 3 pour toute la phase). Les `attendu.csv` et `provenance.md` restent réservés au mainteneur : le passage au niveau 4 ne change pas cette règle, qui est aussi appliquée par `.claude/settings.json`.
 - PR 3.1 : le format du jeu de référence est précisé par rapport à la stratégie de tests (section 6, mise à jour dans la même PR) : un `joueurs.csv` obligatoire (la catégorie de référence de chaque joueur ne se déduit pas des autres fichiers, C10 en dépend) ; chaque date d'`attendu.csv` est la date de calcul, ce qui remplace les « dates de calcul » de `cas.toml` ; `reprend` dans `cas.toml` pour C14 ; une valeur attendue nulle se compare avec un écart absolu de 1e-12, l'écart relatif n'ayant pas de sens autour de zéro. À confirmer par le mainteneur avant d'écrire les `attendu.csv`.
 - PR 3.1 : les dossiers `C01-*` à `C15-*` n'existent pas encore (écrits par le mainteneur) : les cas échouent donc d'abord faute de dossier, puis faute de moteur. Les deux points de branchement sur le code testé (`tests/reference/execution.py`) sont posés mais refusent de s'exécuter jusqu'à la PR 3.2. Un test `xfail(strict=True)` vérifie la complétude du jeu et se retirera quand le mainteneur aura fourni les quinze dossiers.
 
