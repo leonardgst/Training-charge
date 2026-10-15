@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest, HttpResponse
 
@@ -35,6 +36,13 @@ class PolitiqueDeSecuriteDuContenuMiddleware:
         reponse = self.get_response(request)
         reponse.headers.setdefault("Content-Security-Policy", POLITIQUE_DE_SECURITE_DU_CONTENU)
         return reponse
+
+
+class RequeteStaff(HttpRequest):
+    """Requête d'une vue staff, après le passage de `ProfilPreparateurRequisMiddleware`."""
+
+    user: User
+    preparateur: Preparateur
 
 
 class ProfilPreparateurRequisMiddleware:

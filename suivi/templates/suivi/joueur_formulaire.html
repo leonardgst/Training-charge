@@ -1,0 +1,22 @@
+{% extends "suivi/base.html" %}
+
+{% block titre %}{% if joueur.pk %}Modifier {{ joueur }}{% else %}Ajouter un joueur{% endif %}{% endblock %}
+
+{% block contenu %}
+<h1>{% if joueur.pk %}Modifier {{ joueur }}{% else %}Ajouter un joueur{% endif %}</h1>
+<form method="post" class="formulaire">
+  {% csrf_token %}
+  {% for erreur in form.non_field_errors %}
+  <p class="erreur" role="alert">{{ erreur }}</p>
+  {% endfor %}
+  {% for champ in form %}
+  <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
+  {{ champ }}
+  {% for erreur in champ.errors %}<small class="erreur">{{ erreur }}</small>{% endfor %}
+  {% endfor %}
+  <div class="boutons">
+    <button type="submit">Enregistrer</button>
+    <a href="{% url 'joueurs' %}" role="button" class="secondary outline">Annuler</a>
+  </div>
+</form>
+{% endblock %}

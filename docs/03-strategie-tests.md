@@ -130,6 +130,8 @@ Seuils validés le 2026-10-12, imposés en CI sur ces modules seulement (cadrage
 | `engine/` | 95 % des branches |
 | Validation des saisies (`suivi/forms.py` et les validateurs du modèle) | 90 % des branches |
 
+Chaque seuil est une étape du job `tests` (`coverage report --include=… --fail-under=…`) : `engine/*` depuis la PR 3.2, `suivi/forms.py` depuis la PR 4.2. Le modèle n'a pas de validateur Python : ses plages sont des contraintes de la base, prouvées par D1 en SQL direct.
+
 ## 8. Couverture des cas de la section 7
 
 | Id | Situation | Niveau | Comment | Phase | Dépend de |

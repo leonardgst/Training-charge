@@ -6,6 +6,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
 from django.views.generic import TemplateView
 
+from suivi.views import staff
 from suivi.views.sante import sante
 
 urlpatterns = [
@@ -21,6 +22,11 @@ urlpatterns = [
         name="connexion",
     ),
     path("deconnexion/", LogoutView.as_view(), name="deconnexion"),
+    path("joueurs/", staff.joueurs, name="joueurs"),
+    path("joueurs/nouveau/", staff.joueur_creer, name="joueur_creer"),
+    path("joueurs/<int:pk>/modifier/", staff.joueur_modifier, name="joueur_modifier"),
+    path("joueurs/<int:pk>/archiver/", staff.joueur_archiver, name="joueur_archiver"),
+    path("joueurs/<int:pk>/reactiver/", staff.joueur_reactiver, name="joueur_reactiver"),
     path("sante/", sante, name="sante"),
     path("admin/", admin.site.urls),
 ]

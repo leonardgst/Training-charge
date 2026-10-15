@@ -13,6 +13,9 @@
     <nav aria-label="Navigation principale">
       <ul>
         <li><a href="{% url 'accueil' %}"><strong>Suivi de charge U19</strong></a></li>
+        {% if request.preparateur %}
+        <li><a href="{% url 'joueurs' %}"{% if rubrique == "joueurs" %} aria-current="page"{% endif %}>Joueurs</a></li>
+        {% endif %}
       </ul>
       {% if request.preparateur %}
       <ul>
@@ -28,6 +31,9 @@
     </nav>
   </header>
   <main class="container">
+    {% for message in messages %}
+    <p class="message" role="status">{{ message }}</p>
+    {% endfor %}
     {% block contenu %}{% endblock %}
   </main>
 </body>

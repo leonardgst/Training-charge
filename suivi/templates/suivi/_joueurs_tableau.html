@@ -1,0 +1,31 @@
+<div class="overflow-auto">
+  <table>
+    <thead>
+      <tr><th scope="col">Joueur</th><th scope="col" class="large">Date de naissance</th><th scope="col">Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for joueur in joueurs %}
+      <tr>
+        <td><strong>{{ joueur.nom }}</strong> {{ joueur.prenom }}</td>
+        <td class="large">{{ joueur.date_naissance|date:"d/m/Y" }}</td>
+        <td>
+          <div class="actions">
+            <a href="{% url 'joueur_modifier' joueur.pk %}" aria-label="Modifier {{ joueur }}">Modifier</a>
+            {% if joueur.actif %}
+            <form method="post" action="{% url 'joueur_archiver' joueur.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="secondary outline" aria-label="Archiver {{ joueur }}">Archiver</button>
+            </form>
+            {% else %}
+            <form method="post" action="{% url 'joueur_reactiver' joueur.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="secondary outline" aria-label="Réactiver {{ joueur }}">Réactiver</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
