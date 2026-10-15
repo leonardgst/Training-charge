@@ -23,7 +23,7 @@ Niveau de collaboration : 4 pour la phase entière, PR 4.2 et PR qui touchent au
 | # | Titre | Contenu | Tests apportés | Statut | Lien |
 | --- | --- | --- | --- | --- | --- |
 | 4.1 | `feat: ajouter la connexion et la structure des pages` | Gabarit de base, navigation, connexion et déconnexion (message générique), mise en page tablette et téléphone | Intégration de la connexion ; bout en bout de la connexion | En revue | [#29](https://github.com/leonardgst/Training-charge/pull/29) |
-| 4.2 | `feat: gérer les joueurs de sa catégorie` | Liste, création, modification, archivage (US-15) | A3 étendu, D1 | À commencer | — |
+| 4.2 | `feat: gérer les joueurs de sa catégorie` | Liste, création, modification, archivage (US-15) | A3 étendu, D1 | En revue | [#31](https://github.com/leonardgst/Training-charge/pull/31) |
 | 4.3 | `feat: créer une séance et ses participants` | En-tête, pré-remplissage avec les joueurs actifs, annuaire, retrait d'un absent | D1 (durée), A3 (joueur invité) | À commencer | — |
 | 4.4 | `feat: saisir la grille RPE puis la valider` | Grille au clavier, code couleur, brouillon, validation, charges affichées sur la séance validée (moteur de la phase 3) | D1, E1 sur ordinateur et tablette | À commencer | — |
 | 4.5 | `feat: lister, corriger et supprimer les séances` | Historique, correction directe, suppression confirmée, traçabilité (ADR-0008) | Intégration, `updated_by` | À commencer | — |
@@ -55,6 +55,10 @@ Liste préparée à la fin de la phase ; elle comprendra la saisie chronométré
 - PR 4.1 : Pico CSS 2.1.1 copié dans `suivi/static/suivi/vendor/pico/` avec sa licence MIT, avec l'accord du mainteneur (ajout d'une dépendance). Source : paquet npm officiel `@picocss/pico` 2.1.1, dont l'empreinte sha512 a été vérifiée contre celle que publie le registre.
 - PR 4.1 : pages d'erreur 403, 404 et 500 en français, sur le gabarit de base, en plus du contenu prévu ; le refus d'un compte sans profil préparateur s'affichait en anglais.
 - En-têtes de sécurité : la politique de sécurité du contenu et `Referrer-Policy: no-referrer`, prévues par l'architecture (section 5), ne sont pas posées depuis la phase 1 (Django envoie `Referrer-Policy: same-origin` par défaut). Le mainteneur a décidé le 2026-10-15 de les poser dans une PR `fix:` dédiée, après la PR 4.1. Les gabarits de la PR 4.1 n'ont ni script ni style en ligne, et l'administration de Django 5.2 non plus.
+- PR 4.2 : le lien du joueur n'est pas révoqué à l'archivage, parce que les liens n'existent pas encore. La révocation à l'archivage (US-15, ADR-0009) arrive avec la génération des liens en phase 5.
+- PR 4.2 : la date de naissance est refusée si elle est dans le futur, à la saisie seulement. Une contrainte en base dépendrait de la date du jour, ce que `CHECK` ne permet pas proprement ; aucune règle des spécifications ne fixe de plage.
+- PR 4.2 : seuil de 90 % des branches de `suivi/forms.py` imposé en CI, avec l'accord du mainteneur (modification de `ci.yml`).
+- PR 4.2 : les fichiers de test d'intégration de la connexion et des joueurs s'appellent `test_vues_*.py`. Sans `__init__.py` dans `tests/`, deux fichiers du même nom (`test_connexion.py` en intégration et en bout en bout, depuis la PR 4.1) empêchent `uv run pytest` de collecter la suite entière ; la CI, qui lance les niveaux séparément, ne le voyait pas. Un test unitaire l'interdit désormais.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé
 
