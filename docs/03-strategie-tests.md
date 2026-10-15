@@ -84,7 +84,8 @@ Un dossier par cas, au format CSV pour être produit dans un tableur, plus un fi
 tests/reference/
   README.md                  règles de format, de provenance et de tolérance
   C01-seance-simple/
-    cas.toml                 description, dates de calcul, paramètres surchargés
+    cas.toml                 description, cas repris (reprend), paramètres surchargés
+    joueurs.csv              joueur, categorie
     seances.csv              id, date, categorie, type, duree_min, statut
     participations.csv       seance_id, joueur, rpe_cardio, rpe_musculaire, rpe_teta
     indicateurs.csv          categorie, code, type, borne_min, borne_max, sens, poids, inclus_score
@@ -97,7 +98,9 @@ tests/reference/
 
 - `grandeur` prend les valeurs `charge_jour`, `ce_courte`, `ce_longue`, `intensite`, `score_sensations`, `sensations_z`.
 - `etat` vaut `ok`, `historique_insuffisant`, `non_calculable` ou `reponses_insuffisantes` ; `valeur` est vide quand `etat` n'est pas `ok`.
-- Les fichiers absents d'un cas (par exemple `reponses.csv` pour un cas de charge) sont simplement omis.
+- Les fichiers absents d'un cas (par exemple `reponses.csv` pour un cas de charge) sont simplement omis, sauf `cas.toml`, `joueurs.csv` et `attendu.csv`.
+- Chaque date d'`attendu.csv` est aussi la date de calcul : le résultat à cette date ne voit que les données datées au plus tard de ce jour (C9). `reprend = "C06"` dans `cas.toml` reprend les entrées d'un autre cas (C14).
+- Le détail du format, des tolérances et du harnais est dans `tests/reference/README.md`.
 
 ### Provenance
 
@@ -110,7 +113,7 @@ tests/reference/
 
 | Grandeur | Comparaison |
 | --- | --- |
-| Charges et CE | Écart relatif inférieur à 1e-9 |
+| Charges et CE | Écart relatif inférieur à 1e-9 ; valeur attendue nulle : écart absolu inférieur à 1e-12 |
 | Z-scores et score de sensations | Écart absolu inférieur à 1e-6 |
 | États | Égalité exacte |
 
