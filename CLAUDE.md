@@ -65,7 +65,7 @@ Stratégie complète : [docs/03-strategie-tests.md](docs/03-strategie-tests.md).
 
 ## 9. Phase en cours
 
-Phase 4 — Saisie des séances : [docs/phases/phase-04-saisie-des-seances.md](docs/phases/phase-04-saisie-des-seances.md). La phase 3 est fermée (tag `v0.3.0`) et la fiche est validée par le mainteneur le 2026-10-15 : niveau 4 pour toute la phase, accès et migrations compris.
+Phase 5 — Questionnaire joueur : [docs/phases/phase-05-questionnaire-joueur.md](docs/phases/phase-05-questionnaire-joueur.md). Elle commence quand la phase 4 est fermée (recette du mainteneur, tag `v0.4.0`) et que sa fiche est validée par le mainteneur, avec quatre points à trancher : niveau de collaboration (la fiche propose 3 pour les PR 5.1 et 5.2, qui touchent au jeton), `Referrer-Policy` de la page du lien joueur, dépendance du QR code, recette sur un vrai téléphone.
 
 ## 10. Interdits et pièges connus
 

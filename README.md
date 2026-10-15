@@ -4,7 +4,7 @@ Application web de suivi de la charge d'entraînement et de l'état de forme des
 
 La version 1 est une démonstration sur **données fictives**. Le dépôt est public : aucune donnée réelle, jamais.
 
-> **État** : phase 4 (saisie des séances) en cours. Le moteur de calcul est en place (phase 3) ; côté interface, le préparateur se connecte et se déconnecte. Démonstration en ligne : https://u19-load-tracking.vercel.app
+> **État** : phase 4 (saisie des séances) en clôture. Le préparateur gère les joueurs de sa catégorie, crée ses séances, saisit la grille RPE, la valide, puis la corrige ou la supprime ; les charges sont calculées par le moteur (phase 3). Démonstration en ligne : https://u19-load-tracking.vercel.app
 
 ## Documentation
 
