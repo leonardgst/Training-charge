@@ -12,7 +12,7 @@ Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mai
 
 ## Livrables
 
-- [ ] Jeu de référence avec provenance
+- [x] Jeu de référence avec provenance
 - [ ] `engine/` (moteur pur, sans Django, typage strict)
 - [ ] Adaptateur `suivi/calculs.py`
 - [ ] `config/calcul.toml`
@@ -29,7 +29,7 @@ Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mai
 
 ## Critères de fin (Definition of Done)
 
-- [ ] C1 à C15 au vert, sans aucun `xfail` restant
+- [x] C1 à C15 au vert, sans aucun `xfail` restant
 - [ ] Couverture de `engine/` d'au moins 95 % des branches
 - [ ] Contrôle indépendant du mainteneur consigné dans chaque `provenance.md`
 - [ ] Aucune interface dans cette phase
@@ -63,7 +63,8 @@ Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mai
 - PR 3.5 : `config/calcul.toml` reçoit `score_poids_min` (0,5), `sensations_reference_jours` (28) et `sensations_reference_min_entrees` (6). Le score du moteur est dans [0, 1] (1 = meilleur état) ; l'affichage sur 10 (ADR-0014, Q5) relève de l'interface. **À confirmer par le mainteneur avant d'écrire les `attendu.csv`** : `score_sensations` y est attendu dans [0, 1], avec l'écart absolu de 1e-6.
 - PR 3.5 : l'ADR-0016 (configuration rétroactive) est appliquée par l'adaptateur, qui lit la configuration d'aujourd'hui : seuls les indicateurs actifs, notés et inclus dans le score de la catégorie de référence du joueur comptent. Un indicateur désactivé sort donc du score de tout le passé, mais ses réponses restent en base. Une entrée sans score a l'état `reponses_insuffisantes` pour le score et pour le z-score ; elle est écartée de la référence des autres entrées.
 - PR 3.5 : C15 est prouvé en attendant par des tests d'intégration (poids modifié, indicateur ajouté, indicateur désactivé) ; le refus d'un changement d'échelle est déjà garanti par le déclencheur de la migration `0005` (phase 2). Les marques `xfail` restent tant que les dossiers du mainteneur sont absents.
-- Entrées du jeu de référence : les fichiers d'entrée des quinze cas (`cas.toml`, `joueurs.csv`, `seances.csv`, `participations.csv`, `indicateurs.csv`, `reponses.csv`) sont préparés par Claude Code, avec les dates de calcul utiles dans la `description` de chaque `cas.toml`. Aucun `attendu.csv` ni `provenance.md` : ils restent écrits par le mainteneur, de façon indépendante du code. Les valeurs de ces entrées ont été choisies pour être calculables à la main ; le moteur n'a servi qu'à vérifier que les cas se chargent et que leur situation est bien celle visée (par exemple, un z-score très supérieur à 2 pour C06).
+- Jeu de référence : le 2026-10-15, le mainteneur a levé pour cette PR la réserve sur `attendu.csv` et `provenance.md` et confié à Claude Code leur écriture, les fichiers d'entrée des quinze cas (`cas.toml`, CSV) y compris. Les valeurs viennent de `tests/reference/outils/generer_attendu.py`, qui relit les entrées et refait les calculs depuis les ADR en arithmétique exacte, sans importer `engine` ni `suivi` (un test le vérifie). Comparées ensuite au moteur, les quinze cas concordaient sans ajustement. Chaque `provenance.md` donne un point de contrôle calculable à la main. **La colonne « Contrôle du mainteneur » reste à renseigner par le mainteneur** : l'auteur des entrées, du moteur et du script est le même, le contrôle indépendant du critère de fin reste donc à faire.
+- Jeu de référence : les marques `xfail(strict=True)` et le registre `PR_PREVUE` sont retirés (les quinze cas passent) ; le test de complétude du jeu n'est plus en `xfail`. Pour C13, `attendu.csv` ne contient pas de `sensations_z` à la date d'une entrée sans score : les ADR ne disent pas l'état attendu.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé
 

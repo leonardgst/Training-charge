@@ -1,0 +1,8 @@
+joueur,date,grandeur,valeur,etat
+J1,2026-01-13,intensite,,historique_insuffisant
+J2,2026-01-15,score_sensations,0.566666666666667,ok
+J2,2026-01-15,sensations_z,,historique_insuffisant
+J2,2026-01-17,score_sensations,0.433333333333333,ok
+J2,2026-01-17,sensations_z,-1.25793362453880,ok
+J2,2026-01-31,intensite,,historique_insuffisant
+J2,2026-02-01,intensite,0.684551502955281,ok

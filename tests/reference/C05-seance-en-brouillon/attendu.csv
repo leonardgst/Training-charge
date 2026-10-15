@@ -1,0 +1,10 @@
+joueur,date,grandeur,valeur,etat
+J1,2026-01-05,ce_courte,3000,ok
+J1,2026-01-05,ce_longue,3000,ok
+J1,2026-01-05,charge_jour,3000,ok
+J1,2026-01-06,ce_courte,3000,ok
+J1,2026-01-06,ce_longue,3000,ok
+J1,2026-01-06,charge_jour,0,ok
+J1,2026-01-07,ce_courte,3000,ok
+J1,2026-01-07,ce_longue,3000,ok
+J1,2026-01-07,charge_jour,0,ok

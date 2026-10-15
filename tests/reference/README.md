@@ -33,7 +33,7 @@ Le cas `C06` vit dans `C06-<description>/` ; le préfixe suffit à le retrouver.
 
 ## Règles
 
-- Seul le mainteneur écrit `attendu.csv` et `provenance.md` (ou le script de `outils/`, qui n'importe ni `engine` ni `suivi`). Une valeur sans provenance n'est pas une valeur attendue.
+- Seul le mainteneur écrit `attendu.csv` et `provenance.md`, ou en confie explicitement l'écriture au script de `outils/`, qui n'importe ni `engine` ni `suivi`. Une valeur sans provenance n'est pas une valeur attendue.
 - Les valeurs ne sont jamais recopiées de la sortie du code.
 
 ## Harnais
@@ -42,7 +42,7 @@ Le cas `C06` vit dans `C06-<description>/` ; le préfixe suffit à le retrouver.
 | --- | --- |
 | `harnais.py` | lecture, validation du format, comparaison avec tolérances (sans Django) |
 | `execution.py` | chargement d'un cas dans Postgres par l'ORM, appels du moteur (sans base) et de l'adaptateur (sur base) |
-| `registre.py` | cas C01 à C15 et marques `xfail(strict=True)` jusqu'à la PR qui implémente chacun |
+| `registre.py` | cas C01 à C15 |
 | `synthese.py` | cas fictif écrit à la volée pour tester le harnais lui-même |
 
 Les tests : `tests/unit/test_reference_sans_base.py` (retour rapide), `tests/integration/test_reference_sur_base.py` (fait foi), `tests/unit/test_reference_format.py` et `tests/unit/test_harnais_reference.py`.

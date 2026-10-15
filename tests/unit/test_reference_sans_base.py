@@ -1,7 +1,6 @@
 """Cas C1 à C15 sans base : le moteur est appelé directement sur les données du cas.
 
-Retour rapide en local ; la version sur base (tests/integration) fait foi. Chaque cas est
-en `xfail(strict=True)` jusqu'à la PR de la phase 3 qui l'implémente (tests/reference/registre.py).
+Retour rapide en local ; la version sur base (tests/integration) fait foi.
 """
 
 import pytest
