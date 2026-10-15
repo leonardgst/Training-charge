@@ -10,7 +10,7 @@ import math
 from engine.charge import calendrier, charges_glissantes
 from engine.modeles import JourCalcule, Parametres, ParticipationValidee
 
-PARAMETRES = Parametres(10, 7, 28, 28, 21, 1e-9)
+PARAMETRES = Parametres(10, 7, 28, 28, 21, 1e-9, 0.5, 28, 6)
 LUNDI = datetime.date(2026, 1, 5)
 
 
@@ -60,7 +60,9 @@ def test_la_fenetre_longue_est_complete_au_vingt_huitieme_jour() -> None:
 
 
 def test_les_fenetres_viennent_des_parametres() -> None:
-    resultat = charges_glissantes(_jours(1, 2, 4, 8), Parametres(10, 2, 3, 28, 21, 1e-9))
+    resultat = charges_glissantes(
+        _jours(1, 2, 4, 8), Parametres(10, 2, 3, 28, 21, 1e-9, 0.5, 28, 6)
+    )
     assert [r.ce_courte for r in resultat] == [1, 3, 6, 12]
     assert [r.ce_longue for r in resultat] == [1, 3, 7, 14]
     assert [r.courte_incomplete for r in resultat] == [True, False, False, False]
