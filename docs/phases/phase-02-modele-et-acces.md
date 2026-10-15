@@ -2,7 +2,7 @@
 
 | Statut | Prévue | Terminée le | Tag Git |
 | --- | --- | --- | --- |
-| En recette | — | — | v0.2.0 (à poser après la fusion de la PR de clôture) |
+| Terminée | 2026-10-13 → 2026-10-15 | 2026-10-15 | v0.2.0 (à poser après la fusion de cette PR) |
 
 ## Objectif
 
@@ -33,7 +33,7 @@ Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mai
 - [x] A1, A2, A3, A6 et D1 à D4 au vert : 235 tests (unitaires, intégration, bout en bout), couverture de `suivi/` à 99 %. La part de D4 sur la révocation et le refus du lien joueur attend `LienJoueur` (phase 5)
 - [x] Migrations rejouées depuis zéro en CI et sur chaque preview : job `migrations` (avec chargement de la démonstration) et preview Neon verts sur les PR #12 à #16
 - [x] Aucune donnée réelle : tout vient de `generer_demo` (graine fixe, noms fictifs), le job `audit` (gitleaks) est vert
-- [ ] Recette manuelle faite (section ci-dessous)
+- [x] Recette manuelle faite (section ci-dessous)
 - [x] Documentation à jour : fiche, journal, `CHANGELOG.md`, `CLAUDE.md` pointant vers la phase 3
 
 ## Décisions prises (liens vers les ADR)
@@ -47,19 +47,19 @@ Niveau de collaboration : 4 pour la phase entière (relevé de 3 à 4 par le mai
 
 Base locale (`docker compose down -v && docker compose up -d db`, puis `uv run --env-file .env python manage.py migrate` et `uv run --env-file .env python manage.py generer_demo`) :
 
-- [ ] La commande affiche 33 joueurs et un mot de passe, une seule fois ; la relancer sur la base chargée est refusée.
-- [ ] Connecté en `prep_u19`, `/` s'affiche ; `/admin/` renvoie à la page de connexion de l'administration.
-- [ ] Connecté en `prep_u17`, même constat.
-- [ ] Connecté en `admin_demo`, `/admin/` s'ouvre (ordinateur et téléphone) ; les joueurs, les catégories, les préparateurs et les indicateurs sont listés.
-- [ ] Dans l'administration, créer un joueur sans nom est refusé avec un message de formulaire.
-- [ ] Dans l'administration, changer les bornes d'un indicateur déjà utilisé est refusé par la base ; l'administration peut afficher une erreur brute plutôt qu'un message soigné (limite connue).
-- [ ] Dans l'administration, effacer un joueur affiche la liste de ce qui sera supprimé ; après confirmation, il disparaît de la liste des joueurs et ses séances restent pour les autres.
-- [ ] Un visiteur sans session qui ouvre `/admin/` ou `/` est renvoyé vers une connexion.
+- [x] La commande affiche 33 joueurs et un mot de passe, une seule fois ; la relancer sur la base chargée est refusée.
+- [x] Connecté en `prep_u19`, `/` s'affiche ; `/admin/` renvoie à la page de connexion de l'administration.
+- [x] Connecté en `prep_u17`, même constat.
+- [x] Connecté en `admin_demo`, `/admin/` s'ouvre (ordinateur et téléphone) ; les joueurs, les catégories, les préparateurs et les indicateurs sont listés.
+- [x] Dans l'administration, créer un joueur sans nom est refusé avec un message de formulaire.
+- [x] Dans l'administration, changer les bornes d'un indicateur déjà utilisé est refusé par la base ; l'administration peut afficher une erreur brute plutôt qu'un message soigné (limite connue).
+- [x] Dans l'administration, effacer un joueur affiche la liste de ce qui sera supprimé ; après confirmation, il disparaît de la liste des joueurs et ses séances restent pour les autres.
+- [x] Un visiteur sans session qui ouvre `/admin/` ou `/` est renvoyé vers une connexion.
 
 Environnement déployé :
 
-- [ ] La preview de la PR de clôture s'ouvre sur ton téléphone et `/sante/` répond.
-- [ ] Après fusion, le déploiement de production (migrations par le rôle de migration) attend ton approbation, puis `/sante/` répond et `/admin/` demande une connexion.
+- [x] La preview de la PR de clôture s'ouvre sur ton téléphone et `/sante/` répond. PR déjà fusionnée avant la recette, preview supprimée : non testé, remplacé par la vérification de la production sur téléphone.
+- [x] Après fusion, le déploiement de production (migrations par le rôle de migration) attend ton approbation, puis `/sante/` répond et `/admin/` demande une connexion.
 
 ## Écarts par rapport au plan
 
