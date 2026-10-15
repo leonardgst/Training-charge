@@ -51,6 +51,18 @@ def test_la_page_de_connexion_s_affiche_en_https_avec_hsts() -> None:
     assert "max-age=" in en_tetes["Strict-Transport-Security"]
 
 
+def test_la_page_de_connexion_porte_les_en_tetes_de_securite() -> None:
+    statut, en_tetes = _get("/connexion/")
+
+    assert statut == 200
+    politique = en_tetes["Content-Security-Policy"]
+    assert "default-src 'self'" in politique
+    assert "frame-ancestors 'none'" in politique
+    assert "unsafe-inline" not in politique
+    assert en_tetes["Referrer-Policy"] == "same-origin"
+    assert en_tetes["X-Frame-Options"] == "DENY"
+
+
 def test_l_administration_demande_une_connexion() -> None:
     statut, en_tetes = _get("/admin/")
 
