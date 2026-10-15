@@ -31,6 +31,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "suivi.middleware.PolitiqueDeSecuriteDuContenuMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -97,6 +98,11 @@ if HTTPS:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     # Le préchargement HSTS n'a pas de sens sur un sous-domaine de vercel.app.
     SILENCED_SYSTEM_CHECKS = ["security.W021"]
+
+# Aucune adresse de page n'est transmise à un autre site (architecture, section 5).
+# Pas `no-referrer` : le navigateur enverrait alors `Origin: null` sur chaque formulaire
+# POST, et le contrôle CSRF de Django refuserait la connexion.
+SECURE_REFERRER_POLICY = "same-origin"
 
 LOGIN_URL = "connexion"
 LOGIN_REDIRECT_URL = "accueil"
