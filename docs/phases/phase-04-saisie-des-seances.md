@@ -2,7 +2,7 @@
 
 | Statut | Prévue | Terminée le | Tag Git |
 | --- | --- | --- | --- |
-| En clôture : recette à faire | — | — | v0.4.0 (à poser après la recette) |
+| Terminée | — | 2026-11-12 | v0.4.0 (à poser après la fusion de cette PR) |
 
 ## Objectif
 
