@@ -95,6 +95,7 @@ Les réglages refusent en plus `complete_database_migration`, qui appliquerait u
 
 - `.mcp.json` déclare `https://mcp.vercel.com`. Dans `/mcp` > `vercel`, s'authentifier et accorder l'accès à l'équipe qui possède `u19-load-tracking`.
 - Le serveur agit avec tous les droits de ton compte Vercel. Le hook laisse passer la lecture (`list_deployments`, `get_deployment`, `get_runtime_logs`, `get_runtime_errors`, `list_projects`, `get_project`, `list_teams`, `web_fetch_vercel_url`) et demande ton accord pour tout autre outil.
+- Si un appel répond 403 « Not authorized … scope », le compte est une équipe non encore autorisée pour cette connexion : appeler `authorize_team_access` avec le `teamId` de l'erreur (le hook demande ton accord), ouvrir le lien renvoyé (10 minutes, usage unique) et approuver, puis rejouer l'appel.
 - Depuis WSL, si le retour OAuth échoue sur `localhost`, utiliser l'astuce `curl` de la [section 5](#5-accès-neon).
 - `web_fetch_vercel_url` lit une preview protégée par Vercel Authentication : Claude peut faire la recette d'une preview.
 - Les déploiements restent faits par `preview.yml` et `deploy.yml`, jamais par le serveur MCP.
