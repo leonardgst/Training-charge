@@ -24,15 +24,15 @@ Phase ajoutée le 2026-11-12 à ta demande, hors du découpage du cadrage (secti
 | --- | --- | --- | --- | --- | --- |
 | 4b.1 | `chore: configurer l'autonomie de Claude Code` | ADR-0019, guide, fiche, réglages, hook des plateformes, `.mcp.json`, `CLAUDE.md` | Tests unitaires du hook et des règles essentielles | Fusionnée | [#36](https://github.com/leonardgst/Training-charge/pull/36) |
 | 4b.2 | `chore: ajouter les sous-agents et les skills du projet` | Six sous-agents (`relecteur`, `gardien-acces`, `moteur`, `migrations`, `testeur-e2e`, `ops`), sept skills, guide et `CLAUDE.md` | En-têtes des sous-agents et des skills ; liens de `.claude/` vérifiés | Fusionnée | [#37](https://github.com/leonardgst/Training-charge/pull/37) |
-| 4b.3 | `chore: épingler les actions et ajouter Dependabot` | Actions épinglées par empreinte de commit, `.github/dependabot.yml`, pas de preview pour les PR de Dependabot ; menée par Claude, workflows poussés par toi | Test unitaire de l'épinglage ; CI verte | En revue | — |
+| 4b.3 | `chore: épingler les actions et ajouter Dependabot` | Actions épinglées par empreinte de commit, `.github/dependabot.yml`, pas de preview pour les PR de Dependabot ; menée par Claude, workflows poussés par toi | Test unitaire de l'épinglage ; CI verte | Fusionnée | [#39](https://github.com/leonardgst/Training-charge/pull/39) |
 
 ## Tes étapes
 
 - [x] Clore la phase 4 : recette avec une séance de 25 joueurs chronométrée (2026-11-12, tag `v0.4.0` ; contrôle de `/connexion/` en production à faire)
 - [ ] Mettre en place le poste ([guide, section 2](../outillage-claude-code.md#2-mise-en-place-du-poste))
 - [ ] Créer le jeton GitHub de Claude et le connecter dans WSL ([guide, section 4](../outillage-claude-code.md#4-accès-github))
-- [ ] Exporter `NEON_PROJECT_ID` dans `~/.bashrc` ; ajouter l'identifiant de la branche `production` au fichier des branches protégées
-- [ ] Première session : approuver les serveurs du projet, authentifier Neon et Vercel dans `/mcp`
+- [x] Exporter `NEON_PROJECT_ID` dans `~/.bashrc` ; ajouter l'identifiant de la branche `production` au fichier des branches protégées (fait ; la session de VS Code doit être relancée pour lire la variable, voir les écarts)
+- [x] Première session : approuver les serveurs du projet, authentifier Neon et Vercel dans `/mcp`
 - [ ] Vercel : donner à `DJANGO_SECRET_KEY` une valeur Preview distincte de la valeur Production
 - [ ] Compléter la liste de lecture Vercel du hook
 - [ ] Activer les alertes et les mises à jour de sécurité Dependabot du dépôt (réglages, sécurité du code), prévues par l'architecture (section 2) et désactivées
@@ -58,3 +58,5 @@ Phase ajoutée le 2026-11-12 à ta demande, hors du découpage du cadrage (secti
 - PR 4b.3 : pas de preview pour les PR de Dependabot. Elles n'ont pas accès aux secrets des Actions, et `deployer` aurait échoué sur chacune ; la CI, sans secret, les vérifie. Leurs commits (`chore: bump …`) et leurs branches (`dependabot/…`) sortent des conventions de `CLAUDE.md`.
 - PR 4b.3 : alertes et correctifs de sécurité Dependabot désactivés sur le dépôt, alors que l'architecture (section 2) les prévoit ; leur activation est un réglage du dépôt, ajouté à tes étapes.
 - Ranger `VERCEL_TOKEN` et `NEON_API_KEY` dans un environnement GitHub, proposé le 2026-11-12, est abandonné : le jeton de Claude ne peut pas modifier un workflow, et un environnement sans relecteur ne protégerait pas les previews (ADR-0019, conséquences).
+- Vérification des critères de fin le 2026-11-12 : `claude mcp list` donne Neon et Vercel connectés mais signale `NEON_PROJECT_ID` manquante ; la session avait démarré avant l'export dans `~/.bashrc`, le serveur Neon a reçu le texte `${NEON_PROJECT_ID}` à la place de l'identifiant et refuse tout appel (`project_id` ne correspond pas à la connexion). Les essais du hook (lecture, `run_sql` sur `production`, `delete_branch` sur `production`) n'ont donc pas eu lieu ; à refaire après avoir relancé VS Code depuis un terminal WSL où `echo $NEON_PROJECT_ID` affiche l'identifiant.
+- Dependabot : PR #42 à #45 examinées, CI verte sur les quatre ; recommandation de fusion dans le journal. Les alertes et correctifs de sécurité restent à activer par le mainteneur.
