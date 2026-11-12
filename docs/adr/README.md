@@ -12,6 +12,7 @@ Une décision par fichier. Format : contexte, options, décision, conséquences.
 | [0004](0004-moteur-de-calcul-en-python.md) | Moteur de calcul en Python pur | Accepté le 2026-10-12 |
 | [0005](0005-controle-d-acces-applicatif.md) | Contrôle d'accès applicatif et refus par défaut | Accepté le 2026-10-12 |
 | [0006](0006-lien-joueur-a-jeton-hache.md) | Lien joueur à jeton haché | Accepté le 2026-10-12 |
+| [0019](0019-autonomie-de-claude-code.md) | Autonomie de Claude Code et accès aux plateformes | Accepté le 2026-11-12 |
 
 ## ADR métier et statistiques
 
