@@ -73,10 +73,10 @@ Tes commits gardent ton identité Git ; les poussées passent par le jeton de Cl
 ## 5. Accès Neon
 
 - `.mcp.json` déclare `https://mcp.neon.tech/mcp?projectId=${NEON_PROJECT_ID}` : le serveur ne voit que le projet du suivi.
-- Ajouter dans `~/.bashrc`, côté WSL : `export NEON_PROJECT_ID=<identifiant du projet>`, la même valeur que la variable GitHub `NEON_PROJECT_ID`. Fermer le terminal et VS Code, puis les rouvrir depuis un terminal WSL où `echo $NEON_PROJECT_ID` affiche l'identifiant : une session démarrée avant l'export garde l'ancien environnement, et le serveur reçoit le texte `${NEON_PROJECT_ID}` à la place de la valeur.
+- Ajouter dans `~/.bashrc`, côté WSL : `export NEON_PROJECT_ID=<identifiant du projet>`, la même valeur que la variable GitHub `NEON_PROJECT_ID`. Fermer le terminal et VS Code, puis les rouvrir depuis un terminal WSL (si la variable reste absente, `wsl --shutdown` dans PowerShell garantit un environnement neuf) où `echo $NEON_PROJECT_ID` affiche l'identifiant : une session démarrée avant l'export garde l'ancien environnement, et le serveur reçoit le texte `${NEON_PROJECT_ID}` à la place de la valeur.
 - Ajouter l'identifiant `br-…` de la branche `production` dans [`.claude/hooks/neon-branches-protegees.json`](../.claude/hooks/neon-branches-protegees.json) (console Neon, page de la branche). Tant qu'il manque, toute écriture demande ton accord.
 - Première session : accepter les serveurs du projet, puis `/mcp` > `neon` > authentification. Sur la page de consentement, laisser « Allow writes » coché : le hook borne les écritures. Depuis WSL, le navigateur de Windows peut ne pas atteindre le port local qui attend le retour OAuth : la page échoue sur `http://localhost:<port>/callback?code=…`. Copier alors cette adresse complète depuis la barre du navigateur et, dans un second terminal WSL, lancer `curl "<adresse>"` pendant que `/mcp` attend ; l'authentification se termine. Même démarche pour `vercel`.
-- Si l'invite d'accord de `run_sql` sur `production` apparaît, répondre « Yes » et jamais « Yes, and don't ask again » : cette réponse ajoute `mcp__neon__run_sql` aux règles `allow` de `.claude/settings.local.json`, ce qui supprime l'invite pour les branches de travail aussi ; la retirer du fichier si elle y figure.
+- Si l'invite d'accord de `run_sql` sur `production` apparaît, répondre « Yes » et jamais « Yes, and don't ask again » : cette réponse ajoute `mcp__neon__run_sql` aux règles `allow` de `.claude/settings.local.json`, règle inutile, puisque `run_sql` est déjà libre sur une branche de travail, et qui court-circuite le contrôle du mode `auto` sur ces branches ; la retirer du fichier si elle y figure. L'essai du 2026-11-12 a montré que le `ask` du hook l'emporte quand même sur `production`.
 
 Décisions du [hook](../.claude/hooks/garde_plateformes.py) pour les outils Neon :
 
@@ -95,6 +95,7 @@ Les réglages refusent en plus `complete_database_migration`, qui appliquerait u
 
 - `.mcp.json` déclare `https://mcp.vercel.com`. Dans `/mcp` > `vercel`, s'authentifier et accorder l'accès à l'équipe qui possède `u19-load-tracking`.
 - Le serveur agit avec tous les droits de ton compte Vercel. Le hook laisse passer la lecture (`list_deployments`, `get_deployment`, `get_runtime_logs`, `get_runtime_errors`, `list_projects`, `get_project`, `list_teams`, `web_fetch_vercel_url`) et demande ton accord pour tout autre outil.
+- Depuis WSL, si le retour OAuth échoue sur `localhost`, utiliser l'astuce `curl` de la [section 5](#5-accès-neon).
 - `web_fetch_vercel_url` lit une preview protégée par Vercel Authentication : Claude peut faire la recette d'une preview.
 - Les déploiements restent faits par `preview.yml` et `deploy.yml`, jamais par le serveur MCP.
 - Après la première connexion, compléter la liste de lecture du hook avec les autres outils de lecture que liste `/mcp`.
