@@ -21,7 +21,11 @@ Le joueur dépose son entrée du jour par un lien personnel, sans compte. Le cad
 | URL | `/q/<jeton>` |
 | Portée | Une seule vue accepte le jeton. En GET, elle affiche le formulaire du jour, pré-rempli si l'entrée existe. En POST, elle crée ou modifie l'entrée du jour. Aucune autre donnée n'est atteignable. |
 | Refus | Jeton inconnu, révoqué ou remplacé : même réponse 404, sans indice sur la cause |
-| En-têtes | `Referrer-Policy: no-referrer`, `Cache-Control: no-store` ; aucune ressource tierce sur la page |
+| En-têtes | `Referrer-Policy: same-origin`, `Cache-Control: no-store` ; aucune ressource tierce sur la page (révisé le 2026-11-12, voir « Révision ») |
+
+## Révision du 2026-11-12 : `Referrer-Policy`
+
+L'ADR prévoyait `no-referrer`. Avec cette valeur, le navigateur envoie `Origin: null` avec le formulaire, et le contrôle CSRF de Django refuse l'envoi du questionnaire (constaté en PR 4.1 bis). Le mainteneur a retenu `same-origin`, comme le reste du site : le jeton n'est transmis qu'au site lui-même, qui le reçoit déjà dans l'adresse. Conséquence : chaque requête de la page vers le site (envoi du formulaire, feuille de style) porte le jeton dans `Referer`, ce qui s'ajoute au risque résiduel des journaux de l'hébergeur. Options écartées : `strict-origin` (seule l'origine est transmise) et `no-referrer` avec exemption CSRF de cette seule vue (le jeton de 256 bits tenant lieu de secret du formulaire). La PR 5.2 pose l'en-tête et le teste.
 
 ## Options écartées
 
