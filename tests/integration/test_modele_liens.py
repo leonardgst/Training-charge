@@ -1,9 +1,15 @@
-"""Contraintes de la table des liens joueurs, vérifiées en SQL direct (D1, D2, ADR-0006)."""
+"""Contraintes de la table des liens joueurs (D1, D2, ADR-0006).
+
+Les contraintes sont vérifiées par des insertions en SQL direct. La suppression d'un joueur
+emporte ses liens par la cascade de Django, comme pour les participations : une suppression
+en SQL pur n'est pas couverte, l'effacement passe par l'administration (ADR-0009).
+"""
 
 import datetime
 
 import psycopg
 import pytest
+from django.contrib.auth import get_user_model
 from django.db import DataError, IntegrityError, connection, transaction
 
 from suivi.models import Categorie, Joueur, LienJoueur
@@ -70,14 +76,23 @@ def test_l_empreinte_est_unique_meme_entre_joueurs(joueur: Joueur) -> None:
 
 
 @pytest.mark.parametrize(
-    "valeur",
-    ["", "abc", "a" * 63, "a" * 65, "A" * 64, "g" * 64, "a" * 63 + " "],
-    ids=["vide", "courte", "63", "65", "majuscules", "non_hexadecimal", "espace"],
+    ("valeur", "erreur"),
+    [
+        ("", IntegrityError),
+        ("abc", IntegrityError),
+        ("a" * 63, IntegrityError),
+        ("a" * 65, DataError),  # refusé par varchar(64) avant la contrainte
+        ("A" * 64, IntegrityError),
+        ("g" * 64, IntegrityError),
+        ("a" * 63 + " ", IntegrityError),
+        ("a" * 63 + "\n", IntegrityError),
+    ],
+    ids=["vide", "courte", "63", "65", "majuscules", "non_hexadecimal", "espace", "retour_ligne"],
 )
 def test_l_empreinte_refusee_en_base_si_ce_n_est_pas_un_sha256_hexadecimal(
-    joueur: Joueur, valeur: str
+    joueur: Joueur, valeur: str, erreur: type[Exception]
 ) -> None:
-    with pytest.raises((IntegrityError, DataError)), transaction.atomic():
+    with pytest.raises(erreur), transaction.atomic():
         _inserer(joueur.pk, valeur)
 
 
@@ -116,3 +131,13 @@ def test_le_role_d_execution_lit_ecrit_et_supprime_les_liens(
     connexion_execution.execute("DELETE FROM suivi_lienjoueur")
     connexion_migration.execute("DELETE FROM suivi_joueur WHERE id = %s", [joueur_id])
     connexion_migration.execute("DELETE FROM suivi_categorie WHERE code = 'Z1'")
+
+
+def test_la_suppression_du_compte_auteur_laisse_le_lien_sans_auteur(joueur: Joueur) -> None:
+    auteur = get_user_model().objects.create_user("auteur")
+    lien = LienJoueur.objects.create(joueur=joueur, token_hash=EMPREINTE_A, created_by=auteur)
+
+    auteur.delete()
+
+    lien.refresh_from_db()
+    assert lien.created_by is None

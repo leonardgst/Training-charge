@@ -290,7 +290,7 @@ class LienJoueur(models.Model):
     """
 
     joueur = models.ForeignKey(Joueur, on_delete=models.CASCADE, related_name="liens")
-    token_hash = models.CharField(max_length=64, unique=True)
+    token_hash = models.CharField(max_length=64)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -303,6 +303,7 @@ class LienJoueur(models.Model):
 
     class Meta:
         constraints = [
+            models.UniqueConstraint(fields=["token_hash"], name="lienjoueur_empreinte_unique"),
             models.CheckConstraint(
                 condition=models.Q(token_hash__regex=r"^[0-9a-f]{64}$"),  # noqa: S106 (faux positif)
                 name="lienjoueur_empreinte_sha256",

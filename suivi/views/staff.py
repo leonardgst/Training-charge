@@ -15,6 +15,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
+from django.views.decorators.debug import sensitive_variables
 from django.views.decorators.http import require_http_methods, require_POST, require_safe
 
 from suivi.acces import (
@@ -34,7 +35,7 @@ from suivi.forms import (
     SeanceForm,
 )
 from suivi.horloge import aujourd_hui
-from suivi.liens import creer_lien, qr_data_uri, revoquer_liens
+from suivi.liens import JoueurArchive, archiver_joueur, creer_lien, qr_data_uri, revoquer_liens
 from suivi.middleware import RequeteStaff
 from suivi.models import Joueur, Participation, Seance, StatutSeance, TypeSeance
 
@@ -96,12 +97,13 @@ def joueur_modifier(request: RequeteStaff, pk: int) -> HttpResponse:
 
 def _changer_activite(request: RequeteStaff, pk: int, actif: bool, message: str) -> HttpResponse:
     joueur = _joueur_suivi(request, pk)
-    joueur.actif = actif
-    joueur.updated_by = request.user
-    joueur.save()
-    if not actif:
+    if actif:
+        joueur.actif = True
+        joueur.updated_by = request.user
+        joueur.save()
+    else:
         # Départ du groupe : le lien ne doit plus ouvrir le questionnaire (ADR-0006, ADR-0009).
-        revoquer_liens(joueur)
+        archiver_joueur(joueur, request.user)
     messages.success(request, message.format(joueur=joueur))
     return redirect("joueurs")
 
@@ -124,6 +126,7 @@ def joueur_reactiver(request: RequeteStaff, pk: int) -> HttpResponse:
 
 @require_POST
 @never_cache
+@sensitive_variables("jeton", "adresse")
 def lien_generer(request: RequeteStaff, pk: int) -> HttpResponse:
     """Crée le lien du joueur (le précédent est révoqué) et l'affiche une seule fois (US-07).
 
@@ -134,7 +137,11 @@ def lien_generer(request: RequeteStaff, pk: int) -> HttpResponse:
     if not joueur.actif:
         messages.error(request, f"{joueur} est archivé : réactive-le avant de créer son lien.")
         return redirect("joueurs")
-    jeton = creer_lien(joueur, request.user)
+    try:
+        jeton = creer_lien(joueur, request.user)
+    except JoueurArchive:
+        messages.error(request, f"{joueur} est archivé : réactive-le avant de créer son lien.")
+        return redirect("joueurs")
     adresse = request.build_absolute_uri(f"/q/{jeton}")
     return render(
         request,

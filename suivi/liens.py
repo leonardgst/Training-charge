@@ -11,6 +11,7 @@ import segno
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils import timezone
+from django.views.decorators.debug import sensitive_variables
 
 from suivi.models import Joueur, LienJoueur
 
@@ -27,25 +28,55 @@ def empreinte(jeton: str) -> str:
     return hashlib.sha256(jeton.encode()).hexdigest()
 
 
+class JoueurArchive(Exception):  # noqa: N818
+    """Le joueur a quitté le groupe : aucun lien ne peut lui être créé."""
+
+
 def revoquer_liens(joueur: Joueur) -> int:
-    """Ferme le lien actif du joueur, s'il y en a un. Renvoie le nombre de liens fermés."""
+    """Ferme le lien actif du joueur, s'il y en a un. Renvoie le nombre de liens fermés.
+
+    Contrat : l'appelant a déjà vérifié que le joueur est dans son périmètre
+    (`suivi.acces.joueurs_suivis`) ; l'administration, elle, voit tous les joueurs.
+    """
     return LienJoueur.objects.filter(joueur=joueur, revoked_at__isnull=True).update(
         revoked_at=timezone.now()
     )
 
 
+def archiver_joueur(joueur: Joueur, auteur: User) -> None:
+    """Départ du groupe : archive le joueur et révoque son lien, dans une seule transaction.
+
+    Le verrou du joueur l'ordonne avec une création de lien simultanée (ADR-0006, ADR-0009).
+    """
+    with transaction.atomic():
+        verrouille = Joueur.objects.select_for_update().get(pk=joueur.pk)
+        verrouille.actif = False
+        verrouille.updated_by = auteur
+        verrouille.save()
+        revoquer_liens(verrouille)
+    joueur.actif = False
+    joueur.updated_by = auteur
+
+
+@sensitive_variables("jeton")
 def creer_lien(joueur: Joueur, auteur: User) -> str:
     """Révoque le lien actif puis en crée un nouveau, dans une seule transaction.
 
+    Le joueur est verrouillé : deux demandes simultanées (double appui) se suivent au lieu
+    de se heurter à l'index unique, et un joueur archivé entre-temps est refusé.
     Renvoie le jeton en clair, qui n'existera plus nulle part ensuite.
     """
     jeton = generer_jeton()
     with transaction.atomic():
-        revoquer_liens(joueur)
-        LienJoueur.objects.create(joueur=joueur, token_hash=empreinte(jeton), created_by=auteur)
+        verrouille = Joueur.objects.select_for_update().get(pk=joueur.pk)
+        if not verrouille.actif:
+            raise JoueurArchive(str(verrouille))
+        revoquer_liens(verrouille)
+        LienJoueur.objects.create(joueur=verrouille, token_hash=empreinte(jeton), created_by=auteur)
     return jeton
 
 
+@sensitive_variables("adresse")
 def qr_data_uri(adresse: str) -> str:
     """QR code de l'adresse en image SVG intégrée : aucune ressource tierce, aucune route."""
-    return segno.make(adresse, error="m").svg_data_uri(scale=6, border=2, xmldecl=False)
+    return segno.make_qr(adresse, error="m").svg_data_uri(scale=6, border=2, xmldecl=False)

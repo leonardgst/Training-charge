@@ -62,4 +62,4 @@ def liens_actifs(preparateur: Preparateur) -> QuerySet[LienJoueur]:
     """Liens joueurs non révoqués de ses joueurs suivis."""
     return LienJoueur.objects.filter(
         joueur__categorie_reference=preparateur.categorie, revoked_at__isnull=True
-    ).select_related("joueur")
+    )

@@ -4,7 +4,7 @@
 
 {% block contenu %}
 <h1>Lien de {{ joueur }}</h1>
-<p><strong>Ce lien ne sera plus affiché.</strong> Copie-le ou fais scanner le QR code maintenant : si tu quittes cette page, il faudra en générer un autre, qui remplacera celui-ci.</p>
+<p><strong>Ce lien ne sera plus affiché.</strong> Copie-le ou fais scanner le QR code maintenant : si tu quittes cette page, il faudra en générer un autre, qui remplacera celui-ci. N’utilise pas le bouton « Précédent » pour revenir ici : le navigateur proposerait de renvoyer la demande et créerait un nouveau lien, qui annulerait celui-ci.</p>
 <article>
   <label for="lien">Adresse personnelle du joueur</label>
   <input type="text" id="lien" value="{{ adresse }}" readonly>

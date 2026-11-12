@@ -13,7 +13,7 @@
             <a href="{% url 'joueur_modifier' joueur.pk %}" aria-label="Modifier {{ joueur }}">Modifier</a>
             {% if joueur.actif %}
             {% if joueur.pk in avec_lien %}
-            <span class="lien-actif">Lien actif</span>
+            <span>Lien actif</span>
             <form method="post" action="{% url 'lien_generer' joueur.pk %}">
               {% csrf_token %}
               <button type="submit" class="secondary outline" aria-label="Régénérer le lien de {{ joueur }}">Régénérer</button>
