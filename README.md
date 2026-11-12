@@ -17,7 +17,7 @@ La version 1 est une démonstration sur **données fictives**. Le dépôt est pu
 | [Déploiement](docs/deploiement.md) | Neon, Vercel, GitHub et emplacement des secrets |
 | [Glossaire](docs/glossaire.md) | Vocabulaire métier |
 | [ADR](docs/adr/README.md) | Décisions d'architecture |
-| [Phase en cours](docs/phases/phase-04-saisie-des-seances.md) | Fiche de la phase 4 |
+| [Phase en cours](docs/phases/phase-04b-outillage-claude-code.md) | Fiche de la phase 4 bis |
 
 ## Prérequis
 
