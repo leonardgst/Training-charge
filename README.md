@@ -17,7 +17,7 @@ La version 1 est une démonstration sur **données fictives**. Le dépôt est pu
 | [Déploiement](docs/deploiement.md) | Neon, Vercel, GitHub et emplacement des secrets |
 | [Glossaire](docs/glossaire.md) | Vocabulaire métier |
 | [ADR](docs/adr/README.md) | Décisions d'architecture |
-| [Phase suivante](docs/phases/phase-05-questionnaire-joueur.md) | Fiche de la phase 5, à valider ; la phase 4 bis est terminée |
+| [Phase en cours](docs/phases/phase-05-questionnaire-joueur.md) | Fiche de la phase 5, questionnaire joueur |
 
 ## Prérequis
 
