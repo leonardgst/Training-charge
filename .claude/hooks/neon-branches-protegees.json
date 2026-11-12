@@ -1,4 +1,4 @@
 {
   "note": "Branches Neon que Claude ne supprime ni ne réinitialise jamais, et où son SQL demande l'accord du mainteneur (ADR-0019). Ajouter l'identifiant br-… de la branche production : tant qu'il manque, toute écriture sur une branche demande l'accord.",
-  "branches": ["production"]
+  "branches": ["production", "br-long-brook-b9cndbjm"]
 }
