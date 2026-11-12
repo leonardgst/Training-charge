@@ -9,7 +9,14 @@ from typing import Any
 
 from django.db.models import Q, QuerySet
 
-from suivi.models import EntreeSensations, Joueur, Participation, Preparateur, Seance
+from suivi.models import (
+    EntreeSensations,
+    Joueur,
+    LienJoueur,
+    Participation,
+    Preparateur,
+    Seance,
+)
 
 
 def joueurs_suivis(preparateur: Preparateur) -> QuerySet[Joueur]:
@@ -49,3 +56,10 @@ def participations_visibles(preparateur: Preparateur) -> QuerySet[Participation]
 def entrees_visibles(preparateur: Preparateur) -> QuerySet[EntreeSensations]:
     """Entrées de sensations de ses joueurs suivis (jamais celles d'un joueur invité)."""
     return EntreeSensations.objects.filter(joueur__categorie_reference=preparateur.categorie)
+
+
+def liens_actifs(preparateur: Preparateur) -> QuerySet[LienJoueur]:
+    """Liens joueurs non révoqués de ses joueurs suivis."""
+    return LienJoueur.objects.filter(
+        joueur__categorie_reference=preparateur.categorie, revoked_at__isnull=True
+    )

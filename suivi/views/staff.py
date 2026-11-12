@@ -14,9 +14,17 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.debug import sensitive_variables
 from django.views.decorators.http import require_http_methods, require_POST, require_safe
 
-from suivi.acces import annuaire, joueurs_suivis, participations_visibles, seances_organisees
+from suivi.acces import (
+    annuaire,
+    joueurs_suivis,
+    liens_actifs,
+    participations_visibles,
+    seances_organisees,
+)
 from suivi.calculs import charges_de_seance, parametres
 from suivi.forms import (
     COLONNES_RPE,
@@ -27,6 +35,7 @@ from suivi.forms import (
     SeanceForm,
 )
 from suivi.horloge import aujourd_hui
+from suivi.liens import JoueurArchive, archiver_joueur, creer_lien, qr_data_uri, revoquer_liens
 from suivi.middleware import RequeteStaff
 from suivi.models import Joueur, Participation, Seance, StatutSeance, TypeSeance
 
@@ -55,6 +64,7 @@ def joueurs(request: RequeteStaff) -> HttpResponse:
             "rubrique": "joueurs",
             "actifs": [joueur for joueur in tous if joueur.actif],
             "archives": [joueur for joueur in tous if not joueur.actif],
+            "avec_lien": {lien.joueur_id for lien in liens_actifs(request.preparateur)},
         },
     )
 
@@ -87,9 +97,13 @@ def joueur_modifier(request: RequeteStaff, pk: int) -> HttpResponse:
 
 def _changer_activite(request: RequeteStaff, pk: int, actif: bool, message: str) -> HttpResponse:
     joueur = _joueur_suivi(request, pk)
-    joueur.actif = actif
-    joueur.updated_by = request.user
-    joueur.save()
+    if actif:
+        joueur.actif = True
+        joueur.updated_by = request.user
+        joueur.save()
+    else:
+        # Départ du groupe : le lien ne doit plus ouvrir le questionnaire (ADR-0006, ADR-0009).
+        archiver_joueur(joueur, request.user)
     messages.success(request, message.format(joueur=joueur))
     return redirect("joueurs")
 
@@ -105,6 +119,50 @@ def joueur_archiver(request: RequeteStaff, pk: int) -> HttpResponse:
 @require_POST
 def joueur_reactiver(request: RequeteStaff, pk: int) -> HttpResponse:
     return _changer_activite(request, pk, True, "{joueur} est réactivé.")
+
+
+# --- Liens joueurs ---------------------------------------------------------------------
+
+
+@require_POST
+@never_cache
+@sensitive_variables("jeton", "adresse")
+def lien_generer(request: RequeteStaff, pk: int) -> HttpResponse:
+    """Crée le lien du joueur (le précédent est révoqué) et l'affiche une seule fois (US-07).
+
+    Le jeton est dans la réponse seulement : ni session, ni message, ni redirection, ni
+    journal. Actualiser la page renvoie le formulaire et crée un autre lien.
+    """
+    joueur = _joueur_suivi(request, pk)
+    if not joueur.actif:
+        messages.error(request, f"{joueur} est archivé : réactive-le avant de créer son lien.")
+        return redirect("joueurs")
+    try:
+        jeton = creer_lien(joueur, request.user)
+    except JoueurArchive:
+        messages.error(request, f"{joueur} est archivé : réactive-le avant de créer son lien.")
+        return redirect("joueurs")
+    adresse = request.build_absolute_uri(f"/q/{jeton}")
+    return render(
+        request,
+        "suivi/lien_joueur.html",
+        {
+            "rubrique": "joueurs",
+            "joueur": joueur,
+            "adresse": adresse,
+            "qr_code": qr_data_uri(adresse),
+        },
+    )
+
+
+@require_POST
+def lien_revoquer(request: RequeteStaff, pk: int) -> HttpResponse:
+    joueur = _joueur_suivi(request, pk)
+    if revoquer_liens(joueur):
+        messages.success(request, f"Le lien de {joueur} est révoqué : il n’ouvre plus rien.")
+    else:
+        messages.info(request, f"{joueur} n’a pas de lien actif.")
+    return redirect("joueurs")
 
 
 # --- Séances ---------------------------------------------------------------------------

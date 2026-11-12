@@ -3,6 +3,7 @@ from typing import Any
 from django.contrib import admin
 from django.http import HttpRequest
 
+from suivi.liens import revoquer_liens
 from suivi.models import Categorie, Indicateur, Joueur, Preparateur
 
 
@@ -26,6 +27,9 @@ class JoueurAdmin(admin.ModelAdmin):
     def save_model(self, request: HttpRequest, obj: Joueur, form: Any, change: bool) -> None:
         obj.updated_by = request.user  # type: ignore[assignment]
         super().save_model(request, obj, form, change)
+        if not obj.actif:
+            # Le départ du groupe révoque le lien quel que soit le chemin (ADR-0006).
+            revoquer_liens(obj)
 
 
 @admin.register(Indicateur)

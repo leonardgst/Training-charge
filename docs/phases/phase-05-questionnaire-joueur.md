@@ -28,8 +28,8 @@ Niveau de collaboration : 5, autonome, pour la phase entière, PR 5.1 et 5.2 com
 
 | # | Titre | Contenu | Tests apportés | Statut | Lien |
 | --- | --- | --- | --- | --- | --- |
-| 5.1 | `feat: générer, révoquer et régénérer les liens joueurs` | Modèle et migration du lien (empreinte SHA-256 unique, un seul lien actif par joueur), pages staff, lien et QR code affichés une seule fois, révocation à l'archivage (reportée de la PR 4.2) ; niveau 5 | A5, D4 (archivage), jeton absent en clair de toutes les colonnes | À commencer | — |
-| 5.2 | `feat: afficher et enregistrer le questionnaire du jour` | Vue `/q/<jeton>`, seule à accepter le jeton ; formulaire selon les indicateurs actifs de la catégorie de référence ; création puis modification jusqu'à 23 h 59, heure de Paris ; en-têtes de la page (décision 2 ci-dessus) ; niveau 5 | A4, D1, D2 | À commencer | — |
+| 5.1 | `feat: générer, révoquer et régénérer les liens joueurs` | Modèle et migration du lien (empreinte SHA-256 unique, un seul lien actif par joueur), pages staff, lien et QR code affichés une seule fois, révocation à l'archivage (reportée de la PR 4.2) ; niveau 5 | A5, D4 (archivage et effacement), jeton absent en clair de toutes les colonnes, test de bout en bout du parcours de génération aux trois formats | En revue | — |
+| 5.2 | `feat: afficher et enregistrer le questionnaire du jour` | Vue `/q/<jeton>`, seule à accepter le jeton ; formulaire selon les indicateurs actifs de la catégorie de référence ; création puis modification jusqu'à 23 h 59, heure de Paris ; route `/q/<jeton>` sans barre finale et hors de la connexion obligatoire (une redirection exposerait le jeton), adresse construite par `reverse` au lieu du chemin écrit en dur de la PR 5.1, refus d'un joueur inactif (défense en profondeur), `LISTE_BLANCHE` du catalogue d'accès mise à jour ; en-têtes de la page (décision 2 ci-dessus) ; niveau 5 | A4, D1, D2, A5 (même 404 pour un lien invalide, révoqué ou régénéré), D4 (lien refusé après archivage ou effacement) | À commencer | — |
 | 5.3 | `feat: afficher le badge Reçu / Manquant` | Colonne de la grille RPE, jours de questionnaire de la catégorie | E2 sur téléphone | À commencer | — |
 | 5.4 | `feat: corriger une entrée de sensations passée` | Correction et suppression par le préparateur de la catégorie de référence, date et auteur enregistrés | A3, intégration | À commencer | — |
 
@@ -58,7 +58,11 @@ Liste préparée à la fin de la phase ; elle se fera sur un vrai téléphone, e
 ## Écarts par rapport au plan
 
 - Niveau 5 pour toute la phase (ADR-0019), y compris les PR 5.1 et 5.2 (jeton, migration) et 5.4 (règles d'accès), que le cadrage (sections 8.2, 9 et 13.4) plaçait au niveau 3, par décision du mainteneur le 2026-11-12.
-- PR 5.1 : l'architecture (section 5) dit que les seules images intégrées (`data:`) sont les icônes de Pico CSS ; elle sera mise à jour si le QR code passe par un `data:`.
+- PR 5.1 : le QR code est une image `data:` intégrée à la page de génération du lien ; l'architecture (sections 2 et 5) le dit désormais, au lieu de réserver les images `data:` aux icônes de Pico CSS.
+- PR 5.1 : le lien généré pointe vers `/q/<jeton>`, route créée par la PR 5.2 ; tant que la PR 5.2 n'est pas fusionnée, ce lien répond 404.
+- PR 5.1 : la suppression en cascade d'un joueur et la mise à `NULL` de l'auteur d'un lien sont faites par Django, comme pour les autres tables ; une suppression en SQL pur d'un joueur qui a des liens échoue à la validation de la transaction. L'effacement passe par l'administration (ADR-0009).
+- PR 5.1 : l'archivage passe par `archiver_joueur` (vue du préparateur) et par `JoueurAdmin.save_model` (administration), qui révoquent tous deux le lien ; une création de lien et un archivage simultanés sont ordonnés par le verrou du joueur.
+- PR 5.1 : `tests/integration/test_effacement_joueur.py` donne au joueur invité deux liens (un révoqué, un actif), pour que le test D4 vérifie aussi l'effacement de `lien_joueur` ; aucune assertion n'est retirée ni assouplie.
 - `Referrer-Policy: same-origin` sur la page du lien joueur, au lieu de `no-referrer` (ADR-0006), pour la même raison qu'en PR 4.1 bis.
 - La PR 5.1 reprend la révocation du lien à l'archivage d'un joueur, prévue par la PR 4.2 mais impossible tant que les liens n'existaient pas.
 
