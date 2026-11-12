@@ -55,7 +55,7 @@ Créer un jeton fine-grained : GitHub, Settings > Developer settings > Personal 
 | Expiration | 90 jours |
 | Dépôts | Seulement `leonardgst/Training-charge` |
 | Contents, Pull requests, Issues | Lecture et écriture |
-| Actions, Checks, Commit statuses | Lecture |
+| Actions, Commit statuses | Lecture (le droit « Checks » n'existe pas pour un jeton fine-grained) |
 | Metadata | Lecture (imposé par GitHub) |
 | Toutes les autres, dont Administration, Deployments, Environments, Secrets, Variables, Workflows | Aucun accès |
 
@@ -73,9 +73,10 @@ Tes commits gardent ton identité Git ; les poussées passent par le jeton de Cl
 ## 5. Accès Neon
 
 - `.mcp.json` déclare `https://mcp.neon.tech/mcp?projectId=${NEON_PROJECT_ID}` : le serveur ne voit que le projet du suivi.
-- Ajouter dans `~/.bashrc`, côté WSL : `export NEON_PROJECT_ID=<identifiant du projet>`, la même valeur que la variable GitHub `NEON_PROJECT_ID`. Fermer et rouvrir VS Code.
+- Ajouter dans `~/.bashrc`, côté WSL : `export NEON_PROJECT_ID=<identifiant du projet>`, la même valeur que la variable GitHub `NEON_PROJECT_ID`. Fermer le terminal et VS Code, puis les rouvrir depuis un terminal WSL où `echo $NEON_PROJECT_ID` affiche l'identifiant : une session démarrée avant l'export garde l'ancien environnement, et le serveur reçoit le texte `${NEON_PROJECT_ID}` à la place de la valeur.
 - Ajouter l'identifiant `br-…` de la branche `production` dans [`.claude/hooks/neon-branches-protegees.json`](../.claude/hooks/neon-branches-protegees.json) (console Neon, page de la branche). Tant qu'il manque, toute écriture demande ton accord.
-- Première session : accepter les serveurs du projet, puis `/mcp` > `neon` > authentification. Sur la page de consentement, laisser « Allow writes » coché : le hook borne les écritures.
+- Première session : accepter les serveurs du projet, puis `/mcp` > `neon` > authentification. Sur la page de consentement, laisser « Allow writes » coché : le hook borne les écritures. Depuis WSL, le navigateur de Windows peut ne pas atteindre le port local qui attend le retour OAuth : la page échoue sur `http://localhost:<port>/callback?code=…`. Copier alors cette adresse complète depuis la barre du navigateur et, dans un second terminal WSL, lancer `curl "<adresse>"` pendant que `/mcp` attend ; l'authentification se termine. Même démarche pour `vercel`.
+- Si l'invite d'accord de `run_sql` sur `production` apparaît, répondre « Yes » et jamais « Yes, and don't ask again » : cette réponse ajoute `mcp__neon__run_sql` aux règles `allow` de `.claude/settings.local.json`, ce qui supprime l'invite pour les branches de travail aussi ; la retirer du fichier si elle y figure.
 
 Décisions du [hook](../.claude/hooks/garde_plateformes.py) pour les outils Neon :
 

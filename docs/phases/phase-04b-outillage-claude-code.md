@@ -12,9 +12,9 @@ Phase ajoutée le 2026-11-12 à ta demande, hors du découpage du cadrage (secti
 
 ## Livrables
 
-- [ ] Poste : VS Code connecté à WSL 2, extension Claude Code
-- [ ] Jeton GitHub de Claude, limité au dépôt
-- [ ] Serveurs MCP de Neon et de Vercel, derrière le hook `garde_plateformes.py`
+- [x] Poste : VS Code connecté à WSL 2, extension Claude Code
+- [x] Jeton GitHub de Claude, limité au dépôt
+- [x] Serveurs MCP de Neon et de Vercel, derrière le hook `garde_plateformes.py`
 - [x] Réglages du niveau 5, `CLAUDE.md` à jour
 - [x] Sous-agents et skills du projet
 
@@ -24,25 +24,25 @@ Phase ajoutée le 2026-11-12 à ta demande, hors du découpage du cadrage (secti
 | --- | --- | --- | --- | --- | --- |
 | 4b.1 | `chore: configurer l'autonomie de Claude Code` | ADR-0019, guide, fiche, réglages, hook des plateformes, `.mcp.json`, `CLAUDE.md` | Tests unitaires du hook et des règles essentielles | Fusionnée | [#36](https://github.com/leonardgst/Training-charge/pull/36) |
 | 4b.2 | `chore: ajouter les sous-agents et les skills du projet` | Six sous-agents (`relecteur`, `gardien-acces`, `moteur`, `migrations`, `testeur-e2e`, `ops`), sept skills, guide et `CLAUDE.md` | En-têtes des sous-agents et des skills ; liens de `.claude/` vérifiés | Fusionnée | [#37](https://github.com/leonardgst/Training-charge/pull/37) |
-| 4b.3 | `chore: épingler les actions et ajouter Dependabot` | Actions épinglées par empreinte de commit, `.github/dependabot.yml`, pas de preview pour les PR de Dependabot ; menée par Claude, workflows poussés par toi | Test unitaire de l'épinglage ; CI verte | Fusionnée | [#39](https://github.com/leonardgst/Training-charge/pull/39) |
+| 4b.3 | `chore: épingler les actions et ajouter Dependabot` | Actions épinglées par empreinte de commit, `.github/dependabot.yml`, pas de preview pour les PR de Dependabot ; menée par Claude, workflows poussés par toi | Test unitaire de l'épinglage ; CI verte | Fusionnée | [#40](https://github.com/leonardgst/Training-charge/pull/40) |
 
 ## Tes étapes
 
 - [x] Clore la phase 4 : recette avec une séance de 25 joueurs chronométrée (2026-11-12, tag `v0.4.0` ; contrôle de `/connexion/` en production à faire)
-- [ ] Mettre en place le poste ([guide, section 2](../outillage-claude-code.md#2-mise-en-place-du-poste))
-- [ ] Créer le jeton GitHub de Claude et le connecter dans WSL ([guide, section 4](../outillage-claude-code.md#4-accès-github))
-- [x] Exporter `NEON_PROJECT_ID` dans `~/.bashrc` ; ajouter l'identifiant de la branche `production` au fichier des branches protégées (fait ; la session de VS Code doit être relancée pour lire la variable, voir les écarts)
+- [x] Mettre en place le poste ([guide, section 2](../outillage-claude-code.md#2-mise-en-place-du-poste))
+- [x] Créer le jeton GitHub de Claude (Contents, Pull requests, Issues en écriture ; Actions et Commit statuses en lecture) et le connecter dans WSL ([guide, section 4](../outillage-claude-code.md#4-accès-github))
+- [x] Exporter `NEON_PROJECT_ID` dans `~/.bashrc` ; ajouter l'identifiant de la branche `production` au fichier des branches protégées (fait ; la session de VS Code doit être relancée pour lire la variable, voir les écarts ; PR #41)
 - [x] Première session : approuver les serveurs du projet, authentifier Neon et Vercel dans `/mcp`
-- [ ] Vercel : donner à `DJANGO_SECRET_KEY` une valeur Preview distincte de la valeur Production
+- [x] Vercel : donner à `DJANGO_SECRET_KEY` une valeur Preview distincte de la valeur Production
 - [ ] Compléter la liste de lecture Vercel du hook
 - [ ] Activer les alertes et les mises à jour de sécurité Dependabot du dépôt (réglages, sécurité du code), prévues par l'architecture (section 2) et désactivées
 
 ## Critères de fin (Definition of Done)
 
-- [ ] PR 4b.1 à 4b.3 fusionnées, CI verte
-- [ ] `claude mcp list` montre Neon et Vercel connectés, sans variable manquante
-- [ ] Hook essayé en session réelle : une lecture passe, `run_sql` sur `production` demande l'accord, `delete_branch` sur `production` est refusé
-- [ ] GitHub refuse au jeton de Claude la poussée d'un workflow et l'approbation d'un déploiement de production
+- [x] PR 4b.1 à 4b.3 fusionnées, CI verte
+- [x] `claude mcp list` montre Neon et Vercel connectés, sans variable manquante
+- [x] Hook essayé en session réelle : une lecture passe, `run_sql` sur `production` demande l'accord, `delete_branch` sur `production` est refusé
+- [x] GitHub refuse au jeton de Claude la poussée d'un workflow et l'approbation d'un déploiement de production
 - [ ] Essai à blanc : la PR 4b.3 menée par Claude sans intervention jusqu'à la demande de fusion, hors poussée des workflows
 - [ ] Documentation à jour : fiche, journal, `CLAUDE.md`
 
@@ -60,3 +60,8 @@ Phase ajoutée le 2026-11-12 à ta demande, hors du découpage du cadrage (secti
 - Ranger `VERCEL_TOKEN` et `NEON_API_KEY` dans un environnement GitHub, proposé le 2026-11-12, est abandonné : le jeton de Claude ne peut pas modifier un workflow, et un environnement sans relecteur ne protégerait pas les previews (ADR-0019, conséquences).
 - Vérification des critères de fin le 2026-11-12 : `claude mcp list` donne Neon et Vercel connectés mais signale `NEON_PROJECT_ID` manquante ; la session avait démarré avant l'export dans `~/.bashrc`, le serveur Neon a reçu le texte `${NEON_PROJECT_ID}` à la place de l'identifiant et refuse tout appel (`project_id` ne correspond pas à la connexion). Les essais du hook (lecture, `run_sql` sur `production`, `delete_branch` sur `production`) n'ont donc pas eu lieu ; à refaire après avoir relancé VS Code depuis un terminal WSL où `echo $NEON_PROJECT_ID` affiche l'identifiant.
 - Dependabot : PR #42 à #45 examinées, CI verte sur les quatre ; recommandation de fusion dans le journal. Les alertes et correctifs de sécurité restent à activer par le mainteneur.
+- Essais du hook le 2026-11-12, après relance de la session avec `NEON_PROJECT_ID` : `list_branches` passe sans invite ; `run_sql` sur `production` (`br-long-brook-b9cndbjm`) fait apparaître l'invite d'accord, y compris avec une règle `mcp__neon__run_sql` dans `settings.local.json` (le `ask` du hook l'emporte) ; `delete_branch` sur `production` est refusé par le hook. La règle ajoutée par « Yes, and don't ask again » a été retirée par précaution.
+- Jeton GitHub de Claude, essayé le 2026-11-12 : `POST …/actions/runs/<run>/pending_deployments` refusé en 403 (« Resource not accessible by personal access token ») ; poussée d'un commit modifiant `.github/workflows/ci.yml` sur une branche jetable refusée (« without `workflow` scope »). La branche jetable n'a jamais existé sur GitHub ; son dossier de travail local est supprimé. Les droits sont ceux du guide, sans « Checks » : ce droit n'existe pas pour un jeton fine-grained.
+- Essai à blanc non réalisé : la PR 4b.3 n'a pas été menée sans intervention (le mainteneur a poussé les workflows et guidé Claude). À refaire sur la prochaine PR, par exemple la PR #42 de Dependabot ; le critère reste ouvert.
+- Le tableau des PR pointait la PR 4b.3 vers #39 (une PR de documentation) ; la bonne PR est #40.
+- La liste de lecture Vercel du hook reste à compléter : Claude propose le diff, le mainteneur l'applique (`.claude/hooks/` lui est réservé).
