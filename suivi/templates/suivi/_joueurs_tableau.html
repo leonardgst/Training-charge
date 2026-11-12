@@ -12,6 +12,22 @@
           <div class="actions">
             <a href="{% url 'joueur_modifier' joueur.pk %}" aria-label="Modifier {{ joueur }}">Modifier</a>
             {% if joueur.actif %}
+            {% if joueur.pk in avec_lien %}
+            <span class="lien-actif">Lien actif</span>
+            <form method="post" action="{% url 'lien_generer' joueur.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="secondary outline" aria-label="Régénérer le lien de {{ joueur }}">Régénérer</button>
+            </form>
+            <form method="post" action="{% url 'lien_revoquer' joueur.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="secondary outline" aria-label="Révoquer le lien de {{ joueur }}">Révoquer</button>
+            </form>
+            {% else %}
+            <form method="post" action="{% url 'lien_generer' joueur.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="secondary outline" aria-label="Générer le lien de {{ joueur }}">Générer le lien</button>
+            </form>
+            {% endif %}
             <form method="post" action="{% url 'joueur_archiver' joueur.pk %}">
               {% csrf_token %}
               <button type="submit" class="secondary outline" aria-label="Archiver {{ joueur }}">Archiver</button>

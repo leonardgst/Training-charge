@@ -101,3 +101,32 @@ def test_une_saisie_invalide_reste_sur_le_formulaire_avec_son_message(
 
     expect(page).to_have_url(live_server.url + "/joueurs/nouveau/")
     expect(page.get_by_text("La date de naissance ne peut pas être dans le futur.")).to_be_visible()
+
+
+def test_generer_un_lien_affiche_l_adresse_et_le_qr_code_une_seule_fois(
+    page_formatee: Page, live_server, preparateur: None
+) -> None:
+    page = page_formatee
+    erreurs: list[str] = []
+    page.on(
+        "console", lambda message: erreurs.append(message.text) if message.type == "error" else None
+    )
+    _se_connecter(page, live_server.url)
+    page.goto(live_server.url + "/joueurs/")
+
+    page.get_by_role("button", name="Générer le lien de Hugo Abel").click()
+
+    expect(page.get_by_role("heading", name="Lien de Hugo Abel")).to_be_visible()
+    adresse = page.get_by_label("Adresse personnelle du joueur").input_value()
+    assert adresse.startswith(live_server.url + "/q/")
+    qr_code = page.get_by_alt_text("QR code du lien de Hugo Abel")
+    expect(qr_code).to_be_visible()
+    assert page.evaluate("document.querySelector('img[alt^=\"QR code\"]').naturalWidth") > 0
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+    assert erreurs == []
+
+    page.get_by_role("button", name="Retour aux joueurs").click()
+
+    assert adresse.rsplit("/", 1)[1] not in page.content()
+    expect(page.get_by_text("Lien actif")).to_be_visible()
+    assert _tableaux_sans_debordement(page)

@@ -1,0 +1,14 @@
+{% extends "suivi/base.html" %}
+
+{% block titre %}Lien de {{ joueur }}{% endblock %}
+
+{% block contenu %}
+<h1>Lien de {{ joueur }}</h1>
+<p><strong>Ce lien ne sera plus affiché.</strong> Copie-le ou fais scanner le QR code maintenant : si tu quittes cette page, il faudra en générer un autre, qui remplacera celui-ci.</p>
+<article>
+  <label for="lien">Adresse personnelle du joueur</label>
+  <input type="text" id="lien" value="{{ adresse }}" readonly>
+  <img src="{{ qr_code }}" alt="QR code du lien de {{ joueur }}" width="240" height="240">
+</article>
+<p><a href="{% url 'joueurs' %}" role="button">Retour aux joueurs</a></p>
+{% endblock %}

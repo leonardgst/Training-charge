@@ -10,6 +10,7 @@ from django.db import connection
 from django.test import Client
 
 from suivi.acces import annuaire, entrees_visibles, joueurs_suivis, participations_visibles
+from suivi.liens import creer_lien
 from suivi.models import EntreeSensations, Joueur, Participation, Preparateur, Reponse, Seance
 
 pytestmark = pytest.mark.django_db(transaction=True)
@@ -31,6 +32,10 @@ def _invite() -> Joueur:
         .first()
     )
     assert participation is not None
+    # Il a aussi un lien, révoqué puis remplacé : l'effacement doit les emporter tous les deux.
+    auteur = get_user_model().objects.get(username="prep_u17")
+    creer_lien(participation.joueur, auteur)
+    creer_lien(participation.joueur, auteur)
     return participation.joueur
 
 

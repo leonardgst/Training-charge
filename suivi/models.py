@@ -280,3 +280,39 @@ class Reponse(models.Model):
 
     def __str__(self) -> str:
         return f"{self.indicateur.code} = {self.valeur}"
+
+
+class LienJoueur(models.Model):
+    """Lien personnel d'un joueur vers son questionnaire du jour (ADR-0006).
+
+    Seule l'empreinte SHA-256 du jeton est stockée : le jeton en clair n'existe que dans la
+    réponse qui le montre une fois. Au plus un lien actif par joueur.
+    """
+
+    joueur = models.ForeignKey(Joueur, on_delete=models.CASCADE, related_name="liens")
+    token_hash = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(token_hash__regex=r"^[0-9a-f]{64}$"),  # noqa: S106 (faux positif)
+                name="lienjoueur_empreinte_sha256",
+            ),
+            models.UniqueConstraint(
+                fields=["joueur"],
+                condition=models.Q(revoked_at__isnull=True),
+                name="lienjoueur_un_seul_actif",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"Lien de {self.joueur}"
