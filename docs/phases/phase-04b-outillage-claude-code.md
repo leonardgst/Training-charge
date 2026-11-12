@@ -15,20 +15,20 @@ Phase ajoutée le 2026-11-12 à ta demande, hors du découpage du cadrage (secti
 - [ ] Poste : VS Code connecté à WSL 2, extension Claude Code
 - [ ] Jeton GitHub de Claude, limité au dépôt
 - [ ] Serveurs MCP de Neon et de Vercel, derrière le hook `garde_plateformes.py`
-- [ ] Réglages du niveau 5, `CLAUDE.md` à jour
-- [ ] Sous-agents et skills du projet
+- [x] Réglages du niveau 5, `CLAUDE.md` à jour
+- [x] Sous-agents et skills du projet
 
 ## PR de la phase
 
 | # | Titre | Contenu | Tests apportés | Statut | Lien |
 | --- | --- | --- | --- | --- | --- |
-| 4b.1 | `chore: configurer l'autonomie de Claude Code` | ADR-0019, guide, fiche, réglages, hook des plateformes, `.mcp.json`, `CLAUDE.md` | Tests unitaires du hook et des règles essentielles | En revue | [#36](https://github.com/leonardgst/Training-charge/pull/36) |
-| 4b.2 | `chore: ajouter les sous-agents et les skills du projet` | Six sous-agents (`relecteur`, `gardien-acces`, `moteur`, `migrations`, `testeur-e2e`, `ops`), sept skills, guide et `CLAUDE.md` | En-têtes des sous-agents et des skills ; liens de `.claude/` vérifiés | En revue | [#37](https://github.com/leonardgst/Training-charge/pull/37) |
+| 4b.1 | `chore: configurer l'autonomie de Claude Code` | ADR-0019, guide, fiche, réglages, hook des plateformes, `.mcp.json`, `CLAUDE.md` | Tests unitaires du hook et des règles essentielles | Fusionnée | [#36](https://github.com/leonardgst/Training-charge/pull/36) |
+| 4b.2 | `chore: ajouter les sous-agents et les skills du projet` | Six sous-agents (`relecteur`, `gardien-acces`, `moteur`, `migrations`, `testeur-e2e`, `ops`), sept skills, guide et `CLAUDE.md` | En-têtes des sous-agents et des skills ; liens de `.claude/` vérifiés | Fusionnée | [#37](https://github.com/leonardgst/Training-charge/pull/37) |
 | 4b.3 | `ci: épingler les actions et ajouter Dependabot` | Actions épinglées par empreinte de commit, `.github/dependabot.yml` ; menée par Claude, workflows poussés par toi | CI verte | Prévue | — |
 
 ## Tes étapes
 
-- [ ] Clore la phase 4 : recette avec une séance de 25 joueurs chronométrée
+- [x] Clore la phase 4 : recette avec une séance de 25 joueurs chronométrée (2026-11-12, tag `v0.4.0` ; déploiement de production à approuver)
 - [ ] Mettre en place le poste ([guide, section 2](../outillage-claude-code.md#2-mise-en-place-du-poste))
 - [ ] Créer le jeton GitHub de Claude et le connecter dans WSL ([guide, section 4](../outillage-claude-code.md#4-accès-github))
 - [ ] Exporter `NEON_PROJECT_ID` dans `~/.bashrc` ; ajouter l'identifiant de la branche `production` au fichier des branches protégées
