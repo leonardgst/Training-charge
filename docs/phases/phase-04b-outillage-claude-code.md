@@ -43,7 +43,7 @@ Phase ajoutée le 2026-11-12 à ta demande, hors du découpage du cadrage (secti
 - [x] `claude mcp list` montre Neon et Vercel connectés, sans variable manquante
 - [x] Hook essayé en session réelle : une lecture passe, `run_sql` sur `production` demande l'accord, `delete_branch` sur `production` est refusé
 - [x] GitHub refuse au jeton de Claude la poussée d'un workflow et l'approbation d'un déploiement de production
-- [ ] Essai à blanc : la PR 4b.3 menée par Claude sans intervention jusqu'à la demande de fusion, hors poussée des workflows
+- [ ] Essai à blanc : la prochaine PR ordinaire (sans fichier réservé) menée par Claude sans intervention, de la branche à la demande de fusion
 - [ ] Documentation à jour : fiche, journal, `CLAUDE.md`
 
 ## Décisions prises (liens vers les ADR)
