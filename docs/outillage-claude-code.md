@@ -94,11 +94,12 @@ Les réglages refusent en plus `complete_database_migration`, qui appliquerait u
 ## 6. Accès Vercel
 
 - `.mcp.json` déclare `https://mcp.vercel.com`. Dans `/mcp` > `vercel`, s'authentifier et accorder l'accès à l'équipe qui possède `u19-load-tracking`.
-- Le serveur agit avec tous les droits de ton compte Vercel. Le hook laisse passer la lecture (`list_deployments`, `get_deployment`, `get_runtime_logs`, `get_runtime_errors`, `list_projects`, `get_project`, `list_teams`, `web_fetch_vercel_url`) et demande ton accord pour tout autre outil.
+- Le serveur agit avec tous les droits de ton compte Vercel. Le hook laisse passer les outils de lecture listés dans `VERCEL_LECTURE` de [`garde_plateformes.py`](../.claude/hooks/garde_plateformes.py) (déploiements, projets, journaux et erreurs d'exécution, alias, domaines, documentation, `web_fetch_vercel_url`) et demande ton accord pour tout autre outil.
+- Si un appel répond 403 « Not authorized … scope », l'équipe n'est pas encore autorisée pour cette connexion : appeler `authorize_team_access` avec le `teamId` de l'erreur (le hook demande ton accord), ouvrir le lien renvoyé (valable 10 minutes, d'après la réponse de l'outil, à usage unique) et approuver, puis rejouer l'appel.
 - Depuis WSL, si le retour OAuth échoue sur `localhost`, utiliser l'astuce `curl` de la [section 5](#5-accès-neon).
 - `web_fetch_vercel_url` lit une preview protégée par Vercel Authentication : Claude peut faire la recette d'une preview.
 - Les déploiements restent faits par `preview.yml` et `deploy.yml`, jamais par le serveur MCP.
-- Après la première connexion, compléter la liste de lecture du hook avec les autres outils de lecture que liste `/mcp`.
+- Un nouvel outil de lecture s'ajoute à `VERCEL_LECTURE` : Claude propose le diff, le mainteneur l'applique (`.claude/hooks/` lui est réservé).
 
 ## 7. Sous-agents et skills
 
