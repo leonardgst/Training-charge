@@ -1,0 +1,31 @@
+# Mises à jour proposées par Dependabot (phase 4 bis, PR 4b.3). Une PR groupée par mois et
+# par écosystème, pour limiter les fusions à valider ; une PR à part pour chaque version
+# majeure. Les PR de Dependabot n'ont pas de preview : elles n'ont pas accès aux secrets.
+version: 2
+updates:
+  # Actions des workflows, épinglées par empreinte de commit : Dependabot met à jour
+  # l'empreinte et le commentaire de version.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Dépendances Python (`pyproject.toml`, `uv.lock`). Django reste sur la 5.2 LTS.
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore
+    ignore:
+      - dependency-name: django
+        update-types: ["version-update:semver-major"]
+    groups:
+      python:
+        patterns: ["*"]
+        update-types: [minor, patch]

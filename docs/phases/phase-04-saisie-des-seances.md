@@ -62,7 +62,7 @@ Faite par le mainteneur le 2026-11-12, guidé pas à pas par Claude, sur sa base
 
 **En production**
 
-- [ ] Le déploiement du 2026-10-15 (PR 4.5) n'a jamais été approuvé. Après la fusion, le déploiement de production attend ton approbation ; son test de fumée est vert (il vérifie désormais la politique de sécurité du contenu et `Referrer-Policy`) ; `/connexion/` s'affiche avec sa mise en page sur ordinateur et sur téléphone. La phase n'ajoute aucune migration.
+- [x] **Déployée le 2026-11-12** après la fusion de la PR #39 (commit `c5270b8`), approuvée par le mainteneur ; migrations, déploiement et test de fumée au vert ; vérifiée par le mainteneur (« C'est tout bon »). Le déploiement du 2026-10-15 (PR 4.5) n'a jamais été approuvé. Après la fusion, le déploiement de production attend ton approbation ; son test de fumée est vert (il vérifie désormais la politique de sécurité du contenu et `Referrer-Policy`) ; `/connexion/` s'affiche avec sa mise en page sur ordinateur et sur téléphone. La phase n'ajoute aucune migration.
 
 ## Décisions prises (liens vers les ADR)
 

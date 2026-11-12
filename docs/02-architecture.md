@@ -179,6 +179,7 @@ Arborescence cible : chaque dossier n'est créé qu'avec son premier fichier.
 .
 ├── .claude/settings.json          permissions de Claude Code
 ├── .github/
+│   ├── dependabot.yml             mises à jour des actions et des dépendances Python
 │   ├── pull_request_template.md
 │   └── workflows/                 ci.yml, preview.yml, deploy.yml
 ├── config/                        projet Django : settings.py, urls.py, wsgi.py, calcul.toml
