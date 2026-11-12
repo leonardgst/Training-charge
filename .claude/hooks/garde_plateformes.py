@@ -59,13 +59,25 @@ NEON_DESTRUCTIFS = frozenset({"delete_branch", "reset_from_parent"})
 # Outils Vercel en lecture seule (catalogue de Vercel MCP, outils les plus utilisés).
 VERCEL_LECTURE = frozenset(
     {
+        "get_active_attack_status",
+        "get_alias",
         "get_deployment",
+        "get_git_deployment_context",
         "get_project",
+        "get_project_domain",
         "get_runtime_errors",
         "get_runtime_logs",
+        "get_team",
+        "list_aliases",
+        "list_deployment_aliases",
+        "list_deployment_events",
+        "list_deployment_files",
         "list_deployments",
+        "list_project_custom_environments",
+        "list_project_domains",
         "list_projects",
         "list_teams",
+        "search_vercel_documentation",
         "web_fetch_vercel_url",
     }
 )
