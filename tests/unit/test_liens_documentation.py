@@ -33,6 +33,8 @@ def liens_casses(texte: str, dossier: Path) -> list[str]:
 
 def documents() -> list[Path]:
     fichiers = sorted((RACINE / "docs").rglob("*.md"))
+    # Sous-agents et skills de Claude Code : leurs liens vers la documentation aussi.
+    fichiers += sorted((RACINE / ".claude").rglob("*.md"))
     fichiers += [RACINE / nom for nom in ("README.md", "CLAUDE.md") if (RACINE / nom).exists()]
     return fichiers
 
