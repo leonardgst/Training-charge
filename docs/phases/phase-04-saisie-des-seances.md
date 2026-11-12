@@ -35,34 +35,34 @@ Niveau de collaboration : 4 pour la phase entière, PR 4.2 et PR qui touchent au
 - [x] Parcours E1 au vert, sur ordinateur et tablette émulés (`tests/e2e/test_grille.py` : 25 joueurs saisis au clavier, brouillon, validation, charges)
 - [x] Couverture de la validation des saisies d'au moins 90 % des branches, imposée en CI (`suivi/forms.py` à 100 % ; le modèle n'a pas de validateur Python, ses plages sont des contraintes de la base)
 - [x] Toute requête d'une vue staff passe par `suivi/acces.py` (test sur `suivi/views/`) ; A1 parcourt automatiquement les 15 routes ajoutées, A3 est étendu à chaque écran
-- [ ] Utilisable sur tablette : prouvé en tablette émulée par les tests de bout en bout, à confirmer pendant la recette
-- [ ] Recette manuelle faite, avec une séance de 25 joueurs chronométrée
+- [x] Utilisable sur tablette : prouvé par les tests de bout en bout et confirmé en recette, tablette émulée (820 × 1180)
+- [x] Recette manuelle faite, avec une séance de 25 joueurs chronométrée : environ 1 minute de saisie (2026-11-12)
 - [x] Documentation à jour : fiche, journal, `CHANGELOG.md`, `CLAUDE.md` pointant vers la phase 5
 
 ## Recette manuelle
 
-À dérouler par toi, `main` à jour après la fusion de la PR de clôture ; je ne coche rien à ta place. Ni la production ni les previews ne contiennent de données (la démonstration y est chargée en phase 7) : le parcours se fait sur ta base locale, la production est vérifiée par son déploiement.
+Faite par le mainteneur le 2026-11-12, guidé pas à pas par Claude, sur sa base locale (démonstration déjà chargée, donc sans base neuve), compte `prep_u19`, tablette et téléphone émulés dans le navigateur. Résultats donnés par le mainteneur, reportés tels quels. Ni la production ni les previews ne contiennent de données (la démonstration y est chargée en phase 7) : le parcours se fait sur ta base locale, la production est vérifiée par son déploiement.
 
 **En local, sur ordinateur**
 
-- [ ] Base neuve et démonstration : `docker compose down -v && docker compose up -d db`, puis `uv run --env-file .env python manage.py migrate` et `uv run --env-file .env python manage.py generer_demo` (noter le mot de passe affiché), puis `uv run --env-file .env python manage.py runserver`.
-- [ ] Connexion : un mauvais mot de passe donne un message qui ne dit pas quel identifiant est faux ; `prep_u19` arrive sur l'accueil ; `admin_demo` reçoit « Accès refusé » sur `/` et entre dans `/admin/`.
-- [ ] Joueurs : ajouter, modifier, archiver puis réactiver un joueur ; archivé, il n'apparaît plus dans « Nouvelle séance ».
-- [ ] **Saisie chronométrée** : « Nouvelle séance » (les 24 joueurs U19 actifs sont cochés), puis, dans le bloc « Participants », ajouter un joueur U17 par la recherche : 25 participants. Saisir les 75 RPE au clavier (valeur, puis Tab), enregistrer le brouillon à mi-parcours, terminer et valider. Noter le temps, de l'ouverture de « Nouvelle séance » à la validation (cible : moins de 5 minutes).
-- [ ] Pendant la saisie, chaque case prend la couleur de sa valeur ; `12` est signalé comme invalide.
-- [ ] Séance validée : vérifier une charge à la main (moyenne des trois RPE × durée × 10).
-- [ ] Corriger un RPE, retirer puis ajouter un participant (avec ses trois RPE), changer la durée : les charges suivent, « Dernière modification » est à jour.
-- [ ] Supprimer une séance après sa page de confirmation : elle disparaît de l'historique ; la séance en brouillon de la démonstration y est marquée « Brouillon ».
-- [ ] Connecté en `prep_u17`, l'adresse d'une séance U19 donne « Page introuvable ».
+- [x] Base et démonstration (base existante, `generer_demo` déjà passé) : `docker compose down -v && docker compose up -d db`, puis `uv run --env-file .env python manage.py migrate` et `uv run --env-file .env python manage.py generer_demo` (noter le mot de passe affiché), puis `uv run --env-file .env python manage.py runserver`.
+- [x] Connexion (`prep_u19` ; message « Saisissez un nom d'utilisateur et un mot de passe valides… », générique ; `admin_demo` non vérifié) : un mauvais mot de passe donne un message qui ne dit pas quel identifiant est faux ; `prep_u19` arrive sur l'accueil ; `admin_demo` reçoit « Accès refusé » sur `/` et entre dans `/admin/`.
+- [x] Joueurs, plus la date de naissance future refusée : ajouter, modifier, archiver puis réactiver un joueur ; archivé, il n'apparaît plus dans « Nouvelle séance ».
+- [x] **Saisie chronométrée**, environ 1 minute pour les 75 RPE ; le mainteneur estime 5 à 10 minutes en conditions réelles, en interrogeant les joueurs. Durées 0 et 301 refusées à la création. : « Nouvelle séance » (les 24 joueurs U19 actifs sont cochés), puis, dans le bloc « Participants », ajouter un joueur U17 par la recherche : 25 participants. Saisir les 75 RPE au clavier (valeur, puis Tab), enregistrer le brouillon à mi-parcours, terminer et valider. Noter le temps, de l'ouverture de « Nouvelle séance » à la validation (cible : moins de 5 minutes).
+- [x] Pendant la saisie, chaque case prend la couleur de sa valeur ; `11` est refusé. Validation incomplète refusée, brouillon incomplet accepté.
+- [x] Séance validée : vérifier une charge à la main (moyenne des trois RPE × durée × 10).
+- [x] Corriger un RPE, retirer puis ajouter un participant (avec ses trois RPE), changer la durée : les charges suivent, « Dernière modification » est à jour.
+- [x] Supprimer une séance après sa page de confirmation : elle disparaît de l'historique ; la séance en brouillon de la démonstration y est marquée « Brouillon ».
+- [ ] Connecté en `prep_u17`, l'adresse d'une séance U19 donne « Page introuvable ». Non fait le 2026-11-12.
 
 **Sur tablette et téléphone**
 
-- [ ] La même saisie chronométrée sur une tablette : une vraie si elle atteint ton poste, sinon Chrome en mode appareil (iPad) ; noter le temps et le moyen utilisé. Le clavier numérique s'ouvre sur une vraie tablette.
-- [ ] Sur téléphone (ou en mode appareil) : connexion, joueurs, séance, historique, sans défilement horizontal.
+- [x] La même saisie chronométrée sur une tablette (Chrome en mode appareil, 820 × 1180 ; environ 1 minute) : une vraie si elle atteint ton poste, sinon Chrome en mode appareil (iPad) ; noter le temps et le moyen utilisé. Le clavier numérique s'ouvre sur une vraie tablette.
+- [x] Sur téléphone (mode appareil, 390 × 844) : connexion, joueurs, séance, grille, sans défilement horizontal.
 
 **En production**
 
-- [ ] Après la fusion, le déploiement de production attend ton approbation ; son test de fumée est vert (il vérifie désormais la politique de sécurité du contenu et `Referrer-Policy`) ; `/connexion/` s'affiche avec sa mise en page sur ordinateur et sur téléphone. La phase n'ajoute aucune migration.
+- [ ] Le déploiement du 2026-10-15 (PR 4.5) n'a jamais été approuvé. Après la fusion, le déploiement de production attend ton approbation ; son test de fumée est vert (il vérifie désormais la politique de sécurité du contenu et `Referrer-Policy`) ; `/connexion/` s'affiche avec sa mise en page sur ordinateur et sur téléphone. La phase n'ajoute aucune migration.
 
 ## Décisions prises (liens vers les ADR)
 
@@ -97,6 +97,8 @@ Niveau de collaboration : 4 pour la phase entière, PR 4.2 et PR qui touchent au
 - Point ouvert à la clôture : aucune plage n'est imposée à la date d'une séance (PR 4.3). Une séance datée dans le futur n'entre dans les calculs qu'à sa date. Refuser les dates futures à la saisie est à décider par le mainteneur.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé
+
+**Retour du mainteneur à la recette (2026-11-12)** : « l'expérience utilisateur est vraiment top ». Deux remarques d'ergonomie, pour une PR dédiée : la recherche dans l'annuaire est peu visible ; après chaque ajout ou retrait d'un participant, la page remonte en haut.
 
 **Ce qui a marché**
 - Le refus par défaut et le catalogue des routes : chacune des 15 routes ajoutées a été testée par A1 sans qu'aucun test ne soit écrit pour elle, et `suivi/acces.py` a suffi à chaque écran, joueur invité compris.
