@@ -4,6 +4,35 @@ Toutes les modifications notables du projet sont consignées ici, au format [Kee
 
 ## [Non publié]
 
+## [0.4.0] - 2026-10-15
+
+Phase 4 : saisie des séances.
+
+### Ajouté
+
+- Connexion et déconnexion du staff, avec un message d'erreur qui ne dit pas quel identifiant est faux ; gabarit de base avec Pico CSS 2.1.1 copié dans le dépôt (accord du mainteneur), navigation, pages 403, 404 et 500 en français, mise en page sur ordinateur, tablette et téléphone.
+- Politique de sécurité du contenu limitée à l'origine du site sur toute réponse ; `Referrer-Policy: same-origin` rendu explicite ; test de fumée étendu à ces en-têtes.
+- Gestion des joueurs de sa catégorie par le préparateur : liste, création, modification, archivage et réactivation (US-15).
+- Création d'une séance en brouillon : en-tête saisi une fois, joueurs actifs de la catégorie cochés, recherche dans l'annuaire pour ajouter un joueur invité, retrait d'un absent (US-03).
+- Grille RPE au clavier (Tab dans l'ordre de lecture, clavier numérique sur tablette), code couleur pendant la frappe, brouillon puis validation, charge de séance de chaque participant calculée par le moteur (US-04, US-05).
+- Historique des séances, correction directe d'une séance validée (grille, en-tête, participants), suppression confirmée, date et auteur de la dernière modification affichés (US-06).
+- Seuil de couverture de 90 % des branches de `suivi/forms.py` imposé en CI (accord du mainteneur).
+- Tests : parcours E1 sur ordinateur et tablette (25 joueurs), A1 et A3 étendus à chaque écran, D1 à la saisie, un test qui interdit deux fichiers de test du même nom.
+- Fiche de la phase 5 (questionnaire joueur), à valider par le mainteneur.
+
+### Modifié
+
+- Phase 4 en niveau 4 de collaboration pour toute la phase, accès et migrations compris (décision du mainteneur).
+- Le middleware du profil préparateur pose le profil sur `request.preparateur`.
+- Architecture (section 5) : `Referrer-Policy: same-origin` au lieu de `no-referrer`, incompatible avec le contrôle CSRF de Django (décision du mainteneur) ; ADR-0005 et ADR-0008 complétées par leur mise en œuvre.
+- README remis à jour (état du projet, fiche de la phase en cours, comptes de démonstration).
+- `CLAUDE.md` pointe vers la phase 5.
+
+### Corrigé
+
+- La politique de sécurité du contenu, prévue par l'architecture, n'était pas posée depuis la phase 1.
+- `uv run pytest` à la racine échouait à collecter deux fichiers de test du même nom ; la CI, qui lance les niveaux séparément, ne le voyait pas.
+
 ## [0.3.0] - 2026-10-15
 
 Phase 3 : moteur de calcul.
