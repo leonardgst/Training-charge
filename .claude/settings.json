@@ -5,6 +5,8 @@
     "disableBypassPermissionsMode": "disable",
     "allow": [
       "Bash(uv sync *)",
+      "Bash(uv add *)",
+      "Bash(uv remove *)",
       "Bash(uv run pytest *)",
       "Bash(uv run ruff *)",
       "Bash(uv run mypy *)",
@@ -40,15 +42,33 @@
       "Bash(gh pr *)",
       "Bash(gh run *)",
       "Bash(uv run *)",
-      "Bash(docker compose *)"
+      "Bash(docker compose *)",
+      "mcp__neon__compare_database_schema",
+      "mcp__neon__describe_branch",
+      "mcp__neon__describe_project",
+      "mcp__neon__describe_table_schema",
+      "mcp__neon__explain_sql_statement",
+      "mcp__neon__get_database_tables",
+      "mcp__neon__get_doc",
+      "mcp__neon__inspect_database",
+      "mcp__neon__list_branches",
+      "mcp__neon__list_projects",
+      "mcp__neon__list_slow_queries",
+      "mcp__neon__search_docs",
+      "mcp__vercel__get_deployment",
+      "mcp__vercel__get_project",
+      "mcp__vercel__get_runtime_errors",
+      "mcp__vercel__get_runtime_logs",
+      "mcp__vercel__list_deployments",
+      "mcp__vercel__list_projects",
+      "mcp__vercel__list_teams",
+      "mcp__vercel__web_fetch_vercel_url"
     ],
     "ask": [
-      "Bash(git reset *)",
-      "Bash(git rebase *)",
-      "Bash(git clean *)",
-      "Bash(gh api *)",
+      "Bash(gh pr merge *)",
       "Bash(gh workflow *)",
-      "Bash(docker compose down *)"
+      "Bash(git reset --hard*)",
+      "Bash(git clean *)"
     ],
     "deny": [
       "Read(./.env)",
@@ -70,6 +90,9 @@
       "Bash(env)",
       "Edit(/tests/reference/**/attendu.csv)",
       "Edit(/tests/reference/**/provenance.md)",
+      "Edit(/.claude/settings.json)",
+      "Edit(/.claude/hooks/**)",
+      "Edit(/.mcp.json)",
       "Bash(git push -f *)",
       "Bash(git push * -f)",
       "Bash(git push * -f *)",
@@ -77,13 +100,35 @@
       "Bash(git push origin main*)",
       "Bash(git push * main)",
       "Bash(git push *:main*)",
-      "Bash(gh pr merge *)",
+      "Bash(gh auth *)",
       "Bash(gh repo delete *)",
       "Bash(gh repo edit *)",
       "Bash(gh secret *)",
       "Bash(vercel *)",
       "Bash(npx vercel *)",
-      "Bash(neonctl *)"
+      "Bash(neonctl *)",
+      "mcp__neon__complete_database_migration",
+      "mcp__neon__create_credential",
+      "mcp__neon__create_project",
+      "mcp__neon__delete_project",
+      "mcp__neon__revoke_credential",
+      "mcp__neon__rotate_credential"
     ]
-  }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^mcp__(neon|vercel)__",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/garde_plateformes.py"],
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "enabledMcpjsonServers": ["neon", "vercel"]
 }

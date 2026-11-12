@@ -11,3 +11,4 @@ compose.yaml
 *_cache
 __pycache__
 staticfiles
+.mcp.json
