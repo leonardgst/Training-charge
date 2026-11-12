@@ -53,7 +53,7 @@ Faite par le mainteneur le 2026-11-12, guidé pas à pas par Claude, sur sa base
 - [x] Séance validée : vérifier une charge à la main (moyenne des trois RPE × durée × 10).
 - [x] Corriger un RPE, retirer puis ajouter un participant (avec ses trois RPE), changer la durée : les charges suivent, « Dernière modification » est à jour.
 - [x] Supprimer une séance après sa page de confirmation : elle disparaît de l'historique ; la séance en brouillon de la démonstration y est marquée « Brouillon ».
-- [ ] Connecté en `prep_u17`, l'adresse d'une séance U19 donne « Page introuvable ». Non fait le 2026-11-12.
+- [x] Connecté en `prep_u17`, l'adresse d'une séance U19 donne « Page introuvable » : 404 levée par `seance_detail` (page de débogage de Django en local, `DEBUG` actif).
 
 **Sur tablette et téléphone**
 
