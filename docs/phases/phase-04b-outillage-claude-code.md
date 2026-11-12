@@ -28,7 +28,7 @@ Phase ajoutée le 2026-11-12 à ta demande, hors du découpage du cadrage (secti
 
 ## Tes étapes
 
-- [x] Clore la phase 4 : recette avec une séance de 25 joueurs chronométrée (2026-11-12, tag `v0.4.0` ; production déployée le même jour)
+- [x] Clore la phase 4 : recette avec une séance de 25 joueurs chronométrée (2026-11-12, tag `v0.4.0` ; contrôle de `/connexion/` en production à faire)
 - [ ] Mettre en place le poste ([guide, section 2](../outillage-claude-code.md#2-mise-en-place-du-poste))
 - [ ] Créer le jeton GitHub de Claude et le connecter dans WSL ([guide, section 4](../outillage-claude-code.md#4-accès-github))
 - [ ] Exporter `NEON_PROJECT_ID` dans `~/.bashrc` ; ajouter l'identifiant de la branche `production` au fichier des branches protégées
