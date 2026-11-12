@@ -35,7 +35,7 @@ Phase ajoutée le 2026-11-12 à ta demande, hors du découpage du cadrage (secti
 - [ ] Première session : approuver les serveurs du projet, authentifier Neon et Vercel dans `/mcp`
 - [ ] Vercel : donner à `DJANGO_SECRET_KEY` une valeur Preview distincte de la valeur Production
 - [ ] Compléter la liste de lecture Vercel du hook
-- [ ] Activer les alertes Dependabot du dépôt (réglages, sécurité du code), prévues par l'architecture (section 2) et désactivées
+- [ ] Activer les alertes et les mises à jour de sécurité Dependabot du dépôt (réglages, sécurité du code), prévues par l'architecture (section 2) et désactivées
 
 ## Critères de fin (Definition of Done)
 

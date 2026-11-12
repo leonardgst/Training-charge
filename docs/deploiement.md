@@ -84,13 +84,13 @@ Le pooler de Neon (PgBouncer en mode transaction) convient à l'application, qui
 | [`config/settings.py`](../config/settings.py) | `DJANGO_HTTPS=true` active la redirection HTTPS, les cookies sécurisés et HSTS ; `DB_SSLMODE` ; curseurs côté serveur désactivés |
 | [`tests/smoke/test_fumee.py`](../tests/smoke/test_fumee.py) | Test de fumée, lancé avec `SMOKE_URL` |
 
-Les actions des workflows sont épinglées par empreinte de commit, avec leur version en commentaire : un tag déplacé chez l'éditeur d'une action ne change pas le code qui s'exécute avec les secrets. Dependabot propose les mises à jour ; un test unitaire refuse une action non épinglée.
+Les actions des workflows sont épinglées par empreinte de commit, avec leur version en commentaire : un tag déplacé chez l'éditeur d'une action ne change pas le code qui s'exécute avec les secrets. Dependabot propose les mises à jour ; un test unitaire refuse une action non épinglée. La CLI `vercel@63.1.2` et les autres outils versionnés à la main restent hors de Dependabot.
 
 Les valeurs non secrètes du déploiement (`DJANGO_HTTPS`, `DJANGO_ALLOWED_HOSTS`, `DB_NAME`, `DB_USER`, `DB_SSLMODE`, `DB_HOST`) sont passées par les workflows : elles sont versionnées et relues en PR. Seuls `DJANGO_SECRET_KEY` et `DB_PASSWORD` vivent dans Vercel.
 
 ## 5. Points d'attention
 
-- **`NEON_API_KEY`** a des droits étendus sur tout le projet Neon, branche de production comprise. Elle n'est lue que par le workflow des previews. Les PR venant d'un fork n'ont pas accès aux secrets. Une clé limitée au projet est préférable.
+- **`NEON_API_KEY`** a des droits étendus sur tout le projet Neon, branche de production comprise. Elle n'est lue que par le workflow des previews. Les PR venant d'un fork ou de Dependabot n'ont pas accès aux secrets. Une clé limitée au projet est préférable.
 - **Previews** : les branches Neon héritent des rôles de `production`, donc `suivi_execution` a le même mot de passe sur une preview. Aucun secret supplémentaire n'est à stocker. Seul l'hôte change d'une PR à l'autre.
 - **Hypothèses à confirmer par la première exécution de `preview.yml`** : l'action Neon retrouve le mot de passe d'un rôle créé en SQL ; elle réutilise la branche d'une PR déjà créée à chaque poussée ; le pooler accepte les requêtes préparées de `psycopg`. Si l'une échoue, le journal et la fiche de phase le consignent.
 - **Variables Vercel de type Secret** : elles ne se relisent plus après l'enregistrement, c'est voulu. Pour en changer la valeur, il faut supprimer la variable et la recréer.

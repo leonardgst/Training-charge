@@ -14,6 +14,7 @@ updates:
     groups:
       actions:
         patterns: ["*"]
+        update-types: [minor, patch]
 
   # Dépendances Python (`pyproject.toml`, `uv.lock`). Django reste sur la 5.2 LTS.
   - package-ecosystem: uv
