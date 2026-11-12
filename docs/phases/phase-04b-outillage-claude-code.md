@@ -23,7 +23,7 @@ Phase ajoutée le 2026-11-12 à ta demande, hors du découpage du cadrage (secti
 | # | Titre | Contenu | Tests apportés | Statut | Lien |
 | --- | --- | --- | --- | --- | --- |
 | 4b.1 | `chore: configurer l'autonomie de Claude Code` | ADR-0019, guide, fiche, réglages, hook des plateformes, `.mcp.json`, `CLAUDE.md` | Tests unitaires du hook et des règles essentielles | En revue | [#36](https://github.com/leonardgst/Training-charge/pull/36) |
-| 4b.2 | `chore: ajouter les sous-agents et les skills du projet` | Six sous-agents, six skills | Format des sous-agents et des skills | Prévue | — |
+| 4b.2 | `chore: ajouter les sous-agents et les skills du projet` | Six sous-agents (`relecteur`, `gardien-acces`, `moteur`, `migrations`, `testeur-e2e`, `ops`), sept skills, guide et `CLAUDE.md` | En-têtes des sous-agents et des skills ; liens de `.claude/` vérifiés | En revue | — |
 | 4b.3 | `ci: épingler les actions et ajouter Dependabot` | Actions épinglées par empreinte de commit, `.github/dependabot.yml` ; menée par Claude, workflows poussés par toi | CI verte | Prévue | — |
 
 ## Tes étapes

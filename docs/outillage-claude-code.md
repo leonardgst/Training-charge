@@ -68,7 +68,7 @@ gh auth setup-git       # git pousse avec ce jeton
 gh auth status
 ```
 
-Tes commits gardent ton identité Git ; les poussées passent par le jeton de Claude, qui agit en ton nom sur GitHub. Avec ce jeton, Claude ne peut ni approuver la production, ni modifier le ruleset, ni lire un secret, ni pousser un workflow. Pour une modification de workflow, voir la section 7.
+Tes commits gardent ton identité Git ; les poussées passent par le jeton de Claude, qui agit en ton nom sur GitHub. Avec ce jeton, Claude ne peut ni approuver la production, ni modifier le ruleset, ni lire un secret, ni pousser un workflow. Pour une modification de workflow, voir la section 8.
 
 ## 5. Accès Neon
 
@@ -98,7 +98,32 @@ Les réglages refusent en plus `complete_database_migration`, qui appliquerait u
 - Les déploiements restent faits par `preview.yml` et `deploy.yml`, jamais par le serveur MCP.
 - Après la première connexion, compléter la liste de lecture du hook avec les autres outils de lecture que liste `/mcp`.
 
-## 7. Procédures
+## 7. Sous-agents et skills
+
+Un sous-agent travaille dans son propre contexte, avec ses outils, et rend un compte rendu ; Claude lui délègue d'après sa description, ou quand tu le nommes. Un skill est une procédure que Claude suit dans la conversation ; tu le lances avec `/<nom>`, et Claude le prend de lui-même quand la tâche s'y prête, sauf ceux marqués « sur demande ».
+
+| Sous-agent | Rôle | Écrit |
+| --- | --- | --- |
+| [`relecteur`](../.claude/agents/relecteur.md) | Relit la branche avant chaque PR et chaque demande de fusion | Non |
+| [`gardien-acces`](../.claude/agents/gardien-acces.md) | Contrôle d'accès et sécurité : vues, URL, migrations, rôles, lien joueur | Non |
+| [`moteur`](../.claude/agents/moteur.md) | Moteur de calcul et adaptateur, jeu de référence | Oui |
+| [`migrations`](../.claude/agents/migrations.md) | Migrations, contraintes et rôles Postgres, branche Neon de la preview | Oui |
+| [`testeur-e2e`](../.claude/agents/testeur-e2e.md) | Tests de bout en bout Playwright aux trois formats | Oui |
+| [`ops`](../.claude/agents/ops.md) | Diagnostic de la CI, des previews et des déploiements | Non |
+
+| Skill | Ce qu'il déroule |
+| --- | --- |
+| [`/livrer-pr`](../.claude/skills/livrer-pr/SKILL.md) | Branche, tests, documentation, relecture, PR, CI verte, demande de fusion |
+| [`/nouvelle-adr`](../.claude/skills/nouvelle-adr/SKILL.md) | Numéro, format, index des ADR, lien dans la fiche |
+| [`/ouvrir-phase`](../.claude/skills/ouvrir-phase/SKILL.md) (sur demande) | Fiche de la phase à partir du cadrage, à faire valider |
+| [`/cloturer-phase`](../.claude/skills/cloturer-phase/SKILL.md) (sur demande) | Critères, fiche, CHANGELOG, tag (cadrage, section 10.3) |
+| [`/migration`](../.claude/skills/migration/SKILL.md) | Migration compatible avec la production, testée jusqu'à la preview |
+| [`/recette-preview`](../.claude/skills/recette-preview/SKILL.md) | Pages publiques, redirections et erreurs d'une preview |
+| [`/diagnostic`](../.claude/skills/diagnostic/SKILL.md) | Lance `ops` sur le dernier run rouge |
+
+`tests/unit/test_agents_et_skills.py` vérifie leur en-tête : un champ mal écrit serait ignoré sans avertissement par Claude Code.
+
+## 8. Procédures
 
 **Modifier un garde-fou.** Claude propose le changement ; tu l'appliques et tu le commites, avec la mise à jour de `tests/unit/test_garde_fous_claude.py` dans la même PR. Fichiers concernés : [`.claude/settings.json`](../.claude/settings.json), [`.claude/hooks/`](../.claude/hooks/), [`.mcp.json`](../.mcp.json).
 
@@ -106,7 +131,7 @@ Les réglages refusent en plus `complete_database_migration`, qui appliquerait u
 
 **Couper les accès.** Révoquer le jeton dans GitHub ; dans `/mcp`, « Clear authentication » sur `neon` et `vercel`. Pour revenir au niveau 4, rétablir l'ancien `.claude/settings.json` depuis l'historique Git.
 
-## 8. Limites connues
+## 9. Limites connues
 
 - Les règles de permission ne résistent pas à une commande détournée. Le bac à sable de Claude Code, disponible sous WSL 2, ajouterait une barrière sur les fichiers et le réseau ; il n'est pas activé.
 - Les branches protégées de Neon, qui rendraient la branche `production` intouchable côté Neon, sont réservées aux offres payantes : le hook les remplace.
