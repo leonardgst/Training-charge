@@ -5,7 +5,9 @@ que les indicateurs de la catégorie de référence du joueur et son entrée du 
 """
 
 import datetime
+import logging
 
+from django.contrib.auth.models import User
 from django.db import transaction
 
 from suivi.models import EntreeSensations, Indicateur, Joueur, LienJoueur, Reponse
@@ -60,3 +62,40 @@ def enregistrer_entree(
             Reponse.objects.update_or_create(
                 entree=entree, indicateur_id=indicateur_id, defaults={"valeur": valeur}
             )
+
+
+audit = logging.getLogger("suivi.audit")
+
+
+def corriger_entree(entree: EntreeSensations, valeurs: dict[int, int], auteur: User) -> None:
+    """Le préparateur corrige les réponses d'une entrée passée (F17, ADR-0008 Q3).
+
+    La date de l'entrée ne change pas ; `updated_at` et `updated_by` disent qui a corrigé et
+    quand. Un indicateur sans réponse dans l'entrée en reçoit une ; aucune réponse n'est
+    supprimée. L'appelant a vérifié que l'entrée est dans son périmètre.
+    """
+    with transaction.atomic():
+        Joueur.objects.select_for_update().get(pk=entree.joueur_id)
+        for indicateur_id, valeur in valeurs.items():
+            Reponse.objects.update_or_create(
+                entree=entree, indicateur_id=indicateur_id, defaults={"valeur": valeur}
+            )
+        entree.updated_by = auteur
+        entree.save()
+
+
+def supprimer_entree(entree: EntreeSensations, auteur: User) -> None:
+    """Supprime une entrée passée et ses réponses, à la demande du joueur (ADR-0008 Q3).
+
+    Il n'y a pas d'historique des valeurs en V1 : la suppression est tracée au journal
+    applicatif, par clé et sans nom de joueur. L'appelant a vérifié le périmètre.
+    """
+    with transaction.atomic():
+        Joueur.objects.select_for_update().get(pk=entree.joueur_id)
+        audit.info(
+            "Entrée de sensations supprimée : joueur=%s date=%s par=%s",
+            entree.joueur_id,
+            entree.date.isoformat(),
+            auteur.get_username(),
+        )
+        entree.delete()

@@ -20,6 +20,7 @@ from django.views.decorators.http import require_http_methods, require_POST, req
 
 from suivi.acces import (
     annuaire,
+    entrees_visibles,
     joueurs_ayant_repondu,
     joueurs_suivis,
     liens_actifs,
@@ -32,6 +33,7 @@ from suivi.forms import (
     COLONNES_RPE,
     GrilleRpeForm,
     JoueurForm,
+    QuestionnaireForm,
     RpeParticipantForm,
     SeanceEnteteForm,
     SeanceForm,
@@ -39,7 +41,12 @@ from suivi.forms import (
 from suivi.horloge import aujourd_hui
 from suivi.liens import JoueurArchive, archiver_joueur, creer_lien, qr_data_uri, revoquer_liens
 from suivi.middleware import RequeteStaff
-from suivi.models import Joueur, Participation, Seance, StatutSeance, TypeSeance
+from suivi.models import EntreeSensations, Joueur, Participation, Seance, StatutSeance, TypeSeance
+from suivi.questionnaire import (
+    corriger_entree,
+    indicateurs_du_questionnaire,
+    supprimer_entree,
+)
 
 # Nombre maximal de joueurs affichés par une recherche dans l'annuaire.
 RESULTATS_ANNUAIRE = 20
@@ -455,3 +462,80 @@ def participant_retirer(request: RequeteStaff, pk: int, participation_pk: int) -
         _toucher(seance, request)
     messages.success(request, f"{participation.joueur} est retiré de la séance.")
     return _retour_a_la_seance(seance)
+
+
+# --- Sensations d'un joueur : correction par le préparateur (F17) ----------------------
+
+# Entrées par page de la liste des sensations d'un joueur.
+ENTREES_PAR_PAGE = 30
+
+
+def _entree_suivie(request: RequeteStaff, joueur: Joueur, pk: int) -> EntreeSensations:
+    """Entrée d'un joueur suivi ; 404 pour toute autre, qu'elle existe ou non (A3)."""
+    entree = entrees_visibles(request.preparateur).filter(pk=pk, joueur=joueur).first()
+    if entree is None:
+        raise Http404
+    return entree
+
+
+@require_safe
+def sensations_joueur(request: RequeteStaff, pk: int) -> HttpResponse:
+    """Entrées de sensations d'un joueur suivi, des plus récentes aux plus anciennes."""
+    joueur = _joueur_suivi(request, pk)
+    entrees = (
+        entrees_visibles(request.preparateur)
+        .filter(joueur=joueur)
+        .select_related("updated_by")
+        .order_by("-date")
+    )
+    page = Paginator(entrees, ENTREES_PAR_PAGE).get_page(request.GET.get("page"))
+    return render(
+        request,
+        "suivi/sensations_joueur.html",
+        {"rubrique": "joueurs", "joueur": joueur, "page": page},
+    )
+
+
+@require_http_methods(["GET", "HEAD", "POST"])
+def entree_corriger(request: RequeteStaff, pk: int, entree_pk: int) -> HttpResponse:
+    """Corrige les réponses d'une entrée passée ; sa date ne change pas (ADR-0008 Q3)."""
+    joueur = _joueur_suivi(request, pk)
+    entree = _entree_suivie(request, joueur, entree_pk)
+    reponses = dict(entree.reponses.values_list("indicateur_id", "valeur"))
+    formulaire = QuestionnaireForm(
+        indicateurs_du_questionnaire(joueur),
+        request.POST if request.method == "POST" else None,
+        reponses=reponses,
+        correction=True,
+    )
+    if request.method == "POST" and formulaire.is_valid():
+        valeurs = formulaire.valeurs()
+        if valeurs:
+            corriger_entree(entree, valeurs, request.user)
+            messages.success(
+                request, f"L’entrée du {entree.date:%d/%m/%Y} de {joueur} est corrigée."
+            )
+        else:
+            messages.info(request, "Aucune modification : tous les champs étaient vides.")
+        return redirect("sensations_joueur", pk=joueur.pk)
+    return render(
+        request,
+        "suivi/entree_corriger.html",
+        {"rubrique": "joueurs", "joueur": joueur, "entree": entree, "formulaire": formulaire},
+    )
+
+
+@require_http_methods(["GET", "HEAD", "POST"])
+def entree_supprimer(request: RequeteStaff, pk: int, entree_pk: int) -> HttpResponse:
+    """Suppression confirmée d'une entrée passée, à la demande du joueur (ADR-0008 Q3)."""
+    joueur = _joueur_suivi(request, pk)
+    entree = _entree_suivie(request, joueur, entree_pk)
+    if request.method == "POST":
+        supprimer_entree(entree, request.user)
+        messages.success(request, f"L’entrée du {entree.date:%d/%m/%Y} de {joueur} est supprimée.")
+        return redirect("sensations_joueur", pk=joueur.pk)
+    return render(
+        request,
+        "suivi/entree_supprimer.html",
+        {"rubrique": "joueurs", "joueur": joueur, "entree": entree},
+    )
