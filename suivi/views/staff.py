@@ -20,6 +20,7 @@ from django.views.decorators.http import require_http_methods, require_POST, req
 
 from suivi.acces import (
     annuaire,
+    joueurs_ayant_repondu,
     joueurs_suivis,
     liens_actifs,
     participations_visibles,
@@ -38,6 +39,7 @@ from suivi.horloge import aujourd_hui
 from suivi.liens import JoueurArchive, archiver_joueur, creer_lien, qr_data_uri, revoquer_liens
 from suivi.middleware import RequeteStaff
 from suivi.models import Joueur, Participation, Seance, StatutSeance, TypeSeance
+from suivi.questionnaire import etat_questionnaire
 
 # Nombre maximal de joueurs affichés par une recherche dans l'annuaire.
 RESULTATS_ANNUAIRE = 20
@@ -222,12 +224,29 @@ def seances(request: RequeteStaff) -> HttpResponse:
 
 
 def _participations(request: RequeteStaff, seance: Seance) -> list[Participation]:
-    return list(
+    """Participations de la séance, chacune avec son badge de questionnaire (F10).
+
+    Seuls les joueurs suivis ont un badge : l'entrée d'un joueur invité n'est pas lisible
+    (ADR-0005), il reste donc sans état, comme un jour sans questionnaire.
+    """
+    participations = list(
         participations_visibles(request.preparateur)
         .filter(seance=seance)
         .select_related("joueur__categorie_reference")
         .order_by("joueur__nom", "joueur__prenom", "pk")
     )
+    ont_repondu = set(joueurs_ayant_repondu(request.preparateur, seance.date))
+    aujourdhui = aujourd_hui()
+    for participation in participations:
+        joueur = participation.joueur
+        if joueur.categorie_reference_id == request.preparateur.categorie_id:
+            participation.questionnaire = etat_questionnaire(
+                seance.date,
+                aujourdhui,
+                joueur.categorie_reference.jours_questionnaire,
+                recu=joueur.pk in ont_repondu,
+            )
+    return participations
 
 
 def _page_seance(

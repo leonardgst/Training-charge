@@ -34,13 +34,14 @@
   <div class="overflow-auto">
     <table class="grille-rpe">
       <thead>
-        <tr><th scope="col">Joueur</th>{% for champ, long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}</tr>
+        <tr><th scope="col">Joueur</th>{% for champ, long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}<th scope="col"><span class="large">Questionnaire</span><abbr class="court" title="Questionnaire du jour">Quest.</abbr></th></tr>
       </thead>
       <tbody>
         {% for participation, cases in grille.lignes %}
         <tr>
           <th scope="row"><strong>{{ participation.joueur.nom }}</strong> {{ participation.joueur.prenom }}{% if participation.joueur.categorie_reference_id != seance.categorie_organisatrice_id %} <small>({{ participation.joueur.categorie_reference.code }})</small>{% endif %}</th>
           {% for case in cases %}<td>{{ case }}</td>{% endfor %}
+          <td>{% include "suivi/_badge.html" with etat=participation.questionnaire %}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -143,7 +144,7 @@
 <div class="overflow-auto">
   <table class="grille-rpe">
     <thead>
-      <tr><th scope="col">Joueur</th>{% for champ, long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}<th scope="col">Charge</th></tr>
+      <tr><th scope="col">Joueur</th>{% for champ, long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}<th scope="col"><span class="large">Questionnaire</span><abbr class="court" title="Questionnaire du jour">Quest.</abbr></th><th scope="col">Charge</th></tr>
     </thead>
     <tbody>
       {% for participation, charge in validees %}
@@ -152,6 +153,7 @@
         <td><span class="rpe" data-niveau="{{ participation.rpe_cardio }}">{{ participation.rpe_cardio }}</span></td>
         <td><span class="rpe" data-niveau="{{ participation.rpe_musculaire }}">{{ participation.rpe_musculaire }}</span></td>
         <td><span class="rpe" data-niveau="{{ participation.rpe_teta }}">{{ participation.rpe_teta }}</span></td>
+        <td>{% include "suivi/_badge.html" with etat=participation.questionnaire %}</td>
         <td class="charge">{{ charge|floatformat:"0g" }}</td>
       </tr>
       {% endfor %}

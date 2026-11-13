@@ -5,6 +5,7 @@ de voir. Une vue qui interrogerait directement `Joueur.objects` contournerait ce
 périmètre : un test le vérifie.
 """
 
+import datetime
 from typing import Any
 
 from django.db.models import Q, QuerySet
@@ -56,6 +57,11 @@ def participations_visibles(preparateur: Preparateur) -> QuerySet[Participation]
 def entrees_visibles(preparateur: Preparateur) -> QuerySet[EntreeSensations]:
     """Entrées de sensations de ses joueurs suivis (jamais celles d'un joueur invité)."""
     return EntreeSensations.objects.filter(joueur__categorie_reference=preparateur.categorie)
+
+
+def joueurs_ayant_repondu(preparateur: Preparateur, jour: datetime.date) -> QuerySet[Any, int]:
+    """Clés de ses joueurs suivis qui ont une entrée de sensations à cette date (badge)."""
+    return entrees_visibles(preparateur).filter(date=jour).values_list("joueur_id", flat=True)
 
 
 def liens_actifs(preparateur: Preparateur) -> QuerySet[LienJoueur]:

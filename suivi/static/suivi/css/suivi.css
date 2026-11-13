@@ -157,3 +157,20 @@ button.supprimer {
   --pico-background-color: var(--pico-del-color);
   --pico-border-color: var(--pico-del-color);
 }
+
+/* Badge du questionnaire : le texte porte le sens, la couleur le renforce. */
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+.badge-recu {
+  background-color: #d7f0d0;
+  color: #1b1b1b;
+}
+.badge-manquant {
+  background-color: #fdc870;
+  color: #1b1b1b;
+}

@@ -148,6 +148,10 @@ class Seance(models.Model):
 
 
 class Participation(models.Model):
+    # Badge du questionnaire à la date de la séance (« recu », « manquant » ou `None`) :
+    # posé par la vue du staff pour l'affichage, jamais enregistré.
+    questionnaire: str | None = None
+
     seance = models.ForeignKey(Seance, on_delete=models.CASCADE, related_name="participations")
     joueur = models.ForeignKey(Joueur, on_delete=models.CASCADE, related_name="participations")
     # Facultatifs tant que la séance est en brouillon ; un déclencheur les exige
