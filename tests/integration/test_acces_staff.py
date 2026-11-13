@@ -12,6 +12,7 @@ from django.urls import get_resolver
 from suivi.acces import (
     annuaire,
     entrees_visibles,
+    joueurs_ayant_repondu,
     joueurs_suivis,
     participations_visibles,
     seances_organisees,
@@ -218,6 +219,15 @@ def test_a3_le_preparateur_organisateur_ne_voit_pas_l_historique_de_l_invite(
 ) -> None:
     visibles = participations_visibles(monde["prep19"])  # type: ignore[arg-type]
     assert not visibles.filter(seance=monde["s17"]).exists()  # type: ignore[misc]
+
+
+def test_a3_badge_limite_aux_joueurs_suivis(monde: dict[str, object]) -> None:
+    e = monde["e"]
+    assert set(joueurs_ayant_repondu(monde["prep19"], JOUR)) == {e["j19"].joueur_id}  # type: ignore[arg-type,index]
+    assert set(joueurs_ayant_repondu(monde["prep17"], JOUR)) == {  # type: ignore[arg-type]
+        e["j17"].joueur_id,  # type: ignore[index]
+        e["invite"].joueur_id,  # type: ignore[index]
+    }
 
 
 def test_a3_entrees_de_sensations_limitees_aux_joueurs_suivis(monde: dict[str, object]) -> None:

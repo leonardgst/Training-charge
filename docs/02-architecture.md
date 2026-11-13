@@ -193,6 +193,7 @@ Arborescence cible : chaque dossier n'est créé qu'avec son premier fichier.
 │   ├── forms.py
 │   ├── liens.py                   jeton, empreinte, liens joueurs, QR code
 │   ├── questionnaire.py           entrée du jour du joueur
+│   ├── badge.py                   état du badge du questionnaire (règle pure)
 │   ├── journal.py                 masque le jeton dans les journaux de Django
 │   ├── views/                     staff.py, questionnaire.py
 │   ├── management/commands/       generer_demo.py
