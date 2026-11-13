@@ -26,6 +26,7 @@ from suivi.acces import (
     participations_visibles,
     seances_organisees,
 )
+from suivi.badge import etat_questionnaire
 from suivi.calculs import charges_de_seance, parametres
 from suivi.forms import (
     COLONNES_RPE,
@@ -39,7 +40,6 @@ from suivi.horloge import aujourd_hui
 from suivi.liens import JoueurArchive, archiver_joueur, creer_lien, qr_data_uri, revoquer_liens
 from suivi.middleware import RequeteStaff
 from suivi.models import Joueur, Participation, Seance, StatutSeance, TypeSeance
-from suivi.questionnaire import etat_questionnaire
 
 # Nombre maximal de joueurs affichés par une recherche dans l'annuaire.
 RESULTATS_ANNUAIRE = 20

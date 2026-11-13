@@ -148,14 +148,23 @@ def test_le_jour_meme_le_manquant_reste_affiche(monde: Monde) -> None:
 
 def test_a3_le_badge_d_un_joueur_invite_ne_revele_rien_de_son_entree(monde: Monde) -> None:
     # Les entrées d'un joueur d'une autre catégorie ne sont jamais lisibles (ADR-0005).
-    sans = _badge(monde.page(), "Leroy")
+    def ligne_et_requetes() -> tuple[str, int]:
+        with CaptureQueriesContext(connection) as contexte:
+            page = monde.page()
+        ligne = next(
+            ligne for ligne in re.findall(r"<tr>.*?</tr>", page, re.DOTALL) if "Leroy" in ligne
+        )
+        return re.sub(r'value="[^"]*"', "", ligne), len(contexte)
+
+    sans = ligne_et_requetes()
     monde.entree(monde.leroy)
-    avec = _badge(monde.page(), "Leroy")
+    avec = ligne_et_requetes()
 
-    assert sans == avec == "—"
+    assert sans == avec  # même ligne (classe, titre, texte) et même nombre de requêtes
+    assert "badge-recu" not in avec[0] and "Reçu" not in avec[0]
 
 
-def test_le_badge_suit_les_jours_de_la_categorie_du_joueur_pas_de_celle_de_la_seance(
+def test_les_jours_de_questionnaire_de_l_autre_categorie_ne_donnent_pas_de_badge_a_l_invite(
     monde: Monde,
 ) -> None:
     monde.u17.jours_questionnaire = [3]

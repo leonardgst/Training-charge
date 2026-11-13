@@ -2,7 +2,7 @@
 
 import datetime
 
-from suivi.questionnaire import etat_questionnaire
+from suivi.badge import etat_questionnaire
 
 JEUDI = datetime.date(2026, 10, 15)
 TOUS = list(range(7))
