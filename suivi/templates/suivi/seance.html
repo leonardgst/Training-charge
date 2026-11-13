@@ -34,7 +34,7 @@
   <div class="overflow-auto">
     <table class="grille-rpe">
       <thead>
-        <tr><th scope="col">Joueur</th>{% for champ, long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}<th scope="col"><span class="large">Questionnaire</span><abbr class="court" title="Questionnaire du jour">Quest.</abbr></th></tr>
+        <tr><th scope="col">Joueur</th>{% for champ, long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}<th scope="col"><span class="large">Questionnaire</span><abbr class="court" title="Questionnaire du jour de la séance">Quest.</abbr></th></tr>
       </thead>
       <tbody>
         {% for participation, cases in grille.lignes %}
@@ -144,7 +144,7 @@
 <div class="overflow-auto">
   <table class="grille-rpe">
     <thead>
-      <tr><th scope="col">Joueur</th>{% for champ, long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}<th scope="col"><span class="large">Questionnaire</span><abbr class="court" title="Questionnaire du jour">Quest.</abbr></th><th scope="col">Charge</th></tr>
+      <tr><th scope="col">Joueur</th>{% for champ, long, court in colonnes %}<th scope="col"><span class="large">{{ long }}</span><abbr class="court" title="{{ long }}">{{ court }}</abbr></th>{% endfor %}<th scope="col"><span class="large">Questionnaire</span><abbr class="court" title="Questionnaire du jour de la séance">Quest.</abbr></th><th scope="col">Charge</th></tr>
     </thead>
     <tbody>
       {% for participation, charge in validees %}

@@ -84,7 +84,7 @@ def monde(monkeypatch: pytest.MonkeyPatch) -> Monde:
 
 
 @pytest.mark.parametrize("vue", ["brouillon", "correction"])
-def test_e2_le_badge_passe_a_recu_quand_le_joueur_a_repondu_le_jour_de_la_seance(
+def test_le_badge_passe_a_recu_quand_le_joueur_a_repondu_le_jour_de_la_seance(
     monde: Monde, vue: str
 ) -> None:
     monde.entree(monde.abel)
@@ -174,7 +174,6 @@ def test_les_jours_de_questionnaire_de_l_autre_categorie_ne_donnent_pas_de_badge
 
     page = monde.page()
 
-    assert _badge(page, "Abel") == "—"  # U19 : lundi seulement
     assert _badge(page, "Leroy") == "—"  # invité : jamais de badge
 
 

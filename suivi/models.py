@@ -1,3 +1,5 @@
+from typing import Literal
+
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -150,7 +152,7 @@ class Seance(models.Model):
 class Participation(models.Model):
     # Badge du questionnaire à la date de la séance (« recu », « manquant » ou `None`) :
     # posé par la vue du staff pour l'affichage, jamais enregistré.
-    questionnaire: str | None = None
+    questionnaire: Literal["recu", "manquant"] | None = None
 
     seance = models.ForeignKey(Seance, on_delete=models.CASCADE, related_name="participations")
     joueur = models.ForeignKey(Joueur, on_delete=models.CASCADE, related_name="participations")

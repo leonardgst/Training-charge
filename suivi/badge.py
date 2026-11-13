@@ -1,11 +1,12 @@
 """Badge du questionnaire dans la grille d'une séance : fonction pure, sans requête."""
 
 import datetime
+from typing import Literal
 
 
 def etat_questionnaire(
     jour: datetime.date, aujourd_hui: datetime.date, jours_questionnaire: list[int], recu: bool
-) -> str | None:
+) -> Literal["recu", "manquant"] | None:
     """État du badge d'un joueur à la date `jour` d'une séance (R22, ADR-0017, Q3).
 
     `"recu"` si une entrée existe à cette date, quel que soit le jour de la semaine ;
