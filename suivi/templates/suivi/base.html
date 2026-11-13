@@ -10,7 +10,7 @@
   {% block scripts %}{% endblock %}
 </head>
 <body>
-  <header class="container">
+  {% block entete %}<header class="container">
     <nav aria-label="Navigation principale">
       <ul>
         <li><a href="{% url 'accueil' %}"><strong>Suivi de charge U19</strong></a></li>
@@ -32,7 +32,7 @@
       </ul>
       {% endif %}
     </nav>
-  </header>
+  </header>{% endblock %}
   <main class="container">
     {% for message in messages %}
     <p class="message" role="status">{{ message }}</p>

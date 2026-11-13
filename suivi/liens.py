@@ -80,3 +80,17 @@ def creer_lien(joueur: Joueur, auteur: User) -> str:
 def qr_data_uri(adresse: str) -> str:
     """QR code de l'adresse en image SVG intégrée : aucune ressource tierce, aucune route."""
     return segno.make_qr(adresse, error="m").svg_data_uri(scale=6, border=2, xmldecl=False)
+
+
+@sensitive_variables("jeton")
+def joueur_du_lien(jeton: str) -> Joueur | None:
+    """Joueur actif désigné par un jeton non révoqué ; `None` dans tous les autres cas.
+
+    Un jeton inconnu, révoqué, régénéré ou d'un joueur archivé donnent le même résultat (A5).
+    """
+    lien = (
+        LienJoueur.objects.select_related("joueur__categorie_reference")
+        .filter(token_hash=empreinte(jeton), revoked_at__isnull=True, joueur__actif=True)
+        .first()
+    )
+    return lien.joueur if lien else None

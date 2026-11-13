@@ -142,7 +142,7 @@ def lien_generer(request: RequeteStaff, pk: int) -> HttpResponse:
     except JoueurArchive:
         messages.error(request, f"{joueur} est archivé : réactive-le avant de créer son lien.")
         return redirect("joueurs")
-    adresse = request.build_absolute_uri(f"/q/{jeton}")
+    adresse = request.build_absolute_uri(reverse("questionnaire", kwargs={"jeton": jeton}))
     return render(
         request,
         "suivi/lien_joueur.html",
