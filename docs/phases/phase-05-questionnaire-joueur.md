@@ -19,10 +19,10 @@ Niveau de collaboration : 5, autonome, pour la phase entière, PR 5.1 et 5.2 com
 
 ## Livrables
 
-- [ ] Liens joueurs : génération, révocation, régénération, lien et QR code affichés une seule fois, révocation à l'archivage d'un joueur (US-07, F07, F15, ADR-0006, ADR-0009)
+- [x] Liens joueurs : génération, révocation, régénération, lien et QR code affichés une seule fois, révocation à l'archivage d'un joueur (US-07, F07, F15, ADR-0006, ADR-0009)
 - [ ] Questionnaire du jour sur téléphone, limité aux indicateurs de la catégorie de référence, créé puis modifiable le même jour (US-08, US-09, F08, F09)
-- [ ] Badge Reçu / Manquant dans la grille RPE, selon les jours de questionnaire de la catégorie (F10, R22, ADR-0017)
-- [ ] Correction et suppression d'une entrée passée par le préparateur de la catégorie de référence (F17, ADR-0008)
+- [x] Badge Reçu / Manquant dans la grille RPE, selon les jours de questionnaire de la catégorie (F10, R22, ADR-0017)
+- [x] Correction et suppression d'une entrée passée par le préparateur de la catégorie de référence (F17, ADR-0008)
 
 ## PR de la phase
 
@@ -49,10 +49,10 @@ Préparée le 2026-11-13 ; à faire par le mainteneur sur un vrai téléphone, e
 **Avant de commencer**
 
 - Le téléphone et le poste sont sur le même réseau Wi-Fi (pas un réseau « invités », qui isole souvent les appareils). Relever l'adresse du poste sur ce réseau, par exemple `192.168.1.20` (Windows : `ipconfig`, ligne « Adresse IPv4 » de la carte Wi-Fi).
-- Dans `.env`, `DJANGO_ALLOWED_HOSTS` doit contenir cette adresse en plus des adresses locales : `DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,192.168.1.20`. Claude ne lit pas ce fichier : à vérifier par le mainteneur. Sans cela, Django répond « Invalid HTTP_HOST header » (400) au téléphone.
-- Base neuve avec une démonstration dont le dernier jour est **hier**, pour qu'aucun joueur n'ait d'entrée aujourd'hui : `docker compose down -v && docker compose up -d db`, `uv run --env-file .env python manage.py migrate`, puis `uv run --env-file .env python manage.py generer_demo --fin "$(TZ=Europe/Paris date -d yesterday +%F)"` (noter le mot de passe affiché).
-- Lancer le serveur sur toutes les interfaces : `uv run --env-file .env python manage.py runserver 0.0.0.0:8000`.
-- Si le téléphone n'atteint pas le poste (WSL 2 en mode NAT, le réglage par défaut) : soit activer le mode « mirrored » (`networkingMode=mirrored` dans `%UserProfile%\.wslconfig`, puis `wsl --shutdown`), soit, dans un PowerShell administrateur, rediriger le port : `netsh interface portproxy add v4tov4 listenport=8000 listenaddress=0.0.0.0 connectport=8000 connectaddress=$((wsl hostname -I).Trim().Split(' ')[0])` (l'adresse de WSL 2 change à chaque redémarrage) ; dans les deux cas, autoriser le port 8000 en entrée dans le pare-feu Windows (réseau privé). À défaire après la recette : `netsh interface portproxy delete v4tov4 listenport=8000 listenaddress=0.0.0.0`.
+- Dans `.env` (Claude ne lit pas ce fichier : à régler par le mainteneur) : `DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,192.168.1.20`, l'adresse du poste s'ajoutant aux adresses locales (sans cela, Django répond « Invalid HTTP_HOST header », 400, au téléphone), et `DJANGO_DEBUG=false` : avec `DEBUG` actif, la page d'erreur de débogage de Django, qui détaille le code, serait lisible par tout le réseau Wi-Fi, et l'étape 9 n'afficherait pas la vraie page « Page introuvable ». Remettre la valeur habituelle après la recette.
+- Base neuve avec une démonstration dont le dernier jour est **hier**, pour qu'aucun joueur n'ait d'entrée aujourd'hui : `docker compose down -v && docker compose up -d --wait db`, `uv run --env-file .env python manage.py migrate`, puis `uv run --env-file .env python manage.py generer_demo --fin "$(TZ=Europe/Paris date -d yesterday +%F)"` (noter le mot de passe affiché).
+- Lancer le serveur sur toutes les interfaces : `uv run --env-file .env python manage.py runserver --insecure 0.0.0.0:8000` (`--insecure` fait servir la feuille de style Pico CSS même avec `DEBUG` inactif ; sans lui, les pages s'affichent sans mise en forme).
+- Le serveur tourne dans WSL 2, en mode NAT (le réglage par défaut) : le téléphone n'atteint pas WSL directement. Dans un PowerShell **administrateur**, rediriger le port vers WSL puis ouvrir le pare-feu : `netsh interface portproxy add v4tov4 listenport=8000 listenaddress=0.0.0.0 connectport=8000 connectaddress=$((wsl hostname -I).Trim().Split(' ')[0])` (l'adresse de WSL 2 change à chaque redémarrage), puis `New-NetFirewallRule -DisplayName "Recette 8000" -Direction Inbound -Protocol TCP -LocalPort 8000 -Profile Private -Action Allow`. Le réseau Wi-Fi doit avoir le profil « Privé » dans Windows (Paramètres, Réseau et Internet, propriétés du Wi-Fi), sinon la règle ne s'applique pas. Ces deux réglages se défont à l'étape 10.
 - Contrôle : depuis le téléphone, `http://192.168.1.20:8000/connexion/` affiche la page de connexion.
 
 **Parcours**
@@ -60,13 +60,13 @@ Préparée le 2026-11-13 ; à faire par le mainteneur sur un vrai téléphone, e
 1. [ ] **Séance du jour** : sur le poste, ouvrir le site par l'adresse du réseau (`http://192.168.1.20:8000/`, et non `localhost`, sinon le lien généré à l'étape suivante pointerait vers `localhost`, inutilisable au téléphone), se connecter en `prep_u19`, créer une séance à la date d'aujourd'hui avec ses joueurs cochés ; dans la grille, la colonne « Questionnaire » affiche « Manquant » pour tous les joueurs de la catégorie (la démonstration U19 attend un questionnaire tous les jours).
 2. [ ] **Lien et QR code** : dans « Joueurs », « Générer le lien » pour un joueur ; le lien et le QR code s'affichent une seule fois. Scanner le QR code avec l'appareil photo du téléphone : la page du questionnaire s'ouvre, avec le prénom du joueur et sans la navigation du staff.
 3. [ ] **Remplissage chronométré** : remplir les neuf champs (sept notes de 0 à 10, deux heures) et envoyer ; noter le temps, objectif moins d'une minute. Vérifier que le clavier numérique s'ouvre pour les notes, que les heures s'ouvrent avec le sélecteur d'heure du téléphone, que rien ne déborde ni ne demande de défilement horizontal.
-4. [ ] **Valeur refusée** : saisir `11` dans une note ; le navigateur refuse l'envoi (puis, si l'on force, le serveur le refuse).
+4. [ ] **Valeur refusée** : saisir `11` dans une note ; le navigateur refuse l'envoi (le refus par le serveur est couvert par `test_d1_une_valeur_hors_echelle_est_refusee_sans_rien_enregistrer`, qu'un téléphone ne peut pas provoquer).
 5. [ ] **Confirmation** : après l'envoi, le message « C’est enregistré, merci » s'affiche, avec les réponses.
-6. [ ] **Correction par le joueur** : rouvrir le même lien (recharger la page ou le rouvrir depuis l'historique du navigateur) ; les réponses sont pré-remplies ; en modifier une et renvoyer ; le message de confirmation revient.
+6. [ ] **Correction par le joueur** : rouvrir le même lien en scannant de nouveau le QR code, ou en validant l'adresse dans la barre du navigateur (ne pas « recharger » : la page de confirmation est la réponse à l'envoi, le navigateur proposerait de le renvoyer) ; les réponses sont pré-remplies ; en modifier une et renvoyer ; le message de confirmation revient.
 7. [ ] **Badge** : sur le poste, recharger la séance du jour ; le joueur passe à « Reçu », les autres restent à « Manquant ».
 8. [ ] **Correction d'une entrée passée par le préparateur** : « Joueurs », « Sensations » du même joueur ; une entrée d'un jour passé se corrige (changer une valeur, la liste affiche « corrigée par prep_u19 ») et se supprime (page de confirmation) ; l'entrée du jour n'a ni « Corriger » ni « Supprimer ».
-9. [ ] **Lien révoqué** : « Révoquer » le lien du joueur ; recharger la page du téléphone : « Page introuvable », sans indice sur la raison. Régénérer un lien : l'ancien reste introuvable, le nouveau s'ouvre.
-10. [ ] **Après la recette** : arrêter le serveur, défaire la redirection de port et la règle de pare-feu si elles ont été ajoutées.
+9. [ ] **Lien révoqué, puis régénéré** : « Révoquer » le lien du joueur, puis rouvrir l'adresse sur le téléphone (comme à l'étape 6) : « Page introuvable », sans indice sur la raison. Ensuite « Générer le lien », scanner le nouveau, puis « Régénérer » : l'ancien lien donne la même page introuvable, le nouveau s'ouvre.
+10. [ ] **Après la recette** : arrêter le serveur ; dans un PowerShell administrateur, `netsh interface portproxy delete v4tov4 listenport=8000 listenaddress=0.0.0.0` et `Remove-NetFirewallRule -DisplayName "Recette 8000"` ; remettre `DJANGO_DEBUG` à sa valeur habituelle dans `.env`.
 
 Remarques d'ergonomie à noter ici : lisibilité sur le téléphone, taille des champs, clarté des messages.
 

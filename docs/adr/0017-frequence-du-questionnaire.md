@@ -44,7 +44,7 @@ Ces choix sont paramétrables et restent provisoires tant que le préparateur ne
 
 La PR 5.3 précise Q3 sur trois points que le texte laissait ouverts :
 
-- **Séance à venir** : « Manquant » ne s'affiche qu'à partir du jour de la séance (le jour même, le joueur peut encore répondre jusqu'à 23 h 59, ADR-0008) ; avant, un tiret. Une séance peut être datée dans le futur. Test : `tests/unit/test_etat_questionnaire.py`, `tests/integration/test_vues_badge.py`.
+- **Séance à venir** : « Manquant » ne s'affiche qu'à partir du jour de la séance (le jour même, le joueur peut encore répondre jusqu'à 23 h 59, ADR-0008) ; avant, un tiret. Une séance peut être datée dans le futur. Test : `tests/unit/test_badge.py`, `tests/integration/test_vues_badge.py`.
 - **Catégorie des jours de questionnaire** : ceux de la catégorie de référence du joueur (R22). Le préparateur ne voit que les séances de sa catégorie, donc le badge d'un joueur suivi suit celle du préparateur.
 - **Joueur invité** : toujours un tiret. Son entrée n'est pas lisible par le préparateur de la séance (ADR-0005) ; le badge ne doit rien en révéler (A3, `tests/integration/test_acces_staff.py`, `test_vues_badge.py`).
 
