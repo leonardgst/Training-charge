@@ -7,6 +7,7 @@ révoqué ou mal recopié.
 
 import logging
 import re
+import sys
 
 ADRESSE_AVEC_JETON = re.compile(r"/q/[^/\s?#]+")
 REMPLACEMENT = "/q/[jeton]"
@@ -42,3 +43,18 @@ def masquer_le_jeton_des_journaux() -> None:
         journal = logging.getLogger(nom)
         if not any(isinstance(f, MasqueLeJeton) for f in journal.filters):
             journal.addFilter(MasqueLeJeton())
+
+
+def configurer_journal_audit() -> None:
+    """Rend lisible le journal `suivi.audit` (suppressions d'entrées), une seule fois.
+
+    Sans configuration, Django n'a aucun gestionnaire au niveau racine et le niveau effectif
+    serait `WARNING` : la trace serait perdue. Elle va sur la sortie standard, que
+    l'hébergeur collecte.
+    """
+    journal = logging.getLogger("suivi.audit")
+    journal.setLevel(logging.INFO)
+    if not journal.handlers:
+        gestionnaire = logging.StreamHandler(sys.stdout)
+        gestionnaire.setFormatter(logging.Formatter("%(asctime)s %(name)s %(message)s"))
+        journal.addHandler(gestionnaire)

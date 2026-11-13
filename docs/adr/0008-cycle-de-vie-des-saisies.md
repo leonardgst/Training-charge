@@ -68,6 +68,11 @@ Recommandations acceptées le 2026-10-12 :
 - Suppression d'une séance, brouillon ou validée, par un préparateur de la catégorie organisatrice, après une page de confirmation ; ses participations disparaissent en cascade (PR 4.5).
 - `updated_at` et `updated_by` : sur la séance à chaque modification, participants compris ; sur une participation seulement quand ses RPE changent. La page d'une séance affiche la date et l'auteur de sa dernière modification (PR 4.4 et 4.5).
 
+## Mise en œuvre (phase 5)
+
+- Par son lien, le joueur crée puis modifie son entrée du jour : un second envoi modifie l'entrée existante et remet `updated_by` à nul (PR 5.2). Le lien est revérifié sous le verrou du joueur au moment d'écrire.
+- Le préparateur de la catégorie de référence corrige ou supprime une entrée passée depuis la page « Sensations » du joueur (les jours passés seulement : celle du jour est au joueur, R16), après une page de confirmation pour la suppression (PR 5.4). Un champ laissé vide d'une correction garde la réponse existante, et un envoi sans réponse modifiée n'est pas une correction (aucune trace) ; la date de l'entrée ne change pas. `updated_at` et `updated_by` enregistrent la correction ; la suppression est tracée au journal applicatif `suivi.audit`, sans nom de joueur. Les entrées d'un joueur invité ne sont jamais accessibles (A3).
+
 ## Tests concernés
 
-C5, C9, D1, D2, A4 ; test de `updated_at`.
+C5, C9, D1, D2, A3, A4 ; test de `updated_at`.

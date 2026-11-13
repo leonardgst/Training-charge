@@ -1,0 +1,47 @@
+{% extends "suivi/base.html" %}
+
+{% block titre %}Sensations de {{ joueur }}{% endblock %}
+
+{% block contenu %}
+<h1>Sensations de {{ joueur }}</h1>
+<p>Entrées déposées par le joueur. Une erreur d’un jour passé se corrige ou se supprime à sa demande : la date et l’auteur de la correction sont enregistrés, sans historique des valeurs précédentes.</p>
+<p class="liens"><a href="{% url 'joueurs' %}">Retour aux joueurs</a></p>
+{% if page.object_list %}
+<div class="overflow-auto">
+  <table>
+    <thead>
+      <tr><th scope="col">Date</th><th scope="col" class="large">Dernière modification</th><th scope="col">Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for entree in page.object_list %}
+      <tr>
+        <td>{{ entree.date|date:"D d/m/Y" }}</td>
+        <td class="large">{{ entree.updated_at|date:"d/m/Y à H:i" }}{% if entree.updated_by %} · corrigée par {{ entree.updated_by.get_username }}{% else %} · par le joueur{% endif %}</td>
+        <td>
+          {% if entree.date < aujourdhui %}
+          <div class="actions">
+            <a href="{% url 'entree_corriger' joueur.pk entree.pk %}" aria-label="Corriger l’entrée du {{ entree.date|date:'d/m/Y' }}">Corriger</a>
+            <a href="{% url 'entree_supprimer' joueur.pk entree.pk %}" aria-label="Supprimer l’entrée du {{ entree.date|date:'d/m/Y' }}">Supprimer</a>
+          </div>
+          {% else %}
+          <small>Jour en cours : le joueur la modifie par son lien.</small>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if page.has_other_pages %}
+<nav aria-label="Pages des entrées">
+  <ul>
+    {% if page.has_previous %}<li><a href="?page={{ page.previous_page_number }}">Plus récentes</a></li>{% endif %}
+    <li>Page {{ page.number }} sur {{ page.paginator.num_pages }}</li>
+    {% if page.has_next %}<li><a href="?page={{ page.next_page_number }}">Plus anciennes</a></li>{% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% else %}
+<p>Aucune entrée de sensations pour ce joueur.</p>
+{% endif %}
+{% endblock %}

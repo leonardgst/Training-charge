@@ -1,0 +1,18 @@
+{% extends "suivi/base.html" %}
+
+{% block titre %}Corriger l’entrée du {{ entree.date|date:"d/m/Y" }}{% endblock %}
+
+{% block contenu %}
+<h1>Corriger l’entrée du {{ entree.date|date:"l j F Y" }}</h1>
+<p>{{ joueur }}. Un champ laissé vide garde la réponse du joueur. La date de l’entrée ne change pas.</p>
+<form method="post">
+  {% csrf_token %}
+  {% for champ in formulaire.champs_indicateurs %}
+  {% include "suivi/_champ.html" %}
+  {% endfor %}
+  <div class="boutons">
+    <button type="submit">Enregistrer la correction</button>
+    <a href="{% url 'sensations_joueur' joueur.pk %}" role="button" class="secondary outline">Annuler</a>
+  </div>
+</form>
+{% endblock %}

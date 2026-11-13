@@ -11,6 +11,7 @@ class SuiviConfig(AppConfig):
 
         parametres()
 
-        from suivi.journal import masquer_le_jeton_des_journaux
+        from suivi.journal import configurer_journal_audit, masquer_le_jeton_des_journaux
 
         masquer_le_jeton_des_journaux()
+        configurer_journal_audit()

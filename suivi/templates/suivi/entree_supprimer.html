@@ -1,0 +1,15 @@
+{% extends "suivi/base.html" %}
+
+{% block titre %}Supprimer l’entrée du {{ entree.date|date:"d/m/Y" }}{% endblock %}
+
+{% block contenu %}
+<h1>Supprimer l’entrée du {{ entree.date|date:"l j F Y" }} de {{ joueur }} ?</h1>
+<p><strong>La suppression est définitive</strong> : les réponses de cette journée disparaissent, et les scores de sensations du joueur sont recalculés sans elle. À faire à la demande du joueur.</p>
+<form method="post">
+  {% csrf_token %}
+  <div class="boutons">
+    <button type="submit" class="supprimer">Supprimer définitivement</button>
+    <a href="{% url 'sensations_joueur' joueur.pk %}" role="button" class="secondary outline">Annuler</a>
+  </div>
+</form>
+{% endblock %}

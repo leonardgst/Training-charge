@@ -228,7 +228,7 @@ class QuestionnaireForm(forms.Form):
 
     Les champs sont nommés `i<clé de l'indicateur>`. La date posée dans la page est celle du
     jour où elle a été chargée : un envoi après minuit n'est pas rangé dans le nouveau jour.
-    Chaque champ est obligatoire ; la base contrôle aussi les bornes.
+    Chaque champ est obligatoire (sauf en correction) ; la base contrôle aussi les bornes.
     """
 
     date = forms.DateField(widget=forms.HiddenInput)
@@ -238,9 +238,15 @@ class QuestionnaireForm(forms.Form):
         indicateurs: Sequence[Indicateur],
         *args: Any,
         reponses: dict[int, int] | None = None,
+        correction: bool = False,
         **kwargs: Any,
     ) -> None:
+        """`correction` : le préparateur corrige une entrée passée (F17). Pas de date, qui est
+        celle de l'entrée, et des champs facultatifs : un champ vide laisse la réponse telle
+        quelle, car un indicateur ajouté depuis n'a pas de réponse dans une ancienne entrée."""
         super().__init__(*args, **kwargs)
+        if correction:
+            del self.fields["date"]
         self.indicateurs = list(indicateurs)
         for indicateur in self.indicateurs:
             valeur = (reponses or {}).get(indicateur.pk)
@@ -248,12 +254,14 @@ class QuestionnaireForm(forms.Form):
             if indicateur.type == TypeIndicateur.HEURE:
                 champ = forms.TimeField(
                     label=indicateur.libelle,
+                    required=not correction,
                     widget=forms.TimeInput(attrs={"type": "time"}, format="%H:%M"),
                     initial=None if valeur is None else datetime.time(*divmod(valeur, 60)),
                 )
             else:
                 champ = forms.IntegerField(
                     label=indicateur.libelle,
+                    required=not correction,
                     min_value=indicateur.borne_min,
                     max_value=indicateur.borne_max,
                     initial=valeur,
@@ -265,10 +273,13 @@ class QuestionnaireForm(forms.Form):
         return [self[nom_du_champ(indicateur)] for indicateur in self.indicateurs]
 
     def valeurs(self) -> dict[int, int]:
-        """Valeur de chaque indicateur (heure en minutes depuis minuit), après `is_valid()`."""
+        """Valeur de chaque indicateur renseigné (heure en minutes depuis minuit), après
+        `is_valid()`. Un champ vide d'une correction est omis."""
         resultat: dict[int, int] = {}
         for indicateur in self.indicateurs:
             valeur = self.cleaned_data[nom_du_champ(indicateur)]
+            if valeur is None:
+                continue
             if isinstance(valeur, datetime.time):
                 valeur = valeur.hour * 60 + valeur.minute
             resultat[indicateur.pk] = valeur

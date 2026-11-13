@@ -65,3 +65,16 @@ def test_un_champ_inconnu_est_ignore() -> None:
 
     assert formulaire.is_valid()
     assert formulaire.valeurs() == {1: 4}
+
+
+def test_en_correction_il_n_y_a_pas_de_date_et_un_champ_vide_est_omis() -> None:
+    formulaire = QuestionnaireForm([_note(1), _heure(2)], {"i1": "4", "i2": ""}, correction=True)
+
+    assert "date" not in formulaire.fields
+    assert formulaire.is_valid()
+    assert formulaire.valeurs() == {1: 4}
+
+
+def test_en_correction_une_valeur_hors_echelle_reste_refusee() -> None:
+    assert not QuestionnaireForm([_note(1)], {"i1": "11"}, correction=True).is_valid()
+    assert not QuestionnaireForm([_heure(2)], {"i2": "24:00"}, correction=True).is_valid()

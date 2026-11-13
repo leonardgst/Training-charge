@@ -11,6 +11,7 @@
         <td>
           <div class="actions">
             <a href="{% url 'joueur_modifier' joueur.pk %}" aria-label="Modifier {{ joueur }}">Modifier</a>
+            <a href="{% url 'sensations_joueur' joueur.pk %}" aria-label="Sensations de {{ joueur }}">Sensations</a>
             {% if joueur.actif %}
             {% if joueur.pk in avec_lien %}
             <span>Lien actif</span>
