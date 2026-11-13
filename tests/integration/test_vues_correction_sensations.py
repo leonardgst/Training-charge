@@ -540,3 +540,15 @@ def test_le_journal_d_audit_est_actif_sans_reglage_de_test() -> None:
 
     assert journal.isEnabledFor(logging.INFO)
     assert journal.handlers
+
+
+def test_une_correction_ne_cree_pas_de_reponse_pour_un_autre_indicateur(monde: Monde) -> None:
+    autre = Indicateur.objects.get(code="fatigue", categorie=monde.u17)
+    champs = monde.saisie(fatigue="7") | {f"i{autre.pk}": "0", f"i{monde.ancien.pk}": "0"}
+
+    monde.client().post(monde.chemin(monde.dupont, monde.hier, "corriger/"), champs)
+
+    assert _valeurs(monde.hier) == {"fatigue": 7, "plaisir": 8, "heure_coucher": 1410}
+    assert not Reponse.objects.filter(
+        entree=monde.hier, indicateur__in=[autre, monde.ancien]
+    ).exists()

@@ -37,6 +37,17 @@ def test_role_d_execution_ne_peut_pas_modifier_le_schema_existant(
         connexion_execution.execute("DROP TABLE django_migrations")
 
 
+@pytest.mark.parametrize("table", ["suivi_entreesensations", "suivi_reponse"])
+def test_role_d_execution_peut_supprimer_une_entree_de_sensations(
+    connexion_execution: psycopg.Connection, table: str
+) -> None:
+    # La suppression d'une entrée passée par le préparateur (F17) s'exécute sous ce rôle.
+    ligne = connexion_execution.execute(
+        "SELECT has_table_privilege(current_user, %s, 'DELETE')", (table,)
+    ).fetchone()
+    assert ligne == (True,)
+
+
 def test_role_d_execution_a_les_droits_par_defaut_sur_une_nouvelle_table(
     connexion_migration: psycopg.Connection,
     connexion_execution: psycopg.Connection,

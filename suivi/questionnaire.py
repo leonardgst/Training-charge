@@ -1,7 +1,11 @@
-"""Questionnaire du jour d'un joueur : indicateurs proposés, entrée du jour, enregistrement.
+"""Entrées de sensations : questionnaire du joueur, correction et suppression par le staff.
 
-Seul module, avec `suivi/liens.py`, que la vue du lien joueur interroge : elle n'atteint
-que les indicateurs de la catégorie de référence du joueur et son entrée du jour (A4).
+La vue du lien joueur n'interroge que ce module et `suivi/liens.py` : elle n'atteint que les
+indicateurs de la catégorie de référence du joueur et son entrée du jour (A4).
+
+Attention : `corriger_entree` et `supprimer_entree` écrivent sur n'importe quelle entrée.
+Elles sont réservées aux vues du staff, qui ont vérifié le périmètre par `suivi/acces.py`
+(A3) ; la vue du lien joueur ne doit jamais les appeler.
 """
 
 import datetime
