@@ -10,3 +10,7 @@ class SuiviConfig(AppConfig):
         from suivi.calculs import parametres
 
         parametres()
+
+        from suivi.journal import masquer_le_jeton_des_journaux
+
+        masquer_le_jeton_des_journaux()

@@ -1,0 +1,29 @@
+{% extends "suivi/base.html" %}
+
+{% block titre %}Questionnaire du jour{% endblock %}
+
+{% block entete %}{% endblock %}
+
+{# Les messages du staff ne s'affichent jamais sur la page du joueur. #}
+{% block messages %}{% endblock %}
+
+{% block contenu %}
+<h1>Bonjour {{ joueur.prenom }}</h1>
+<p>Questionnaire du {{ jour|date:"l j F" }}. Tu peux le corriger jusqu’à minuit.</p>
+{% if enregistre %}
+<p class="message" role="status">C’est enregistré, merci. Tu peux encore modifier tes réponses aujourd’hui.</p>
+{% endif %}
+{% if nouvelle_journee %}
+<p class="erreur" role="alert">Une nouvelle journée a commencé : tes réponses n’ont pas été enregistrées. Remplis le questionnaire d’aujourd’hui.</p>
+{% endif %}
+{% if not formulaire.indicateurs %}<p>Aucune question n’est proposée aujourd’hui.</p>{% endif %}
+<form method="post">
+  {% csrf_token %}
+  {{ formulaire.date }}
+  {% for erreur in formulaire.date.errors %}<small class="erreur">{{ erreur }}</small>{% endfor %}
+  {% for champ in formulaire.champs_indicateurs %}
+  {% include "suivi/_champ.html" %}
+  {% endfor %}
+  <button type="submit">Envoyer</button>
+</form>
+{% endblock %}

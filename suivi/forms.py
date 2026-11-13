@@ -18,9 +18,11 @@ from suivi.models import (
     DUREE_MIN,
     RPE_MAX,
     RPE_MIN,
+    Indicateur,
     Joueur,
     Participation,
     Seance,
+    TypeIndicateur,
     TypeSeance,
 )
 
@@ -219,3 +221,59 @@ class GrilleRpeForm(forms.Form):
                     setattr(participation, champ, valeur)
                 modifiees.append(participation)
         return modifiees
+
+
+class QuestionnaireForm(forms.Form):
+    """Questionnaire du jour d'un joueur : un champ par indicateur actif de sa catégorie (D1).
+
+    Les champs sont nommés `i<clé de l'indicateur>`. La date posée dans la page est celle du
+    jour où elle a été chargée : un envoi après minuit n'est pas rangé dans le nouveau jour.
+    Chaque champ est obligatoire ; la base contrôle aussi les bornes.
+    """
+
+    date = forms.DateField(widget=forms.HiddenInput)
+
+    def __init__(
+        self,
+        indicateurs: Sequence[Indicateur],
+        *args: Any,
+        reponses: dict[int, int] | None = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.indicateurs = list(indicateurs)
+        for indicateur in self.indicateurs:
+            valeur = (reponses or {}).get(indicateur.pk)
+            champ: forms.Field
+            if indicateur.type == TypeIndicateur.HEURE:
+                champ = forms.TimeField(
+                    label=indicateur.libelle,
+                    widget=forms.TimeInput(attrs={"type": "time"}, format="%H:%M"),
+                    initial=None if valeur is None else datetime.time(*divmod(valeur, 60)),
+                )
+            else:
+                champ = forms.IntegerField(
+                    label=indicateur.libelle,
+                    min_value=indicateur.borne_min,
+                    max_value=indicateur.borne_max,
+                    initial=valeur,
+                    widget=forms.NumberInput(attrs={"inputmode": "numeric"}),
+                )
+            self.fields[nom_du_champ(indicateur)] = champ
+
+    def champs_indicateurs(self) -> list[forms.BoundField]:
+        return [self[nom_du_champ(indicateur)] for indicateur in self.indicateurs]
+
+    def valeurs(self) -> dict[int, int]:
+        """Valeur de chaque indicateur (heure en minutes depuis minuit), après `is_valid()`."""
+        resultat: dict[int, int] = {}
+        for indicateur in self.indicateurs:
+            valeur = self.cleaned_data[nom_du_champ(indicateur)]
+            if isinstance(valeur, datetime.time):
+                valeur = valeur.hour * 60 + valeur.minute
+            resultat[indicateur.pk] = valeur
+        return resultat
+
+
+def nom_du_champ(indicateur: Indicateur) -> str:
+    return f"i{indicateur.pk}"

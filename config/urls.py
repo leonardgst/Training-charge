@@ -6,7 +6,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
 from django.views.generic import TemplateView
 
-from suivi.views import staff
+from suivi.views import questionnaire, staff
 from suivi.views.sante import sante
 
 urlpatterns = [
@@ -46,6 +46,8 @@ urlpatterns = [
         staff.participant_retirer,
         name="participant_retirer",
     ),
+    # Sans barre finale : une redirection exposerait le jeton dans une adresse.
+    path("q/<str:jeton>", questionnaire.questionnaire, name="questionnaire"),
     path("sante/", sante, name="sante"),
     path("admin/", admin.site.urls),
 ]

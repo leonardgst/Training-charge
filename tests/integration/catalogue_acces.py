@@ -11,8 +11,10 @@ import psycopg
 from django.test import Client
 from django.urls import URLPattern, URLResolver, get_resolver
 
-# Routes publiques voulues (ADR-0005) : connexion, contrôle de santé, connexion de l'admin.
-LISTE_BLANCHE = {"/connexion/", "/sante/", "/admin/login/"}
+# Routes publiques voulues (ADR-0005) : connexion, contrôle de santé, connexion de l'admin et
+# questionnaire du lien joueur (seule route qui accepte le jeton, ADR-0006), dont le refus
+# est vérifié par A5 (`test_vues_questionnaire.py`).
+LISTE_BLANCHE = {"/connexion/", "/sante/", "/admin/login/", "/q/x"}
 
 
 def _routes(motifs: list, prefixe: str = "") -> list[str]:

@@ -191,7 +191,10 @@ Arborescence cible : chaque dossier n'est créé qu'avec son premier fichier.
 │   ├── calculs.py                 adaptateur base vers moteur
 │   ├── graphiques.py              spécifications Vega-Lite
 │   ├── forms.py
-│   ├── views/                     staff.py, joueur.py
+│   ├── liens.py                   jeton, empreinte, liens joueurs, QR code
+│   ├── questionnaire.py           entrée du jour du joueur
+│   ├── journal.py                 masque le jeton dans les journaux de Django
+│   ├── views/                     staff.py, questionnaire.py
 │   ├── management/commands/       generer_demo.py
 │   ├── migrations/
 │   ├── templates/suivi/
