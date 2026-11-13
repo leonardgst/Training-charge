@@ -31,20 +31,44 @@ Niveau de collaboration : 5, autonome, pour la phase entière, PR 5.1 et 5.2 com
 | 5.1 | `feat: générer, révoquer et régénérer les liens joueurs` | Modèle et migration du lien (empreinte SHA-256 unique, un seul lien actif par joueur), pages staff, lien et QR code affichés une seule fois, révocation à l'archivage (reportée de la PR 4.2) ; niveau 5 | A5, D4 (archivage et effacement), jeton absent en clair de toutes les colonnes, test de bout en bout du parcours de génération aux trois formats | Fusionnée | [#53](https://github.com/leonardgst/Training-charge/pull/53) |
 | 5.2 | `feat: afficher et enregistrer le questionnaire du jour` | Vue `/q/<jeton>`, seule à accepter le jeton ; formulaire selon les indicateurs actifs de la catégorie de référence ; création puis modification jusqu'à 23 h 59, heure de Paris ; route `/q/<jeton>` sans barre finale et hors de la connexion obligatoire (une redirection exposerait le jeton), adresse construite par `reverse` au lieu du chemin écrit en dur de la PR 5.1, refus d'un joueur inactif (défense en profondeur), `LISTE_BLANCHE` du catalogue d'accès mise à jour ; en-têtes de la page (décision 2 ci-dessus) ; niveau 5 | A4, D1, D2, A5 (même 404 pour un lien invalide, révoqué ou régénéré), D4 (lien refusé après archivage ou effacement) | Fusionnée | [#54](https://github.com/leonardgst/Training-charge/pull/54) |
 | 5.3 | `feat: afficher le badge Reçu / Manquant` | Colonne de la grille RPE, jours de questionnaire de la catégorie | E2 sur téléphone | Fusionnée | [#55](https://github.com/leonardgst/Training-charge/pull/55) |
-| 5.4 | `feat: corriger une entrée de sensations passée` | Correction et suppression par le préparateur de la catégorie de référence, date et auteur enregistrés | A3, intégration | En revue | [#56](https://github.com/leonardgst/Training-charge/pull/56) |
+| 5.4 | `feat: corriger une entrée de sensations passée` | Correction et suppression par le préparateur de la catégorie de référence, date et auteur enregistrés | A3, intégration | Fusionnée | [#56](https://github.com/leonardgst/Training-charge/pull/56) |
 
 ## Critères de fin (Definition of Done)
 
-- [ ] Toutes les PR de la phase sont fusionnées, CI verte
-- [ ] A4 et A5 au vert ; le jeton en clair ne figure dans aucune colonne de la base
-- [ ] E2 au vert en format téléphone
-- [ ] D1 et D2 étendus au questionnaire, à la saisie comme en base
+- [x] Toutes les PR de la phase sont fusionnées, CI verte (quatre PR : [#53](https://github.com/leonardgst/Training-charge/pull/53), [#54](https://github.com/leonardgst/Training-charge/pull/54), [#55](https://github.com/leonardgst/Training-charge/pull/55), [#56](https://github.com/leonardgst/Training-charge/pull/56) ; CI de `main` verte sur `379e55d`)
+- [x] A4 et A5 au vert ; le jeton en clair ne figure dans aucune colonne de la base (`tests/integration/test_vues_questionnaire.py` pour A4 et A5, `test_vues_liens.py` pour la recherche du jeton dans toutes les colonnes texte)
+- [x] E2 au vert en format téléphone (`tests/e2e/test_badge_questionnaire.py` : le joueur répond, le badge passe à « Reçu », sur ordinateur, tablette et téléphone ; `test_questionnaire.py` pour le parcours du joueur)
+- [x] D1 et D2 étendus au questionnaire, à la saisie comme en base (`test_vues_questionnaire.py` pour la saisie, `test_modele_sensations.py` pour la base ; `test_vues_correction_sensations.py` pour la correction)
 - [ ] Recette faite sur un vrai téléphone, avec un questionnaire rempli en moins d'une minute
 - [ ] Documentation à jour : fiche, journal, `CHANGELOG.md`, `CLAUDE.md` pointant vers la phase 6
 
 ## Recette manuelle
 
-Liste préparée à la fin de la phase ; elle se fera sur un vrai téléphone, en réseau local (décision 4 ci-dessus).
+Préparée le 2026-11-13 ; à faire par le mainteneur sur un vrai téléphone, en réseau local (décision 4 ci-dessus). Les résultats se reportent ici tels que le mainteneur les donne. Ni la production ni les previews n'ont de données : la recette se fait sur la base locale de démonstration.
+
+**Avant de commencer**
+
+- Le téléphone et le poste sont sur le même réseau Wi-Fi (pas un réseau « invités », qui isole souvent les appareils). Relever l'adresse du poste sur ce réseau, par exemple `192.168.1.20` (Windows : `ipconfig`, ligne « Adresse IPv4 » de la carte Wi-Fi).
+- Dans `.env`, `DJANGO_ALLOWED_HOSTS` doit contenir cette adresse en plus des adresses locales : `DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,192.168.1.20`. Claude ne lit pas ce fichier : à vérifier par le mainteneur. Sans cela, Django répond « Invalid HTTP_HOST header » (400) au téléphone.
+- Base neuve avec une démonstration dont le dernier jour est **hier**, pour qu'aucun joueur n'ait d'entrée aujourd'hui : `docker compose down -v && docker compose up -d db`, `uv run --env-file .env python manage.py migrate`, puis `uv run --env-file .env python manage.py generer_demo --fin "$(TZ=Europe/Paris date -d yesterday +%F)"` (noter le mot de passe affiché).
+- Lancer le serveur sur toutes les interfaces : `uv run --env-file .env python manage.py runserver 0.0.0.0:8000`.
+- Si le téléphone n'atteint pas le poste (WSL 2 en mode NAT, le réglage par défaut) : soit activer le mode « mirrored » (`networkingMode=mirrored` dans `%UserProfile%\.wslconfig`, puis `wsl --shutdown`), soit, dans un PowerShell administrateur, rediriger le port : `netsh interface portproxy add v4tov4 listenport=8000 listenaddress=0.0.0.0 connectport=8000 connectaddress=$((wsl hostname -I).Trim().Split(' ')[0])` (l'adresse de WSL 2 change à chaque redémarrage) ; dans les deux cas, autoriser le port 8000 en entrée dans le pare-feu Windows (réseau privé). À défaire après la recette : `netsh interface portproxy delete v4tov4 listenport=8000 listenaddress=0.0.0.0`.
+- Contrôle : depuis le téléphone, `http://192.168.1.20:8000/connexion/` affiche la page de connexion.
+
+**Parcours**
+
+1. [ ] **Séance du jour** : sur le poste, ouvrir le site par l'adresse du réseau (`http://192.168.1.20:8000/`, et non `localhost`, sinon le lien généré à l'étape suivante pointerait vers `localhost`, inutilisable au téléphone), se connecter en `prep_u19`, créer une séance à la date d'aujourd'hui avec ses joueurs cochés ; dans la grille, la colonne « Questionnaire » affiche « Manquant » pour tous les joueurs de la catégorie (la démonstration U19 attend un questionnaire tous les jours).
+2. [ ] **Lien et QR code** : dans « Joueurs », « Générer le lien » pour un joueur ; le lien et le QR code s'affichent une seule fois. Scanner le QR code avec l'appareil photo du téléphone : la page du questionnaire s'ouvre, avec le prénom du joueur et sans la navigation du staff.
+3. [ ] **Remplissage chronométré** : remplir les neuf champs (sept notes de 0 à 10, deux heures) et envoyer ; noter le temps, objectif moins d'une minute. Vérifier que le clavier numérique s'ouvre pour les notes, que les heures s'ouvrent avec le sélecteur d'heure du téléphone, que rien ne déborde ni ne demande de défilement horizontal.
+4. [ ] **Valeur refusée** : saisir `11` dans une note ; le navigateur refuse l'envoi (puis, si l'on force, le serveur le refuse).
+5. [ ] **Confirmation** : après l'envoi, le message « C’est enregistré, merci » s'affiche, avec les réponses.
+6. [ ] **Correction par le joueur** : rouvrir le même lien (recharger la page ou le rouvrir depuis l'historique du navigateur) ; les réponses sont pré-remplies ; en modifier une et renvoyer ; le message de confirmation revient.
+7. [ ] **Badge** : sur le poste, recharger la séance du jour ; le joueur passe à « Reçu », les autres restent à « Manquant ».
+8. [ ] **Correction d'une entrée passée par le préparateur** : « Joueurs », « Sensations » du même joueur ; une entrée d'un jour passé se corrige (changer une valeur, la liste affiche « corrigée par prep_u19 ») et se supprime (page de confirmation) ; l'entrée du jour n'a ni « Corriger » ni « Supprimer ».
+9. [ ] **Lien révoqué** : « Révoquer » le lien du joueur ; recharger la page du téléphone : « Page introuvable », sans indice sur la raison. Régénérer un lien : l'ancien reste introuvable, le nouveau s'ouvre.
+10. [ ] **Après la recette** : arrêter le serveur, défaire la redirection de port et la règle de pare-feu si elles ont été ajoutées.
+
+Remarques d'ergonomie à noter ici : lisibilité sur le téléphone, taille des champs, clarté des messages.
 
 ## Décisions prises (liens vers les ADR)
 

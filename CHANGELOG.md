@@ -4,6 +4,19 @@ Toutes les modifications notables du projet sont consignées ici, au format [Kee
 
 ## [Non publié]
 
+### Ajouté
+
+- Liens joueurs (US-07) : le préparateur génère, révoque et régénère le lien de chaque joueur de sa catégorie ; le lien et son QR code (`segno`, image intégrée à la page) ne s'affichent qu'une fois ; seule l'empreinte SHA-256 du jeton est stockée, et le lien est révoqué à l'archivage du joueur.
+- Questionnaire du jour (US-08, US-09) : la page `/q/<jeton>`, seule route qui accepte le jeton, propose les indicateurs actifs de la catégorie de référence du joueur ; il dépose puis corrige son entrée jusqu'à minuit (heure de Paris). Un lien invalide, révoqué ou régénéré donne le même 404 ; le jeton est masqué dans les journaux de Django.
+- Badge Reçu / Manquant dans la grille d'une séance (F10, R22) : « Reçu » si une entrée existe à la date de la séance, « Manquant » un jour de questionnaire déjà arrivé sans entrée, tiret sinon (et pour un joueur invité).
+- Correction et suppression par le préparateur d'une entrée de sensations passée (F17) : page « Sensations » de chaque joueur, date et auteur de la correction enregistrés, suppression confirmée et tracée au journal `suivi.audit`.
+- Tests : A4, A5, D1, D2, D4 étendus au questionnaire, E2 sur ordinateur, tablette et téléphone.
+
+### Modifié
+
+- `Referrer-Policy: same-origin` sur la page du lien joueur, au lieu de `no-referrer` (décision du mainteneur ; ADR-0006 et architecture mises à jour).
+- ADR-0006, ADR-0008 et ADR-0017 complétées par leur mise en œuvre de la phase 5.
+
 ## [0.4.0] - 2026-10-15
 
 Phase 4 : saisie des séances.
