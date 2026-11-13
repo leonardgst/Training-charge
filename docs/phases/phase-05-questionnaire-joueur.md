@@ -64,9 +64,9 @@ Liste préparée à la fin de la phase ; elle se fera sur un vrai téléphone, e
 - PR 5.1 : l'archivage passe par `archiver_joueur` (vue du préparateur) et par `JoueurAdmin.save_model` (administration), qui révoquent tous deux le lien ; une création de lien et un archivage simultanés sont ordonnés par le verrou du joueur.
 - PR 5.1 : `tests/integration/test_effacement_joueur.py` donne au joueur invité deux liens (un révoqué, un actif), pour que le test D4 vérifie aussi l'effacement de `lien_joueur` ; aucune assertion n'est retirée ni assouplie.
 - `Referrer-Policy: same-origin` sur la page du lien joueur, au lieu de `no-referrer` (ADR-0006), pour la même raison qu'en PR 4.1 bis.
-- PR 5.2 : tous les champs du questionnaire sont obligatoires (notes de 0 à 10 saisies au clavier numérique, heures par le sélecteur du téléphone) ; le questionnaire n'est pas limité aux `jours_questionnaire` de la catégorie, qui ne servent qu'au badge de la PR 5.3.
+- PR 5.2 : tous les champs du questionnaire sont obligatoires (notes de 0 à 10 saisies au clavier numérique, heures par le sélecteur du téléphone) .
 - PR 5.2 : la page porte la date du jour de son chargement ; un envoi reçu après minuit n'est pas rangé dans le nouveau jour, la page se recharge vide avec un message (R16).
-- PR 5.2 : `suivi/journal.py` masque `/q/<jeton>` dans le journal `django.request`, qui écrit sinon l'adresse de chaque 404 (jeton révoqué ou mal recopié compris) ; `/q/x` entre dans la `LISTE_BLANCHE` du catalogue d'accès (A1, A2), comme prévu.
+- PR 5.2 : `suivi/journal.py` masque `/q/<jeton>` dans les journaux `django.request`, `django.security.csrf` et `django.server`, qui écrivent sinon l'adresse (jeton révoqué ou mal recopié compris), posé au démarrage et non par `LOGGING`. `/q/x` entre dans la `LISTE_BLANCHE` du catalogue d'accès, comme prévu ; son refus est vérifié par A5.
 - La PR 5.1 reprend la révocation du lien à l'archivage d'un joueur, prévue par la PR 4.2 mais impossible tant que les liens n'existaient pas.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé

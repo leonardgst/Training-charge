@@ -15,13 +15,18 @@ from django.views.decorators.http import require_http_methods
 
 from suivi.forms import QuestionnaireForm
 from suivi.horloge import aujourd_hui
-from suivi.liens import joueur_du_lien
-from suivi.questionnaire import enregistrer_entree, indicateurs_du_questionnaire, reponses_du_jour
+from suivi.liens import empreinte, joueur_du_lien
+from suivi.questionnaire import (
+    LienPerime,
+    enregistrer_entree,
+    indicateurs_du_questionnaire,
+    reponses_du_jour,
+)
 
 
 @login_not_required
-@require_http_methods(["GET", "POST"])
 @never_cache
+@require_http_methods(["GET", "POST"])
 @sensitive_variables("jeton")
 def questionnaire(request: HttpRequest, jeton: str) -> HttpResponse:
     joueur = joueur_du_lien(jeton)
@@ -34,12 +39,15 @@ def questionnaire(request: HttpRequest, jeton: str) -> HttpResponse:
 
     if request.method == "POST":
         formulaire = QuestionnaireForm(indicateurs, request.POST, reponses=reponses)
-        if formulaire.is_valid() and formulaire.cleaned_data["date"] != jour:
-            # Page chargée la veille : rien n'est rangé dans le nouveau jour avant relecture.
+        if request.POST.get("date") != jour.isoformat():
+            # Page chargée un autre jour : rien n'est rangé dans le jour courant avant relecture.
             nouvelle_journee = True
             formulaire = QuestionnaireForm(indicateurs, reponses=reponses, initial={"date": jour})
-        elif formulaire.is_valid():
-            enregistrer_entree(joueur, jour, formulaire.valeurs())
+        elif indicateurs and formulaire.is_valid():
+            try:
+                enregistrer_entree(joueur, jour, formulaire.valeurs(), empreinte(jeton))
+            except LienPerime:
+                raise Http404 from None
             enregistre = True
     else:
         formulaire = QuestionnaireForm(indicateurs, reponses=reponses, initial={"date": jour})

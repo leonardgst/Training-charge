@@ -4,6 +4,9 @@
 
 {% block entete %}{% endblock %}
 
+{# Les messages du staff ne s'affichent jamais sur la page du joueur. #}
+{% block messages %}{% endblock %}
+
 {% block contenu %}
 <h1>Bonjour {{ joueur.prenom }}</h1>
 <p>Questionnaire du {{ jour|date:"l j F" }}. Tu peux le corriger jusqu’à minuit.</p>
@@ -13,6 +16,7 @@
 {% if nouvelle_journee %}
 <p class="erreur" role="alert">Une nouvelle journée a commencé : tes réponses n’ont pas été enregistrées. Remplis le questionnaire d’aujourd’hui.</p>
 {% endif %}
+{% if not formulaire.indicateurs %}<p>Aucune question n’est proposée aujourd’hui.</p>{% endif %}
 <form method="post">
   {% csrf_token %}
   {{ formulaire.date }}

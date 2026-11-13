@@ -34,9 +34,9 @@
     </nav>
   </header>{% endblock %}
   <main class="container">
-    {% for message in messages %}
+    {% block messages %}{% for message in messages %}
     <p class="message" role="status">{{ message }}</p>
-    {% endfor %}
+    {% endfor %}{% endblock %}
     {% block contenu %}{% endblock %}
   </main>
 </body>

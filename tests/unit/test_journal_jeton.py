@@ -5,8 +5,8 @@ import logging
 from suivi.journal import MasqueLeJeton
 
 
-def _enregistrement(msg: str, args: object) -> logging.LogRecord:
-    return logging.LogRecord("django.request", logging.WARNING, __file__, 1, msg, args, None)  # type: ignore[arg-type]
+def _enregistrement(msg: str, args: tuple[object, ...]) -> logging.LogRecord:
+    return logging.LogRecord("django.request", logging.WARNING, __file__, 1, msg, args, None)
 
 
 def test_l_adresse_du_questionnaire_est_masquee_dans_les_arguments() -> None:
@@ -38,3 +38,13 @@ def test_les_autres_adresses_sont_laissees_telles_quelles() -> None:
     MasqueLeJeton().filter(enregistrement)
 
     assert enregistrement.getMessage() == "/joueurs/12/"
+
+
+def test_le_filtre_est_pose_une_seule_fois_sur_les_journaux_de_django() -> None:
+    from suivi.journal import JOURNAUX, masquer_le_jeton_des_journaux
+
+    masquer_le_jeton_des_journaux()
+    masquer_le_jeton_des_journaux()
+
+    for nom in JOURNAUX:
+        assert sum(isinstance(f, MasqueLeJeton) for f in logging.getLogger(nom).filters) == 1

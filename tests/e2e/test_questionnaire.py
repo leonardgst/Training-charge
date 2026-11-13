@@ -89,7 +89,7 @@ def test_le_joueur_repond_puis_corrige_son_entree_du_jour(
     assert erreurs == []
 
 
-def test_une_valeur_hors_echelle_est_refusee_par_le_navigateur_puis_par_le_serveur(
+def test_une_valeur_hors_echelle_est_bloquee_par_le_navigateur(
     page_formatee: Page, live_server, chemin_du_lien: str
 ) -> None:
     page = page_formatee

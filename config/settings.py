@@ -104,15 +104,6 @@ if HTTPS:
 # POST, et le contrôle CSRF de Django refuserait la connexion.
 SECURE_REFERRER_POLICY = "same-origin"
 
-# Django journalise l'adresse de chaque réponse 404 ou 403 : celle du questionnaire joueur
-# contient le jeton, qui ne doit jamais figurer dans un journal (ADR-0006).
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "filters": {"masque_le_jeton": {"()": "suivi.journal.MasqueLeJeton"}},
-    "loggers": {"django.request": {"filters": ["masque_le_jeton"]}},
-}
-
 LOGIN_URL = "connexion"
 LOGIN_REDIRECT_URL = "accueil"
 LOGOUT_REDIRECT_URL = "connexion"

@@ -8,7 +8,7 @@ import datetime
 
 from django.db import transaction
 
-from suivi.models import EntreeSensations, Indicateur, Joueur, Reponse
+from suivi.models import EntreeSensations, Indicateur, Joueur, LienJoueur, Reponse
 
 
 def indicateurs_du_questionnaire(joueur: Joueur) -> list[Indicateur]:
@@ -29,17 +29,32 @@ def reponses_du_jour(joueur: Joueur, jour: datetime.date) -> dict[int, int]:
     )
 
 
-def enregistrer_entree(joueur: Joueur, jour: datetime.date, valeurs: dict[int, int]) -> None:
+class LienPerime(Exception):  # noqa: N818
+    """Le lien a été révoqué ou le joueur archivé pendant l'envoi."""
+
+
+def enregistrer_entree(
+    joueur: Joueur, jour: datetime.date, valeurs: dict[int, int], empreinte_du_lien: str
+) -> None:
     """Crée l'entrée du jour ou modifie celle qui existe (D2) ; `valeurs` : clé -> valeur.
 
     Le joueur est verrouillé : deux envois simultanés se suivent. L'auteur reste nul, car
-    c'est le joueur lui-même (ADR-0008). Une réponse à un indicateur désactivé depuis
+    c'est le joueur lui-même (ADR-0008) : une modification l'y remet. Le lien est revérifié
+    une fois le verrou pris (`LienPerime`). Une réponse à un indicateur désactivé depuis
     n'est jamais supprimée (ADR-0016).
     """
     with transaction.atomic():
-        Joueur.objects.select_for_update().get(pk=joueur.pk)
+        verrouille = Joueur.objects.select_for_update().get(pk=joueur.pk)
+        if (
+            not verrouille.actif
+            or not LienJoueur.objects.filter(
+                joueur=verrouille, token_hash=empreinte_du_lien, revoked_at__isnull=True
+            ).exists()
+        ):
+            raise LienPerime
         entree, creee = EntreeSensations.objects.get_or_create(joueur=joueur, date=jour)
         if not creee:
+            entree.updated_by = None
             entree.save()  # renouvelle `updated_at`
         for indicateur_id, valeur in valeurs.items():
             Reponse.objects.update_or_create(

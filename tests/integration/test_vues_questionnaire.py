@@ -180,11 +180,13 @@ def test_un_premier_envoi_cree_l_entree_du_jour(monde: Monde) -> None:
 def test_d2_un_second_envoi_modifie_l_entree_sans_en_creer_une_autre(monde: Monde) -> None:
     client = Client()
     client.post(monde.chemin(), monde.saisie())
+    premiere_modification = EntreeSensations.objects.get().updated_at
 
     reponse = client.post(monde.chemin(), monde.saisie(fatigue="9", heure_coucher="00:15"))
 
     assert reponse.status_code == 200
     assert EntreeSensations.objects.filter(joueur=monde.dupont).count() == 1
+    assert EntreeSensations.objects.get().updated_at > premiere_modification
     assert Reponse.objects.filter(entree__joueur=monde.dupont).count() == 3
     assert _enregistre(monde) == {"fatigue": 9, "plaisir": 8, "heure_coucher": 15}
 
@@ -456,3 +458,96 @@ def test_le_formulaire_est_protege_contre_la_falsification_de_requete(monde: Mon
     assert refus.status_code == 403
     assert accepte.status_code == 200
     assert _enregistre(monde)["fatigue"] == 4
+
+
+def test_le_jeton_n_est_pas_journalise_quand_le_controle_csrf_refuse_l_envoi(
+    monde: Monde, caplog: pytest.LogCaptureFixture
+) -> None:
+    with caplog.at_level(logging.DEBUG):
+        reponse = Client(enforce_csrf_checks=True).post(monde.chemin(), monde.saisie())
+
+    assert reponse.status_code == 403
+    assert "django.security.csrf" in {r.name for r in caplog.records}
+    assert monde.jeton not in caplog.text
+    assert all(monde.jeton not in str(enregistrement.args) for enregistrement in caplog.records)
+
+
+def test_un_envoi_ne_cree_pas_d_entree_quand_aucun_indicateur_n_est_actif(monde: Monde) -> None:
+    Indicateur.objects.filter(categorie=monde.u19).update(actif=False)
+
+    reponse = Client().post(monde.chemin(), {"date": JOUR.isoformat()})
+
+    assert reponse.status_code == 200
+    assert EntreeSensations.objects.count() == 0
+    assert "Aucune question" in reponse.content.decode()
+
+
+def test_une_erreur_apres_minuit_ne_fait_pas_perdre_les_reponses_deux_fois(
+    monde: Monde, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    client = Client()
+    monkeypatch.setattr("suivi.views.questionnaire.aujourd_hui", lambda: LENDEMAIN)
+
+    page = client.post(monde.chemin(), monde.saisie(fatigue="11")).content.decode()
+    assert f'value="{LENDEMAIN.isoformat()}"' in page
+
+    corrige = client.post(monde.chemin(), monde.saisie() | {"date": LENDEMAIN.isoformat()})
+
+    assert "nouvelle journée" not in corrige.content.decode()
+    assert _enregistre(monde, jour=LENDEMAIN)["fatigue"] == 4
+
+
+def test_un_lien_revoque_pendant_l_envoi_n_ecrit_rien(monde: Monde) -> None:
+    from suivi.liens import empreinte
+    from suivi.questionnaire import LienPerime, enregistrer_entree
+
+    ancienne_empreinte = empreinte(monde.jeton)
+    creer_lien(monde.dupont, monde.compte)  # régénéré entre la lecture du lien et l'écriture
+
+    with pytest.raises(LienPerime):
+        enregistrer_entree(monde.dupont, JOUR, {monde.fatigue.pk: 4}, ancienne_empreinte)
+
+    assert EntreeSensations.objects.count() == 0
+
+
+def test_un_joueur_archive_pendant_l_envoi_n_ecrit_rien(monde: Monde) -> None:
+    from suivi.liens import empreinte
+    from suivi.questionnaire import LienPerime, enregistrer_entree
+
+    LienJoueur.objects.filter(joueur=monde.dupont).update(revoked_at=None)
+    Joueur.objects.filter(pk=monde.dupont.pk).update(actif=False)
+
+    with pytest.raises(LienPerime):
+        enregistrer_entree(monde.dupont, JOUR, {monde.fatigue.pk: 4}, empreinte(monde.jeton))
+
+    assert EntreeSensations.objects.count() == 0
+
+
+def test_la_modification_par_le_joueur_remet_l_auteur_a_nul(monde: Monde) -> None:
+    EntreeSensations.objects.create(joueur=monde.dupont, date=JOUR, updated_by=monde.compte)
+
+    Client().post(monde.chemin(), monde.saisie())
+
+    assert EntreeSensations.objects.get().updated_by is None
+
+
+def test_un_preparateur_connecte_ne_voit_ni_navigation_ni_messages_sur_la_page_du_joueur(
+    monde: Monde,
+) -> None:
+    client = Client()
+    client.force_login(monde.compte)
+    client.post(f"/joueurs/{monde.petit.pk}/lien/revoquer/")  # pose un message en attente
+
+    page = client.get(monde.chemin()).content.decode()
+
+    assert "n’a pas de lien actif" not in page
+    assert "Se déconnecter" not in page
+    assert "/joueurs/" not in page
+    assert "Fatigue" in page
+
+
+def test_les_refus_de_methode_ne_sont_pas_mis_en_cache(monde: Monde) -> None:
+    reponse = Client().put(monde.chemin())
+
+    assert reponse.status_code == 405
+    assert "no-store" in reponse["Cache-Control"]
