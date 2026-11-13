@@ -67,15 +67,29 @@ def enregistrer_entree(
 audit = logging.getLogger("suivi.audit")
 
 
+class EntreeSupprimee(Exception):  # noqa: N818
+    """L'entrée a été supprimée pendant que le préparateur la corrigeait."""
+
+
+def _entree_verrouillee(entree: EntreeSensations) -> EntreeSensations:
+    """Verrouille le joueur puis relit l'entrée : elle a pu être supprimée entre-temps."""
+    Joueur.objects.select_for_update().get(pk=entree.joueur_id)
+    relue = EntreeSensations.objects.filter(pk=entree.pk).first()
+    if relue is None:
+        raise EntreeSupprimee
+    return relue
+
+
 def corriger_entree(entree: EntreeSensations, valeurs: dict[int, int], auteur: User) -> None:
     """Le préparateur corrige les réponses d'une entrée passée (F17, ADR-0008 Q3).
 
     La date de l'entrée ne change pas ; `updated_at` et `updated_by` disent qui a corrigé et
     quand. Un indicateur sans réponse dans l'entrée en reçoit une ; aucune réponse n'est
-    supprimée. L'appelant a vérifié que l'entrée est dans son périmètre.
+    supprimée. L'appelant a vérifié que l'entrée est dans son périmètre ; `EntreeSupprimee`
+    si elle a disparu entre-temps.
     """
     with transaction.atomic():
-        Joueur.objects.select_for_update().get(pk=entree.joueur_id)
+        entree = _entree_verrouillee(entree)
         for indicateur_id, valeur in valeurs.items():
             Reponse.objects.update_or_create(
                 entree=entree, indicateur_id=indicateur_id, defaults={"valeur": valeur}
@@ -88,14 +102,16 @@ def supprimer_entree(entree: EntreeSensations, auteur: User) -> None:
     """Supprime une entrée passée et ses réponses, à la demande du joueur (ADR-0008 Q3).
 
     Il n'y a pas d'historique des valeurs en V1 : la suppression est tracée au journal
-    applicatif, par clé et sans nom de joueur. L'appelant a vérifié le périmètre.
+    `suivi.audit`, par clé et sans nom de joueur, une fois la suppression validée.
+    L'appelant a vérifié le périmètre ; `EntreeSupprimee` si l'entrée a déjà disparu.
     """
     with transaction.atomic():
-        Joueur.objects.select_for_update().get(pk=entree.joueur_id)
-        audit.info(
-            "Entrée de sensations supprimée : joueur=%s date=%s par=%s",
-            entree.joueur_id,
-            entree.date.isoformat(),
-            auteur.get_username(),
-        )
+        entree = _entree_verrouillee(entree)
+        joueur_id, jour = entree.joueur_id, entree.date
         entree.delete()
+    audit.info(
+        "Entrée de sensations supprimée : joueur=%s date=%s par=%s",
+        joueur_id,
+        jour.isoformat(),
+        auteur.get_username(),
+    )

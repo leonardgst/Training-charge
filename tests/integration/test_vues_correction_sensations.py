@@ -70,7 +70,9 @@ class Monde:
         self.entree_invite = self.entree(self.invite, HIER, fatigue=9, plaisir=9)
 
     @staticmethod
-    def note(categorie: Categorie, code: str, libelle: str, ordre: int, actif: bool = True):  # noqa: ANN205
+    def note(
+        categorie: Categorie, code: str, libelle: str, ordre: int, actif: bool = True
+    ) -> Indicateur:
         return Indicateur.objects.create(
             categorie=categorie,
             code=code,
@@ -119,8 +121,12 @@ class Monde:
         return champs
 
 
+AUJOURDHUI = datetime.date(2026, 11, 13)
+
+
 @pytest.fixture
-def monde() -> Monde:
+def monde(monkeypatch: pytest.MonkeyPatch) -> Monde:
+    monkeypatch.setattr("suivi.views.staff.aujourd_hui", lambda: AUJOURDHUI)
     return Monde()
 
 
@@ -341,6 +347,7 @@ def test_une_correction_ne_peut_viser_ni_une_autre_date_ni_un_autre_joueur(monde
 
     entree = EntreeSensations.objects.get(pk=monde.hier.pk)
     assert (entree.joueur, entree.date) == (monde.dupont, HIER)
+    assert entree.updated_by == monde.compte19  # jamais celui du formulaire
     assert _valeurs(monde.entree_petit)["fatigue"] == 1
 
 
@@ -435,3 +442,101 @@ def test_un_visiteur_anonyme_est_renvoye_vers_la_connexion(monde: Monde) -> None
         assert reponse.status_code == 302
         assert "/connexion/" in reponse["Location"]
         assert re.search(r"Dupont", reponse.content.decode()) is None
+
+
+def test_un_envoi_sans_reponse_modifiee_n_est_pas_une_correction(monde: Monde) -> None:
+    avant = EntreeSensations.objects.get(pk=monde.hier.pk).updated_at
+    chemin = monde.chemin(monde.dupont, monde.hier, "corriger/")
+    client = monde.client()
+    page = client.get(chemin).content.decode()
+    champs = dict(re.findall(r'name="(i\d+)"[^>]*value="([^"]*)"', page))
+    assert len(champs) == 3  # le navigateur renvoie le formulaire prérempli tel quel
+
+    client.post(chemin, champs)
+
+    entree = EntreeSensations.objects.get(pk=monde.hier.pk)
+    assert entree.updated_at == avant and entree.updated_by is None
+    assert "inchangées" in client.get(monde.chemin(monde.dupont)).content.decode()
+
+
+def test_seule_la_reponse_modifiee_est_ecrite_et_tracee(monde: Monde) -> None:
+    monde.client().post(
+        monde.chemin(monde.dupont, monde.hier, "corriger/"),
+        monde.saisie(fatigue="4", plaisir="1", heure_coucher="23:30"),
+    )
+
+    assert _valeurs(monde.hier) == {"fatigue": 4, "plaisir": 1, "heure_coucher": 1410}
+    assert EntreeSensations.objects.get(pk=monde.hier.pk).updated_by == monde.compte19
+
+
+@pytest.fixture
+def entree_du_jour(monde: Monde) -> EntreeSensations:
+    return monde.entree(monde.dupont, AUJOURDHUI, fatigue=5, plaisir=5)
+
+
+@pytest.mark.parametrize("action", ["corriger/", "supprimer/"])
+@pytest.mark.parametrize("methode", ["get", "post"])
+def test_r16_l_entree_du_jour_n_est_pas_corrigeable_par_le_preparateur(
+    monde: Monde, entree_du_jour: EntreeSensations, action: str, methode: str
+) -> None:
+    chemin = monde.chemin(monde.dupont, entree_du_jour, action)
+
+    reponse = getattr(monde.client(), methode)(chemin, monde.saisie(fatigue="0"))
+
+    assert reponse.status_code == 404
+    assert _valeurs(entree_du_jour) == {"fatigue": 5, "plaisir": 5}
+
+
+def test_la_liste_ne_propose_ni_correction_ni_suppression_pour_le_jour_en_cours(
+    monde: Monde, entree_du_jour: EntreeSensations
+) -> None:
+    page = monde.client().get(monde.chemin(monde.dupont)).content.decode()
+
+    assert monde.chemin(monde.dupont, entree_du_jour, "corriger/") not in page
+    assert monde.chemin(monde.dupont, entree_du_jour, "supprimer/") not in page
+    assert "le joueur la modifie par son lien" in page
+    assert monde.chemin(monde.dupont, monde.hier, "corriger/") in page
+
+
+# --- Concurrence et journal ------------------------------------------------------------
+
+
+def test_une_correction_apres_une_suppression_ne_recree_pas_l_entree(monde: Monde) -> None:
+    from suivi.questionnaire import EntreeSupprimee, corriger_entree, supprimer_entree
+
+    lue = EntreeSensations.objects.get(pk=monde.hier.pk)  # lue avant la suppression
+    supprimer_entree(lue, monde.compte19)
+
+    with pytest.raises(EntreeSupprimee):
+        corriger_entree(lue, {monde.fatigue.pk: 7}, monde.compte19)
+
+    assert not EntreeSensations.objects.filter(pk=monde.hier.pk).exists()
+    assert not Reponse.objects.filter(entree_id=monde.hier.pk).exists()
+
+
+def test_une_seconde_suppression_ne_laisse_pas_de_seconde_trace(
+    monde: Monde, caplog: pytest.LogCaptureFixture
+) -> None:
+    from suivi.questionnaire import EntreeSupprimee, supprimer_entree
+
+    lue = EntreeSensations.objects.get(pk=monde.hier.pk)
+    with caplog.at_level(logging.INFO, logger="suivi.audit"):
+        supprimer_entree(lue, monde.compte19)
+        with pytest.raises(EntreeSupprimee):
+            supprimer_entree(lue, monde.compte19)
+
+    assert len([r for r in caplog.records if r.name == "suivi.audit"]) == 1
+
+
+def test_une_correction_d_une_entree_disparue_donne_404(monde: Monde) -> None:
+    chemin = monde.chemin(monde.dupont, monde.hier, "corriger/")
+    EntreeSensations.objects.filter(pk=monde.hier.pk).delete()
+
+    assert monde.client().post(chemin, monde.saisie(fatigue="7")).status_code == 404
+
+
+def test_le_journal_d_audit_est_actif_sans_reglage_de_test() -> None:
+    journal = logging.getLogger("suivi.audit")
+
+    assert journal.isEnabledFor(logging.INFO)
+    assert journal.handlers

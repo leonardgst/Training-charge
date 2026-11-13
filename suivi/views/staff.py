@@ -43,6 +43,7 @@ from suivi.liens import JoueurArchive, archiver_joueur, creer_lien, qr_data_uri,
 from suivi.middleware import RequeteStaff
 from suivi.models import EntreeSensations, Joueur, Participation, Seance, StatutSeance, TypeSeance
 from suivi.questionnaire import (
+    EntreeSupprimee,
     corriger_entree,
     indicateurs_du_questionnaire,
     supprimer_entree,
@@ -471,8 +472,15 @@ ENTREES_PAR_PAGE = 30
 
 
 def _entree_suivie(request: RequeteStaff, joueur: Joueur, pk: int) -> EntreeSensations:
-    """Entrée d'un joueur suivi ; 404 pour toute autre, qu'elle existe ou non (A3)."""
-    entree = entrees_visibles(request.preparateur).filter(pk=pk, joueur=joueur).first()
+    """Entrée *passée* d'un joueur suivi ; 404 pour toute autre, qu'elle existe ou non (A3).
+
+    Celle du jour est au joueur, par son lien (R16) : le préparateur ne la corrige pas.
+    """
+    entree = (
+        entrees_visibles(request.preparateur)
+        .filter(pk=pk, joueur=joueur, date__lt=aujourd_hui())
+        .first()
+    )
     if entree is None:
         raise Http404
     return entree
@@ -492,7 +500,7 @@ def sensations_joueur(request: RequeteStaff, pk: int) -> HttpResponse:
     return render(
         request,
         "suivi/sensations_joueur.html",
-        {"rubrique": "joueurs", "joueur": joueur, "page": page},
+        {"rubrique": "joueurs", "joueur": joueur, "page": page, "aujourdhui": aujourd_hui()},
     )
 
 
@@ -509,14 +517,19 @@ def entree_corriger(request: RequeteStaff, pk: int, entree_pk: int) -> HttpRespo
         correction=True,
     )
     if request.method == "POST" and formulaire.is_valid():
-        valeurs = formulaire.valeurs()
+        # Seules les réponses qui changent sont écrites : un envoi du formulaire tel quel
+        # n'est pas une correction et ne laisse pas de trace.
+        valeurs = {i: v for i, v in formulaire.valeurs().items() if reponses.get(i) != v}
         if valeurs:
-            corriger_entree(entree, valeurs, request.user)
+            try:
+                corriger_entree(entree, valeurs, request.user)
+            except EntreeSupprimee:
+                raise Http404 from None
             messages.success(
                 request, f"L’entrée du {entree.date:%d/%m/%Y} de {joueur} est corrigée."
             )
         else:
-            messages.info(request, "Aucune modification : tous les champs étaient vides.")
+            messages.info(request, "Aucune modification : les réponses sont inchangées.")
         return redirect("sensations_joueur", pk=joueur.pk)
     return render(
         request,
@@ -531,7 +544,10 @@ def entree_supprimer(request: RequeteStaff, pk: int, entree_pk: int) -> HttpResp
     joueur = _joueur_suivi(request, pk)
     entree = _entree_suivie(request, joueur, entree_pk)
     if request.method == "POST":
-        supprimer_entree(entree, request.user)
+        try:
+            supprimer_entree(entree, request.user)
+        except EntreeSupprimee:
+            raise Http404 from None
         messages.success(request, f"L’entrée du {entree.date:%d/%m/%Y} de {joueur} est supprimée.")
         return redirect("sensations_joueur", pk=joueur.pk)
     return render(

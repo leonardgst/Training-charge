@@ -228,7 +228,7 @@ class QuestionnaireForm(forms.Form):
 
     Les champs sont nommés `i<clé de l'indicateur>`. La date posée dans la page est celle du
     jour où elle a été chargée : un envoi après minuit n'est pas rangé dans le nouveau jour.
-    Chaque champ est obligatoire ; la base contrôle aussi les bornes.
+    Chaque champ est obligatoire (sauf en correction) ; la base contrôle aussi les bornes.
     """
 
     date = forms.DateField(widget=forms.HiddenInput)
