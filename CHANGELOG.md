@@ -7,6 +7,7 @@ Toutes les modifications notables du projet sont consignées ici, au format [Kee
 ### Ajouté
 
 - Moteur de la « Forme actuelle » (US-10, ADR-0018) : entrée de sensations la plus récente de D − 3 à D, point et couleur bornée, états sans point ; paramètres `fraicheur_entree_jours` et `couleur_borne` dans `config/calcul.toml`.
+- Page « Forme actuelle » (`/forme/`, US-10) : nuage intensité / sensations en Vega-Lite construit en Python, tableau des valeurs, joueurs sans point avec leur état ; Vega copié dans le dépôt, sans assouplir la politique de sécurité du contenu (ADR-0020).
 
 ## [0.5.0] - 2026-11-14
 

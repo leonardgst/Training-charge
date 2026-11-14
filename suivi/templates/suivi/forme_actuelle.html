@@ -1,0 +1,55 @@
+{% extends "suivi/base.html" %}
+{% load static %}
+
+{% block titre %}Forme actuelle{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'suivi/vendor/vega/vega.min.js' %}" defer></script>
+<script src="{% static 'suivi/vendor/vega/vega-lite.min.js' %}" defer></script>
+<script src="{% static 'suivi/vendor/vega/vega-embed.min.js' %}" defer></script>
+<script src="{% static 'suivi/js/forme.js' %}" defer></script>
+{% endblock %}
+
+{% block contenu %}
+<h1>Forme actuelle</h1>
+<p>Au {{ jour|date:"j F Y" }}. Chaque joueur n'est comparé qu'à lui-même ; en haut à droite, l'intensité est au-dessus de sa moyenne et ses sensations se dégradent.</p>
+
+<figure id="graphique-forme" role="img" aria-label="Nuage des joueurs : intensité en abscisse, sensations en ordonnée"></figure>
+{{ specification|json_script:"specification-forme" }}
+
+<h2>Valeurs du graphique</h2>
+<div class="overflow-auto">
+<table id="valeurs-forme">
+  <thead>
+    <tr><th scope="col">Joueur</th><th scope="col">Intensité (z)</th><th scope="col">Sensations (z)</th><th scope="col">Couleur</th><th scope="col">Entrée du</th></tr>
+  </thead>
+  <tbody>
+    {% for nom, forme in avec_point %}
+    <tr>
+      <th scope="row">{{ nom }}</th>
+      <td>{{ forme.point.intensite|floatformat:2 }}</td>
+      <td>{{ forme.point.sensations|floatformat:2 }}</td>
+      <td>{{ forme.point.couleur|floatformat:2 }}</td>
+      <td>{{ forme.jour_entree|date:"j F" }}{% if forme.age_entree_jours %} ({{ forme.age_entree_jours }} j){% endif %}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">Aucun joueur n'a de point aujourd'hui.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<h2>Joueurs sans point</h2>
+{% if sans_point %}
+<table id="sans-point">
+  <thead><tr><th scope="col">Joueur</th><th scope="col">État</th></tr></thead>
+  <tbody>
+    {% for nom, etat in sans_point %}
+    <tr><th scope="row">{{ nom }}</th><td>{{ etat }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Tous les joueurs ont un point.</p>
+{% endif %}
+{% endblock %}
