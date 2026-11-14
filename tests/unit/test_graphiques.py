@@ -1,10 +1,17 @@
-"""Spécification Vega-Lite de « Forme actuelle » (ADR-0018) : placement des valeurs du moteur."""
+"""Spécifications Vega-Lite (Forme actuelle, charge de la fiche) : valeurs du moteur."""
 
 import datetime
 
-from engine.modeles import EtatForme, FormeActuelle, Parametres, PointForme
+from engine.modeles import ChargesGlissantes, EtatForme, FormeActuelle, Parametres, PointForme
 from suivi.calculs import lire_parametres
-from suivi.graphiques import ETENDUE_MINIMALE, REPERE, points_forme, specification_forme
+from suivi.graphiques import (
+    ETENDUE_MINIMALE,
+    REPERE,
+    points_charges,
+    points_forme,
+    specification_charges,
+    specification_forme,
+)
 
 JOUR = datetime.date(2026, 11, 14)
 PARAMETRES: Parametres = lire_parametres()
@@ -110,3 +117,36 @@ def test_les_deux_axes_portent_leur_titre_dans_chaque_couche() -> None:
                 assert encodage[axe]["title"]
     titres_y = {c["encoding"]["y"]["title"] for c in spec["layer"] if "y" in c["encoding"]}
     assert titres_y == {"Sensations dégradées ↑ (z-score du joueur)"}
+
+
+def _charges(n: int) -> list[ChargesGlissantes]:
+    return [
+        ChargesGlissantes(
+            jour=JOUR + datetime.timedelta(days=i),
+            ce_courte=100.0 + i,
+            ce_longue=400.0 + i,
+            courte_incomplete=i < 2,
+            longue_incomplete=True,
+        )
+        for i in range(n)
+    ]
+
+
+def test_les_charges_du_moteur_sont_placees_telles_quelles_deux_barres_par_jour() -> None:
+    points = points_charges(_charges(3))
+    assert len(points) == 6
+    assert [(p["grandeur"], p["valeur"]) for p in points[:2]] == [
+        ("CE courte", 100.0),
+        ("CE longue", 400.0),
+    ]
+    assert points[0]["incomplete"] is True and points[4]["incomplete"] is False
+    spec = specification_charges(_charges(3))
+    assert spec["data"]["values"] == points
+    assert spec["encoding"]["x"]["sort"] == ["14/11", "15/11", "16/11"]
+
+
+def test_sans_charge_la_specification_est_vide_mais_valide() -> None:
+    spec = specification_charges([])
+    assert spec["data"]["values"] == []
+    assert spec["encoding"]["x"]["sort"] == []
+    assert spec["mark"]["type"] == "bar"

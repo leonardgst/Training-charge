@@ -9,7 +9,7 @@ import math
 from collections.abc import Sequence
 from typing import Any
 
-from engine.modeles import FormeActuelle, Parametres
+from engine.modeles import ChargesGlissantes, FormeActuelle, Parametres
 
 SCHEMA_VEGA_LITE = "https://vega.github.io/schema/vega-lite/v6.json"
 # Repère visuel des lignes pointillées (ADR-0018, Q5).
@@ -157,4 +157,71 @@ def specification_forme(
                 },
             },
         ],
+    }
+
+
+def points_charges(charges: Sequence[ChargesGlissantes]) -> list[dict[str, Any]]:
+    """Deux enregistrements par jour (CE courte, CE longue), avec les valeurs du moteur."""
+    points: list[dict[str, Any]] = []
+    for c in charges:
+        etiquette = c.jour.strftime("%d/%m")
+        points.append(
+            {
+                "jour": c.jour.isoformat(),
+                "etiquette": etiquette,
+                "grandeur": "CE courte",
+                "valeur": c.ce_courte,
+                "incomplete": c.courte_incomplete,
+                "fenetre": "incomplète" if c.courte_incomplete else "complète",
+            }
+        )
+        points.append(
+            {
+                "jour": c.jour.isoformat(),
+                "etiquette": etiquette,
+                "grandeur": "CE longue",
+                "valeur": c.ce_longue,
+                "incomplete": c.longue_incomplete,
+                "fenetre": "incomplète" if c.longue_incomplete else "complète",
+            }
+        )
+    return points
+
+
+def specification_charges(charges: Sequence[ChargesGlissantes]) -> dict[str, Any]:
+    """Barres de CE courte et de CE longue, jour par jour (US-11), côte à côte pour chaque jour."""
+    points = points_charges(charges)
+    jours = [c.jour.strftime("%d/%m") for c in charges]
+    return {
+        "$schema": SCHEMA_VEGA_LITE,
+        "description": "CE courte et CE longue du joueur, jour par jour",
+        "width": "container",
+        "height": 300,
+        "autosize": {"type": "fit", "contains": "padding"},
+        "data": {"values": points},
+        "mark": {"type": "bar"},
+        "encoding": {
+            "x": {
+                "field": "etiquette",
+                "type": "ordinal",
+                "sort": jours,
+                "title": "Jour",
+                "axis": {"labelAngle": -90},
+            },
+            "xOffset": {"field": "grandeur", "type": "nominal", "sort": ["CE courte", "CE longue"]},
+            "y": {"field": "valeur", "type": "quantitative", "title": "Charge d'entraînement"},
+            "color": {
+                "field": "grandeur",
+                "type": "nominal",
+                "sort": ["CE courte", "CE longue"],
+                "title": None,
+                "legend": {"orient": "bottom"},
+            },
+            "tooltip": [
+                {"field": "etiquette", "title": "Jour"},
+                {"field": "grandeur", "title": "Grandeur"},
+                {"field": "valeur", "title": "Valeur", "format": ".0f"},
+                {"field": "fenetre", "title": "Fenêtre"},
+            ],
+        },
     }

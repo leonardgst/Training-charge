@@ -116,6 +116,12 @@ def test_e1_seance_de_25_joueurs_saisie_au_clavier_puis_validee(
     expect(lignes.first.locator("td.charge")).to_have_text("2 700")
     expect(lignes.last.locator("td.charge")).to_have_text("4 500")
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+
+    # Tableau de bord : la fiche du joueur 1 donne la même charge, calculée par le moteur.
+    page.goto(live_server.url + "/joueurs/")
+    page.get_by_role("link", name="Fiche de Test Joueur01").click()
+    expect(page.locator("#rpe-seances td.charge")).to_have_text("2 700")
+    expect(page.locator("#graphique-forme svg")).to_be_visible()
     assert violations == []
 
     seance = Seance.objects.get()
