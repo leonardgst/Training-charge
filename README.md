@@ -4,7 +4,7 @@ Application web de suivi de la charge d'entraînement et de l'état de forme des
 
 La version 1 est une démonstration sur **données fictives**. Le dépôt est public : aucune donnée réelle, jamais.
 
-> **État** : phase 4 (saisie des séances) terminée. Le préparateur gère les joueurs de sa catégorie, crée ses séances, saisit la grille RPE, la valide, puis la corrige ou la supprime ; les charges sont calculées par le moteur (phase 3). Démonstration en ligne : https://u19-load-tracking.vercel.app
+> **État** : phase 5 (questionnaire joueur) terminée. Le préparateur gère les joueurs de sa catégorie, crée ses séances, saisit la grille RPE, la valide, puis la corrige ou la supprime ; les charges sont calculées par le moteur (phase 3). Il génère le lien personnel de chaque joueur, qui dépose puis corrige ses sensations du jour depuis son téléphone ; la grille montre qui a répondu, et le préparateur corrige ou supprime une entrée passée. Démonstration en ligne : https://u19-load-tracking.vercel.app
 
 ## Documentation
 
@@ -17,7 +17,7 @@ La version 1 est une démonstration sur **données fictives**. Le dépôt est pu
 | [Déploiement](docs/deploiement.md) | Neon, Vercel, GitHub et emplacement des secrets |
 | [Glossaire](docs/glossaire.md) | Vocabulaire métier |
 | [ADR](docs/adr/README.md) | Décisions d'architecture |
-| [Phase en cours](docs/phases/phase-05-questionnaire-joueur.md) | Fiche de la phase 5, questionnaire joueur |
+| [Dernière phase terminée](docs/phases/phase-05-questionnaire-joueur.md) | Fiche de la phase 5, questionnaire joueur |
 
 ## Prérequis
 

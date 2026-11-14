@@ -408,7 +408,7 @@ def test_apres_une_suppression_le_joueur_peut_redeposer_cette_date(monde: Monde)
     assert EntreeSensations.objects.filter(joueur=monde.dupont, date=HIER).count() == 1
 
 
-def test_la_suppression_est_tracee_au_journal_sans_nom_de_joueur(
+def test_la_suppression_est_tracee_au_journal_par_cles_sans_nom(
     monde: Monde, caplog: pytest.LogCaptureFixture
 ) -> None:
     with caplog.at_level(logging.INFO, logger="suivi.audit"):
@@ -416,9 +416,10 @@ def test_la_suppression_est_tracee_au_journal_sans_nom_de_joueur(
 
     messages = [r.getMessage() for r in caplog.records if r.name == "suivi.audit"]
     assert len(messages) == 1
-    assert f"joueur={monde.dupont.pk}" in messages[0]
+    assert f"joueur={monde.dupont.pk} " in messages[0]
     assert "date=2026-11-12" in messages[0]
-    assert "par=p19" in messages[0]
+    assert messages[0].endswith(f" par={monde.compte19.pk}")
+    assert "p19" not in messages[0]
     assert "Dupont" not in messages[0]
 
 

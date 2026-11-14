@@ -106,7 +106,7 @@ def supprimer_entree(entree: EntreeSensations, auteur: User) -> None:
     """Supprime une entrée passée et ses réponses, à la demande du joueur (ADR-0008 Q3).
 
     Il n'y a pas d'historique des valeurs en V1 : la suppression est tracée au journal
-    `suivi.audit`, par clé et sans nom de joueur, une fois la suppression validée.
+    `suivi.audit`, par clés (joueur et auteur) et sans nom, une fois la suppression validée.
     L'appelant a vérifié le périmètre ; `EntreeSupprimee` si l'entrée a déjà disparu.
     """
     with transaction.atomic():
@@ -117,5 +117,5 @@ def supprimer_entree(entree: EntreeSensations, auteur: User) -> None:
         "Entrée de sensations supprimée : joueur=%s date=%s par=%s",
         joueur_id,
         jour.isoformat(),
-        auteur.get_username(),
+        auteur.pk,
     )

@@ -71,7 +71,7 @@ Recommandations acceptées le 2026-10-12 :
 ## Mise en œuvre (phase 5)
 
 - Par son lien, le joueur crée puis modifie son entrée du jour : un second envoi modifie l'entrée existante et remet `updated_by` à nul (PR 5.2). Le lien est revérifié sous le verrou du joueur au moment d'écrire.
-- Le préparateur de la catégorie de référence corrige ou supprime une entrée passée depuis la page « Sensations » du joueur (les jours passés seulement : celle du jour est au joueur, R16), après une page de confirmation pour la suppression (PR 5.4). Un champ laissé vide d'une correction garde la réponse existante, et un envoi sans réponse modifiée n'est pas une correction (aucune trace) ; la date de l'entrée ne change pas. `updated_at` et `updated_by` enregistrent la correction ; la suppression est tracée au journal applicatif `suivi.audit`, sans nom de joueur. Les entrées d'un joueur invité ne sont jamais accessibles (A3).
+- Le préparateur de la catégorie de référence corrige ou supprime une entrée passée depuis la page « Sensations » du joueur (les jours passés seulement : celle du jour est au joueur, R16), après une page de confirmation pour la suppression (PR 5.4). Un champ laissé vide d'une correction garde la réponse existante, et un envoi sans réponse modifiée n'est pas une correction (aucune trace) ; la date de l'entrée ne change pas. `updated_at` et `updated_by` enregistrent la correction ; la suppression est tracée au journal applicatif `suivi.audit`, par clés de joueur et de compte, sans nom (le nom d'utilisateur de la PR 5.4 est remplacé par la clé du compte, décision du mainteneur du 2026-11-14). Les entrées d'un joueur invité ne sont jamais accessibles (A3).
 
 ## Tests concernés
 
