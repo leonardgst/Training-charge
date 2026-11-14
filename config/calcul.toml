@@ -19,3 +19,8 @@ score_poids_min = 0.5
 # ADR-0015 : référence du z-score de sensations, entrée courante exclue.
 sensations_reference_jours = 28
 sensations_reference_min_entrees = 6
+
+# ADR-0018 : « Forme actuelle ». Entrée de sensations la plus récente datée de D − 3 à D ;
+# couleur (intensité − sensations) / 2 bornée entre −3 et 3.
+fraicheur_entree_jours = 3
+couleur_borne = 3

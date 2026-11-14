@@ -55,6 +55,13 @@ Recommandations acceptées le 2026-10-12 :
 
 Ces choix sont paramétrables et restent provisoires tant que le préparateur ne les a pas validés (cadrage, règle 9).
 
+## Précisions du 2026-11-14 (PR 6.1a)
+
+- Q3 : si l'entrée la plus récente de la fenêtre n'a pas de score, elle reste retenue : le joueur est listé « réponses insuffisantes », sans repli sur une entrée plus ancienne.
+- Q4 : un seul état par joueur, le premier qui s'applique : absent depuis N jours ; état de l'intensité (un joueur sans participation est en « historique insuffisant ») ; pas d'entrée récente ; état des sensations (réponses insuffisantes, historique insuffisant, non calculable). « Réponses insuffisantes » s'ajoute aux états de Q4.
+- Absence (R14) : N = D − date de la dernière participation à une séance validée ; absent quand N ≥ `fenetre_courte_jours`. Une charge nulle compte comme une présence ; une séance en brouillon ne compte pas, donc un joueur présent à une séance pas encore validée peut apparaître « absent ».
+- Q1 : le point garde le z-score de sensations tel quel ; l'inversion de l'axe (« sensations dégradées ↑ ») est un réglage d'échelle de la spécification du graphique (PR 6.1b).
+
 ## Paramètres et tests concernés
 
-`fraicheur_entree_jours` ; cas E3 et tests unitaires de la spécification du graphique.
+`fraicheur_entree_jours`, `couleur_borne` ; cas E3, tests unitaires du moteur (`engine/forme.py`) et de la spécification du graphique.

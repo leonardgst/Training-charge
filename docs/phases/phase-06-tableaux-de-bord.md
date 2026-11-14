@@ -14,6 +14,8 @@ Niveau de collaboration : 5, autonome, par défaut ([ADR-0019](../adr/0019-auton
 
 ## Points à trancher par le mainteneur en validant cette fiche
 
+Fiche validée et fusionnée ([#60](https://github.com/leonardgst/Training-charge/pull/60), 2026-11-14). Le mainteneur a tranché le point 7 : **couleur du tableau des RPE selon la valeur du RPE**, comme la grille de saisie (PR 6.2). Les autres points restent tels que la fiche les propose, le mainteneur ne les ayant pas modifiés en la fusionnant ; ils sont à confirmer à leur PR (niveau 5, `debut_saison` en PR 6.5, Vega en PR 6.1b).
+
 1. **Jeu de référence E3** : `tests/reference/E3-fiche-joueur/` n'existe pas encore, et le harnais (`registre.py`, README) ne connaît que C01 à C15 ; la PR 6.1b l'étend. Claude écrit les fichiers d'entrée (`joueurs.csv`, `seances.csv`, etc.) ; seuls `attendu.csv` et `provenance.md` sont réservés au mainteneur (`CLAUDE.md`, section 6), qui les produit de façon indépendante du code. E3 porte sur la fiche et sur le point du joueur de référence dans « Forme actuelle », lu dans le tableau de valeurs : à fournir avant la PR 6.1b, qui peut commencer sans, E3 restant alors en attente.
 6. **Début de saison** : `debut_saison` (spécifications, section 5, « à valider avant la phase 6 ») : 1er juillet ? La PR 6.5 l'ajoute à `config/calcul.toml` et à `lire_parametres`.
 7. **Couleur du tableau des RPE** : selon la valeur du RPE (comme la grille de saisie) ou selon l'intensité du jour (z-score de la CE courte, glossaire) ?
@@ -34,7 +36,7 @@ Niveau de collaboration : 5, autonome, par défaut ([ADR-0019](../adr/0019-auton
 
 | # | Titre | Contenu | Tests apportés | Statut | Lien |
 | --- | --- | --- | --- | --- | --- |
-| 6.1a | `feat: calculer la forme actuelle dans le moteur` | Entrée de sensations la plus récente de D − 3 à D, couleur bornée, états sans point ; `fraicheur_entree_jours` et `couleur_borne` dans `config/calcul.toml`, `Parametres` et `lire_parametres` | Unitaires du moteur (95 % des branches) ; C9 sur ces calculs | À faire | — |
+| 6.1a | `feat: calculer la forme actuelle dans le moteur` | Entrée de sensations la plus récente de D − 3 à D, couleur bornée, états sans point ; `fraicheur_entree_jours` et `couleur_borne` dans `config/calcul.toml`, `Parametres` et `lire_parametres` | Unitaires du moteur (95 % des branches) ; C9 sur ces calculs | En revue | — |
 | 6.1b | `feat: afficher le graphique Forme actuelle` | Vega-Lite, `vega-embed`, `vega` et `vega-interpreter` copiés dans le dépôt avec leurs licences, compatibles avec la politique de sécurité du contenu, spécification construite en Python (`suivi/graphiques.py`), joueurs sans point listés, tableau de valeurs ; ADR sur le mode compatible de Vega ; `gardien-acces` | Unitaires sur la spécification ; A1 (la nouvelle route entre dans le catalogue, `LISTE_BLANCHE` inchangée) ; A3 (seuls les joueurs suivis, ni invité ni autre catégorie) ; E3 (point du joueur de référence, lu dans le tableau) | À faire | — |
 | 6.2 | `feat: afficher la charge sur la fiche joueur` | Tableau des RPE coloré, barres de CE, tableaux de valeurs ; le joueur est obtenu par `joueurs_suivis` avant tout appel à l'adaptateur | E1 étendu au tableau de bord ; E3 (charge) ; A3 (fiche d'un joueur d'une autre catégorie ou d'un invité : 404) | À faire | — |
 | 6.3 | `feat: afficher les sensations sur la fiche joueur` | Barres de la dernière entrée, heatmap sur 7 jours, total = `score_sensations` du moteur | Unitaires sur la spécification ; E3 (sensations) ; A3 | À faire | — |
