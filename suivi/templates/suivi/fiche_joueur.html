@@ -1,0 +1,72 @@
+{% extends "suivi/base.html" %}
+{% load static %}
+
+{% block titre %}Fiche de {{ joueur }}{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'suivi/vendor/vega/vega.min.js' %}" defer></script>
+<script src="{% static 'suivi/vendor/vega/vega-lite.min.js' %}" defer></script>
+<script src="{% static 'suivi/vendor/vega/vega-embed.min.js' %}" defer></script>
+<script src="{% static 'suivi/js/forme.js' %}" defer></script>
+{% endblock %}
+
+{% block contenu %}
+<h1>Fiche de {{ joueur }}</h1>
+<p>Au {{ jour|date:"j F Y" }}. Le joueur n'est comparé qu'à lui-même.</p>
+<p class="liens"><a href="{% url 'joueurs' %}">Retour aux joueurs</a></p>
+
+<h2>RPE des dernières séances</h2>
+<div class="overflow-auto">
+<table id="rpe-seances" class="grille-rpe">
+  <thead>
+    <tr>
+      <th scope="col">Date</th><th scope="col">Séance</th><th scope="col">Durée (min)</th>
+      <th scope="col">Cardio</th><th scope="col">Musculaire</th><th scope="col">TETA</th><th scope="col">Charge</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for participation, charge, lien in lignes %}
+    <tr>
+      <th scope="row">{{ participation.seance.date|date:"D d/m/Y" }}</th>
+      <td>{% if lien %}<a href="{% url 'seance' participation.seance.pk %}">{{ participation.seance.get_type_display }}</a>{% else %}{{ participation.seance.get_type_display }}{% endif %}</td>
+      <td>{{ participation.seance.duree_min }}</td>
+      <td><span class="rpe" data-niveau="{{ participation.rpe_cardio }}">{{ participation.rpe_cardio }}</span></td>
+      <td><span class="rpe" data-niveau="{{ participation.rpe_musculaire }}">{{ participation.rpe_musculaire }}</span></td>
+      <td><span class="rpe" data-niveau="{{ participation.rpe_teta }}">{{ participation.rpe_teta }}</span></td>
+      <td class="charge">{{ charge|floatformat:"0g" }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7">Aucune séance validée pour ce joueur.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<h2>Charge d'entraînement</h2>
+<figure id="graphique-forme" role="img" aria-label="Barres de CE courte et de CE longue, jour par jour"></figure>
+{{ specification|json_script:"specification-forme" }}
+
+<h2>Valeurs du graphique</h2>
+{% if valeurs %}
+<div class="overflow-auto">
+<table id="valeurs-charge">
+  <thead>
+    <tr><th scope="col">Jour</th><th scope="col">CE courte</th><th scope="col">CE longue</th><th scope="col">Intensité (z)</th><th scope="col">Remarques</th></tr>
+  </thead>
+  <tbody>
+    {% for c, z, etat in valeurs %}
+    <tr>
+      <th scope="row">{{ c.jour|date:"D d/m/Y" }}</th>
+      <td>{{ c.ce_courte|floatformat:"0g" }}</td>
+      <td>{{ c.ce_longue|floatformat:"0g" }}</td>
+      <td>{% if z.valeur is not None %}{{ z.valeur|floatformat:2 }}{% else %}—{% endif %}</td>
+      <td>{% if etat %}{{ etat }}{% endif %}{% if c.courte_incomplete or c.longue_incomplete %}{% if etat %} · {% endif %}Fenêtre incomplète{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>Aucune charge à afficher : ce joueur n'a pas encore de séance validée.</p>
+{% endif %}
+{% endblock %}

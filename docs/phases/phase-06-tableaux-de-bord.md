@@ -27,7 +27,7 @@ Fiche validée et fusionnée ([#60](https://github.com/leonardgst/Training-charg
 ## Livrables
 
 - [x] Graphique « Forme actuelle » : un point par joueur calculable, joueurs sans point listés à côté avec leur état (US-10, F11, ADR-0018)
-- [ ] Fiche joueur, charge : tableau des RPE coloré, barres de CE courte et de CE longue, tableaux de valeurs (US-11, F12)
+- [x] Fiche joueur, charge : tableau des RPE coloré, barres de CE courte et de CE longue, tableaux de valeurs (US-11, F12)
 - [ ] Fiche joueur, sensations : barres de la dernière entrée, heatmap sur 7 jours avec total (US-11, F12)
 - [ ] Date de rétrospection sur la fiche et sur « Forme actuelle » (US-12, C9)
 - [ ] Données brutes depuis le début de la saison et export CSV, limités à la catégorie de référence (US-13, F16, A3)
@@ -37,8 +37,8 @@ Fiche validée et fusionnée ([#60](https://github.com/leonardgst/Training-charg
 | # | Titre | Contenu | Tests apportés | Statut | Lien |
 | --- | --- | --- | --- | --- | --- |
 | 6.1a | `feat: calculer la forme actuelle dans le moteur` | Entrée de sensations la plus récente de D − 3 à D, couleur bornée, états sans point ; `fraicheur_entree_jours` et `couleur_borne` dans `config/calcul.toml`, `Parametres` et `lire_parametres` | Unitaires du moteur (95 % des branches) ; C9 sur ces calculs | Fusionnée | [#61](https://github.com/leonardgst/Training-charge/pull/61) |
-| 6.1b | `feat: afficher le graphique Forme actuelle` | Vega-Lite, `vega-embed`, `vega` et `vega-interpreter` copiés dans le dépôt avec leurs licences, compatibles avec la politique de sécurité du contenu, spécification construite en Python (`suivi/graphiques.py`), joueurs sans point listés, tableau de valeurs ; ADR sur le mode compatible de Vega ; `gardien-acces` | Unitaires sur la spécification ; A1 (la nouvelle route entre dans le catalogue, `LISTE_BLANCHE` inchangée) ; A3 (seuls les joueurs suivis, ni invité ni autre catégorie) ; E3 (point du joueur de référence, lu dans le tableau) | En revue | — |
-| 6.2 | `feat: afficher la charge sur la fiche joueur` | Tableau des RPE coloré, barres de CE, tableaux de valeurs ; le joueur est obtenu par `joueurs_suivis` avant tout appel à l'adaptateur | E1 étendu au tableau de bord ; E3 (charge) ; A3 (fiche d'un joueur d'une autre catégorie ou d'un invité : 404) | À faire | — |
+| 6.1b | `feat: afficher le graphique Forme actuelle` | Vega-Lite, `vega-embed`, `vega` et `vega-interpreter` copiés dans le dépôt avec leurs licences, compatibles avec la politique de sécurité du contenu, spécification construite en Python (`suivi/graphiques.py`), joueurs sans point listés, tableau de valeurs ; ADR sur le mode compatible de Vega ; `gardien-acces` | Unitaires sur la spécification ; A1 (la nouvelle route entre dans le catalogue, `LISTE_BLANCHE` inchangée) ; A3 (seuls les joueurs suivis, ni invité ni autre catégorie) ; E3 (point du joueur de référence, lu dans le tableau) | Fusionnée | [#62](https://github.com/leonardgst/Training-charge/pull/62) |
+| 6.2 | `feat: afficher la charge sur la fiche joueur` | Tableau des RPE coloré, barres de CE, tableaux de valeurs ; le joueur est obtenu par `joueurs_suivis` avant tout appel à l'adaptateur | E1 étendu au tableau de bord ; E3 (charge) ; A3 (fiche d'un joueur d'une autre catégorie ou d'un invité : 404) | En revue | — |
 | 6.3 | `feat: afficher les sensations sur la fiche joueur` | Barres de la dernière entrée, heatmap sur 7 jours, total = `score_sensations` du moteur | Unitaires sur la spécification ; E3 (sensations) ; A3 | À faire | — |
 | 6.4 | `feat: choisir une date de rétrospection` | Sélecteur sur la fiche et sur « Forme actuelle » | E3, C9 côté interface ; A3 avec le paramètre de date | À faire | — |
 | 6.5 | `feat: consulter et exporter les données brutes` | `debut_saison` dans `config/calcul.toml` et `lire_parametres`, tableau depuis le début de saison, export CSV | A3 sur l'export | À faire | — |
@@ -84,6 +84,7 @@ Fiche validée et fusionnée ([#60](https://github.com/leonardgst/Training-charg
 - La PR 6.1 du cadrage est coupée en 6.1a (moteur et paramètres) et 6.1b (graphique), pour rester relisible en moins de 20 minutes ; une ADR s'y ajoute.
 - PR 6.1b : le volet « Forme actuelle » de E3 attend le jeu de référence du mainteneur ; la PR apporte les tests unitaires, A1 (catalogue), A3 et le parcours de bout en bout, et E3 sera ajouté dès que `tests/reference/E3-fiche-joueur/` existera.
 - E3 est réparti sur les PR 6.1b à 6.4, au lieu de la seule PR 6.4.
+- PR 6.2 : la fiche est la route `joueurs/<pk>/` (`suivi/views/fiche.py`), liée depuis la liste des joueurs ; elle affiche les 10 dernières séances validées et 28 jours de CE (`JOURS_AFFICHES`). E3 (charge) attend toujours `tests/reference/E3-fiche-joueur/` ; la PR apporte A3, les unitaires, l'intégration et le parcours de bout en bout.
 - Recette en réseau local sur la base de démonstration, au lieu de l'environnement déployé (cadrage, section 7.8), faute de données en production avant la phase 7.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé

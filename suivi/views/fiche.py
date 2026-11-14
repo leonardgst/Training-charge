@@ -1,0 +1,75 @@
+"""Fiche d'un joueur (US-11, F12) : la charge, sans formule dans la vue ni le gabarit.
+
+Le joueur est lu par `joueurs_suivis` avant tout appel à l'adaptateur : un joueur d'une autre
+catégorie ou un invité répond 404. Les valeurs viennent du moteur (`suivi/calculs.py`).
+"""
+
+from django.http import Http404, HttpResponse
+from django.shortcuts import render
+from django.views.decorators.http import require_safe
+
+from engine.modeles import Etat
+from suivi.acces import joueurs_suivis, participations_visibles
+from suivi.calculs import (
+    calculer_charges_glissantes,
+    calculer_intensite,
+    charges_de_seance,
+    parametres,
+)
+from suivi.graphiques import specification_charges
+from suivi.horloge import aujourd_hui
+from suivi.middleware import RequeteStaff
+from suivi.models import StatutSeance
+
+SEANCES_AFFICHEES = 10
+JOURS_AFFICHES = 28
+
+LIBELLES_ETAT = {
+    Etat.OK: "",
+    Etat.HISTORIQUE_INSUFFISANT: "Historique insuffisant",
+    Etat.NON_CALCULABLE: "Non calculable",
+    Etat.REPONSES_INSUFFISANTES: "Réponses insuffisantes",
+}
+
+
+@require_safe
+def fiche_joueur(request: RequeteStaff, pk: int) -> HttpResponse:
+    """Tableau des RPE des dernières séances, barres de CE courte et longue, valeurs."""
+    joueur = joueurs_suivis(request.preparateur).filter(pk=pk).first()
+    if joueur is None:
+        raise Http404
+    jour = aujourd_hui()
+    params = parametres()
+    participations = list(
+        participations_visibles(request.preparateur)
+        .filter(joueur=joueur, seance__statut=StatutSeance.VALIDEE, seance__date__lte=jour)
+        .select_related("seance")
+        .order_by("-seance__date", "-seance__pk")[:SEANCES_AFFICHEES]
+    )
+    # Le lien vers la séance n'existe que pour une séance organisée par sa propre catégorie :
+    # le détail d'une autre séance répond 404 (joueur invité ailleurs).
+    lignes = [
+        (
+            p,
+            charges_de_seance(p.seance, [p], params)[p.pk],
+            p.seance.categorie_organisatrice_id == request.preparateur.categorie_id,
+        )
+        for p in participations
+    ]
+    charges = calculer_charges_glissantes(joueur.pk, jour, params)[-JOURS_AFFICHES:]
+    intensites = {z.jour: z for z in calculer_intensite(joueur.pk, jour, params)}
+    valeurs = [
+        (c, intensites[c.jour], LIBELLES_ETAT[intensites[c.jour].etat]) for c in reversed(charges)
+    ]
+    return render(
+        request,
+        "suivi/fiche_joueur.html",
+        {
+            "rubrique": "joueurs",
+            "joueur": joueur,
+            "jour": jour,
+            "lignes": lignes,
+            "valeurs": valeurs,
+            "specification": specification_charges(charges),
+        },
+    )

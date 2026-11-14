@@ -1,4 +1,4 @@
-// Dessine le graphique « Forme actuelle » à partir de la spécification Vega-Lite construite par
+// Dessine le graphique de la page (« Forme actuelle », charge de la fiche joueur) à partir de la spécification Vega-Lite construite par
 // le serveur (suivi/graphiques.py) : aucune formule ici. Avec `ast: true`, vega-embed
 // 7.3.0 utilise l'interpréteur d'expressions qu'il embarque (vega-interpreter) au lieu de
 // l'évaluation par `Function`, que la politique de sécurité du contenu interdit ;
