@@ -25,4 +25,4 @@ Option 3, avec Python 3.12, des gabarits Django, Pico CSS et un petit fichier Ja
 - La grille RPE n'utilise que des champs HTML : la navigation au clavier est native, et le code couleur tient en quelques lignes de JavaScript.
 - HTMX ou une autre bibliothèque JavaScript ne seront ajoutés que si une PR en démontre le besoin, avec une ADR.
 - Piège à retenir : le drapeau Django `is_staff` donne accès à l'administration. Les préparateurs ne l'ont jamais.
-- Piège à retenir : Vega évalue ses expressions avec le constructeur `Function`, ce qu'une politique de sécurité du contenu stricte interdit. La phase 6 devra utiliser son mode compatible ou ajuster la politique par une ADR.
+- Piège à retenir : Vega évalue ses expressions avec le constructeur `Function`, ce qu'une politique de sécurité du contenu stricte interdit. La phase 6 devra utiliser son mode compatible ou ajuster la politique par une ADR (retenu : [ADR-0020](0020-vega-sous-politique-de-securite-du-contenu.md), politique inchangée).

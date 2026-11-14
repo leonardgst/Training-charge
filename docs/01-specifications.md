@@ -226,7 +226,7 @@ Points reportés après la V1, avec le comportement retenu d'ici là :
 | Bornes, sens, poids et inclusion des indicateurs | Tableau de l'ADR | Table `indicateur`, en base | [ADR-0010](adr/0010-indicateurs-et-echelles.md) |
 | Échelle des RPE | Entiers de 0 à 10 | Contrainte en base ; un changement passe par une migration | [ADR-0007](adr/0007-echelle-rpe-et-formule-de-charge.md) |
 | Bornes de la durée | Entiers de 1 à 300 minutes | Contrainte en base ; un changement passe par une migration | [ADR-0007](adr/0007-echelle-rpe-et-formule-de-charge.md) |
-| `debut_saison` | 1er juillet | `config/calcul.toml` | Proposé, à valider avant la phase 6 (données brutes et export) |
+| `debut_saison` | 1er juillet | `config/calcul.toml` | Décidé le 2026-11-14 (mainteneur), pour les données brutes et l'export de la phase 6 |
 
 ## 6. Données manipulées
 
