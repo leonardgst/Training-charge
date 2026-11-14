@@ -67,7 +67,7 @@ Stratégie complète : [docs/03-strategie-tests.md](docs/03-strategie-tests.md).
 
 ## 9. Phase en cours
 
-Phase 5 — Questionnaire joueur : [docs/phases/phase-05-questionnaire-joueur.md](docs/phases/phase-05-questionnaire-joueur.md), ouverte le 2026-11-12, en cours, au niveau 5 pour toute la phase. Décisions du mainteneur : `Referrer-Policy: same-origin` sur la page du lien joueur, `segno` pour le QR code, recette sur un vrai téléphone en réseau local. Les phases 4 bis (outillage de Claude Code, sans version) et 4 (tag `v0.4.0`) sont fermées le 2026-11-12.
+Phase 5 — Questionnaire joueur, terminée le 2026-11-14 (tag `v0.5.0`) : [fiche](docs/phases/phase-05-questionnaire-joueur.md). Prochaine : phase 6, tableaux de bord (cadrage, section 13.4) ; sa fiche reste à ouvrir (skill `ouvrir-phase`), dans une PR distincte, et à faire valider par le mainteneur. Les phases 4 bis (outillage de Claude Code, sans version), 4 (`v0.4.0`) et 5 sont fermées.
 
 ## 10. Interdits et pièges connus
 

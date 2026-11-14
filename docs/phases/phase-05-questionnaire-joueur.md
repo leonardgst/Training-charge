@@ -2,7 +2,7 @@
 
 | Statut | Prévue | Terminée le | Tag Git |
 | --- | --- | --- | --- |
-| En cours (ouverte le 2026-11-12) | — | — | v0.5.0 |
+| Terminée | — | 2026-11-14 | v0.5.0 |
 
 ## Objectif
 
@@ -20,7 +20,7 @@ Niveau de collaboration : 5, autonome, pour la phase entière, PR 5.1 et 5.2 com
 ## Livrables
 
 - [x] Liens joueurs : génération, révocation, régénération, lien et QR code affichés une seule fois, révocation à l'archivage d'un joueur (US-07, F07, F15, ADR-0006, ADR-0009)
-- [ ] Questionnaire du jour sur téléphone, limité aux indicateurs de la catégorie de référence, créé puis modifiable le même jour (US-08, US-09, F08, F09)
+- [x] Questionnaire du jour sur téléphone, limité aux indicateurs de la catégorie de référence, créé puis modifiable le même jour (US-08, US-09, F08, F09)
 - [x] Badge Reçu / Manquant dans la grille RPE, selon les jours de questionnaire de la catégorie (F10, R22, ADR-0017)
 - [x] Correction et suppression d'une entrée passée par le préparateur de la catégorie de référence (F17, ADR-0008)
 
@@ -39,12 +39,12 @@ Niveau de collaboration : 5, autonome, pour la phase entière, PR 5.1 et 5.2 com
 - [x] A4 et A5 au vert ; le jeton en clair ne figure dans aucune colonne de la base (`tests/integration/test_vues_questionnaire.py` pour A4 et A5, `test_vues_liens.py` pour la recherche du jeton dans toutes les colonnes texte)
 - [x] E2 au vert en format téléphone (`tests/e2e/test_badge_questionnaire.py` : le joueur répond, le badge passe à « Reçu », sur ordinateur, tablette et téléphone ; `test_questionnaire.py` pour le parcours du joueur)
 - [x] D1 et D2 étendus au questionnaire, à la saisie comme en base (`test_vues_questionnaire.py` pour la saisie, `test_modele_sensations.py` pour la base ; `test_vues_correction_sensations.py` pour la correction)
-- [ ] Recette faite sur un vrai téléphone, avec un questionnaire rempli en moins d'une minute
-- [ ] Documentation à jour : fiche, journal, `CHANGELOG.md`, `CLAUDE.md` pointant vers la phase 6
+- [x] Recette faite sur un vrai téléphone, avec un questionnaire rempli en moins d'une minute (recette du 2026-11-13 et 2026-11-14 : une trentaine de secondes ; résultats ci-dessous)
+- [x] Documentation à jour : fiche, journal, `CHANGELOG.md` (section `0.5.0`), `CLAUDE.md` pointant vers la phase 6
 
 ## Recette manuelle
 
-Préparée le 2026-11-13 ; à faire par le mainteneur sur un vrai téléphone, en réseau local (décision 4 ci-dessus). Les résultats se reportent ici tels que le mainteneur les donne. Ni la production ni les previews n'ont de données : la recette se fait sur la base locale de démonstration.
+Préparée le 2026-11-13 ; faite par le mainteneur sur un vrai téléphone, en réseau local (décision 4 ci-dessus). Les résultats ci-dessous sont reportés tels que le mainteneur les a donnés. Ni la production ni les previews n'ont de données : la recette se fait sur la base locale de démonstration.
 
 **Avant de commencer**
 
@@ -57,18 +57,34 @@ Préparée le 2026-11-13 ; à faire par le mainteneur sur un vrai téléphone, e
 
 **Parcours**
 
-1. [ ] **Séance du jour** : sur le poste, ouvrir le site par l'adresse du réseau (`http://192.168.1.20:8000/`, et non `localhost`, sinon le lien généré à l'étape suivante pointerait vers `localhost`, inutilisable au téléphone), se connecter en `prep_u19`, créer une séance à la date d'aujourd'hui avec ses joueurs cochés ; dans la grille, la colonne « Questionnaire » affiche « Manquant » pour tous les joueurs de la catégorie (la démonstration U19 attend un questionnaire tous les jours).
-2. [ ] **Lien et QR code** : dans « Joueurs », « Générer le lien » pour un joueur ; le lien et le QR code s'affichent une seule fois. Scanner le QR code avec l'appareil photo du téléphone : la page du questionnaire s'ouvre, avec le prénom du joueur et sans la navigation du staff.
-3. [ ] **Remplissage chronométré** : remplir les neuf champs (sept notes de 0 à 10, deux heures) et envoyer ; noter le temps, objectif moins d'une minute. Vérifier que le clavier numérique s'ouvre pour les notes, que les heures s'ouvrent avec le sélecteur d'heure du téléphone, que rien ne déborde ni ne demande de défilement horizontal.
-4. [ ] **Valeur refusée** : saisir `11` dans une note ; le navigateur refuse l'envoi (le refus par le serveur est couvert par `test_d1_une_valeur_hors_echelle_est_refusee_sans_rien_enregistrer`, qu'un téléphone ne peut pas provoquer).
-5. [ ] **Confirmation** : après l'envoi, le message « C’est enregistré, merci » s'affiche, avec les réponses.
-6. [ ] **Correction par le joueur** : rouvrir le même lien en scannant de nouveau le QR code, ou en validant l'adresse dans la barre du navigateur (ne pas « recharger » : la page de confirmation est la réponse à l'envoi, le navigateur proposerait de le renvoyer) ; les réponses sont pré-remplies ; en modifier une et renvoyer ; le message de confirmation revient.
-7. [ ] **Badge** : sur le poste, recharger la séance du jour ; le joueur passe à « Reçu », les autres restent à « Manquant ».
-8. [ ] **Correction d'une entrée passée par le préparateur** : « Joueurs », « Sensations » du même joueur ; une entrée d'un jour passé se corrige (changer une valeur, la liste affiche « corrigée par prep_u19 ») et se supprime (page de confirmation) ; l'entrée du jour n'a ni « Corriger » ni « Supprimer ».
-9. [ ] **Lien révoqué, puis régénéré** : « Révoquer » le lien du joueur, puis rouvrir l'adresse sur le téléphone (comme à l'étape 6) : « Page introuvable », sans indice sur la raison. Ensuite « Générer le lien », scanner le nouveau, puis « Régénérer » : l'ancien lien donne la même page introuvable, le nouveau s'ouvre.
-10. [ ] **Après la recette** : arrêter le serveur ; dans un PowerShell administrateur, `netsh interface portproxy delete v4tov4 listenport=8000 listenaddress=0.0.0.0` et `Remove-NetFirewallRule -DisplayName "Recette 8000"` ; remettre `DJANGO_DEBUG` à sa valeur habituelle dans `.env`.
+1. [x] **Séance du jour** : sur le poste, ouvrir le site par l'adresse du réseau (`http://192.168.1.20:8000/`, et non `localhost`, sinon le lien généré à l'étape suivante pointerait vers `localhost`, inutilisable au téléphone), se connecter en `prep_u19`, créer une séance à la date d'aujourd'hui avec ses joueurs cochés ; dans la grille, la colonne « Questionnaire » affiche « Manquant » pour tous les joueurs de la catégorie (la démonstration U19 attend un questionnaire tous les jours).
+2. [x] **Lien et QR code** : dans « Joueurs », « Générer le lien » pour un joueur ; le lien et le QR code s'affichent une seule fois. Scanner le QR code avec l'appareil photo du téléphone : la page du questionnaire s'ouvre, avec le prénom du joueur et sans la navigation du staff.
+3. [x] **Remplissage chronométré** : remplir les neuf champs (sept notes de 0 à 10, deux heures) et envoyer ; noter le temps, objectif moins d'une minute. Vérifier que le clavier numérique s'ouvre pour les notes, que les heures s'ouvrent avec le sélecteur d'heure du téléphone, que rien ne déborde ni ne demande de défilement horizontal.
+4. [x] **Valeur refusée** : saisir `11` dans une note ; le navigateur refuse l'envoi (le refus par le serveur est couvert par `test_d1_une_valeur_hors_echelle_est_refusee_sans_rien_enregistrer`, qu'un téléphone ne peut pas provoquer).
+5. [x] **Confirmation** : après l'envoi, le message « C’est enregistré, merci » s'affiche, avec les réponses.
+6. [x] **Correction par le joueur** : rouvrir le même lien en scannant de nouveau le QR code, ou en validant l'adresse dans la barre du navigateur (ne pas « recharger » : la page de confirmation est la réponse à l'envoi, le navigateur proposerait de le renvoyer) ; les réponses sont pré-remplies ; en modifier une et renvoyer ; le message de confirmation revient.
+7. [x] **Badge** : sur le poste, recharger la séance du jour ; le joueur passe à « Reçu », les autres restent à « Manquant ».
+8. [x] **Correction d'une entrée passée par le préparateur** : « Joueurs », « Sensations » du même joueur ; une entrée d'un jour passé se corrige (changer une valeur, la liste affiche « corrigée par prep_u19 ») et se supprime (page de confirmation) ; l'entrée du jour n'a ni « Corriger » ni « Supprimer ».
+9. [x] **Lien révoqué, puis régénéré** : « Révoquer » le lien du joueur, puis rouvrir l'adresse sur le téléphone (comme à l'étape 6) : « Page introuvable », sans indice sur la raison. Ensuite « Générer le lien », scanner le nouveau, puis « Régénérer » : l'ancien lien donne la même page introuvable, le nouveau s'ouvre.
+10. [x] **Après la recette** : arrêter le serveur ; dans un PowerShell administrateur, `netsh interface portproxy delete v4tov4 listenport=8000 listenaddress=0.0.0.0` et `Remove-NetFirewallRule -DisplayName "Recette 8000"` ; remettre `DJANGO_DEBUG` à sa valeur habituelle dans `.env`.
 
-Remarques d'ergonomie à noter ici : lisibilité sur le téléphone, taille des champs, clarté des messages.
+**Résultats (mainteneur, recette faite sur un vrai téléphone en réseau local, du 2026-11-13 au 2026-11-14)**
+
+La recette a commencé le 13 et s'est terminée le 14 : la séance du jour a été recréée le 14.
+
+- Avant de commencer : OK (adresse `192.168.0.14`, `DEBUG` inactif, base neuve avec démonstration jusqu'à la veille, redirection de port et pare-feu).
+- 1. Séance du jour, badge « Manquant » pour tous : OK.
+- 2. Lien et QR code, questionnaire avec prénom, sans navigation du staff : OK.
+- 3. Remplissage : environ 30 secondes (objectif : moins d'une minute) ; clavier numérique et sélecteur d'heure OK ; aucun débordement.
+- 4. Valeur 11 refusée, message sur la case : OK.
+- 5. Confirmation « C'est enregistré, merci. Tu peux encore modifier tes réponses aujourd'hui » avec les réponses : OK.
+- 6. Correction par le joueur, réponses pré-remplies : OK.
+- 7. Badge « Reçu » pour le joueur, « Manquant » pour les autres : OK.
+- 8. Correction et suppression d'une entrée passée par le préparateur, « corrigée par prep_u19 », confirmation ; rien sur l'entrée du jour : OK.
+- 9. Lien révoqué puis régénéré : « Page introuvable » sans indice, ancien lien refusé, nouveau lien OK.
+- 10. Nettoyage fait.
+
+Remarques d'ergonomie : aucune.
 
 ## Décisions prises (liens vers les ADR)
 
@@ -93,9 +109,26 @@ Remarques d'ergonomie à noter ici : lisibilité sur le téléphone, taille des 
 - PR 5.2 : `suivi/journal.py` masque `/q/<jeton>` dans les journaux `django.request`, `django.security.csrf` et `django.server`, qui écrivent sinon l'adresse (jeton révoqué ou mal recopié compris), posé au démarrage et non par `LOGGING`. `/q/x` entre dans la `LISTE_BLANCHE` du catalogue d'accès, comme prévu ; son refus est vérifié par A5.
 - PR 5.3 : le badge suit les jours de questionnaire de la catégorie de référence du joueur (R22) et porte sur la date de la séance (ADR-0017, Q3) ; une séance à venir n'a pas de « Manquant » (tiret), le jour même oui, puisque le joueur peut répondre jusqu'à 23 h 59. Un joueur invité d'une autre catégorie a toujours un tiret : son entrée n'est pas lisible par le préparateur (ADR-0005).
 - PR 5.4 : la correction passe par la liste « Sensations » de chaque joueur (lien depuis la page des joueurs). Un champ laissé vide garde la réponse du joueur, car un indicateur ajouté depuis n'a pas de réponse dans une ancienne entrée ; aucune réponse n'est supprimée, et la date de l'entrée ne se change pas. Les entrées d'un joueur archivé restent corrigeables. Seule une entrée *passée* se corrige (R16) : celle du jour reste au joueur, sans quoi son prochain envoi effacerait la trace de la correction. Un envoi sans réponse modifiée ne compte pas comme une correction.
-- PR 5.4 : l'ADR-0008 (Q3) exige « date et auteur » sans historique ; une correction les inscrit dans `updated_at` et `updated_by`, et une suppression, qui ne laisse plus de ligne, est tracée au journal applicatif `suivi.audit` (clé du joueur, date de l'entrée, nom d'utilisateur, sans nom de joueur).
+- PR 5.4 : l'ADR-0008 (Q3) exige « date et auteur » sans historique ; une correction les inscrit dans `updated_at` et `updated_by`, et une suppression, qui ne laisse plus de ligne, est tracée au journal applicatif `suivi.audit` (clé du joueur, date de l'entrée, clé du compte de l'auteur, sans nom de joueur ni d'utilisateur).
 - La PR 5.1 reprend la révocation du lien à l'archivage d'un joueur, prévue par la PR 4.2 mais impossible tant que les liens n'existaient pas.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé
 
-À remplir à la clôture.
+**Ce qui a marché**
+- Le refus par défaut et le catalogue des routes : la seule route publique (`/q/<jeton>`) est entrée dans la liste blanche, et A5 vérifie que lien invalide, révoqué, régénéré ou d'un joueur archivé donnent le même 404.
+- Le jeton haché : seule l'empreinte SHA-256 est en base, et un test cherche le jeton dans toutes les colonnes texte.
+- Les tests écrits d'abord, puis la relecture par `relecteur` et `gardien-acces` avant chaque PR : elles ont trouvé de vrais défauts avant la fusion (jeton écrit par le journal du refus CSRF, course entre correction et suppression, trace de suppression silencieuse faute de niveau de journal, entrée du jour corrigeable par le préparateur).
+- Le niveau 5 sur quatre PR de suite, chacune fusionnée sur accord du mainteneur, CI verte.
+- La recette sur un vrai téléphone : questionnaire rempli en une trentaine de secondes, aucune remarque d'ergonomie, parcours des dix étapes sans écart.
+
+**Ce qui a coincé**
+- Le journal de Django écrit l'adresse `/q/<jeton>` (réponses 4xx, refus CSRF, serveur de développement) ; un premier filtre par `LOGGING` ne couvrait pas `django.security.csrf` et retirait des gestionnaires. Il a fallu poser le filtre au démarrage, sur trois journaux nommés.
+- Le journal `suivi.audit` n'avait ni niveau ni gestionnaire : la trace de suppression se perdait. Elle est désormais configurée au démarrage ; elle porte les clés du joueur et du compte de l'auteur, sans nom.
+- Deux fichiers de test du même nom (intégration et bout en bout) ont fait échouer le test d'unicité des noms.
+- Des relectures lancées en parallèle sur la même base de test ont produit des échecs sans rapport avec le code ; un seul lot de tests à la fois.
+- Avec `DEBUG` actif, le réseau local verrait la page d'erreur détaillée : la procédure de recette impose `DJANGO_DEBUG=false` et `runserver --insecure`.
+
+**Restes**
+- Le masquage du jeton dans les rapports d'erreur (`PATH_INFO`) n'est pas fait ; sans effet tant que `ADMINS` est vide.
+- Les formats d'écran des tests de bout en bout sont dupliqués d'un fichier à l'autre : à regrouper dans une PR dédiée.
+- Le préparateur ne peut pas corriger l'entrée du jour (R16) ; le mainteneur n'a pas demandé de changement à la recette.

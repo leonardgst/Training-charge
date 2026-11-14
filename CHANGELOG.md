@@ -4,6 +4,10 @@ Toutes les modifications notables du projet sont consignées ici, au format [Kee
 
 ## [Non publié]
 
+## [0.5.0] - 2026-11-14
+
+Phase 5 : questionnaire joueur.
+
 ### Ajouté
 
 - Liens joueurs (US-07) : le préparateur génère, révoque et régénère le lien de chaque joueur actif de sa catégorie ; le lien et son QR code (`segno`, image intégrée à la page) ne s'affichent qu'une fois ; seule l'empreinte SHA-256 du jeton est stockée, et le lien est révoqué à l'archivage du joueur.

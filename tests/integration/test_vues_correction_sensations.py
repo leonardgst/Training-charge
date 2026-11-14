@@ -418,7 +418,8 @@ def test_la_suppression_est_tracee_au_journal_sans_nom_de_joueur(
     assert len(messages) == 1
     assert f"joueur={monde.dupont.pk}" in messages[0]
     assert "date=2026-11-12" in messages[0]
-    assert "par=p19" in messages[0]
+    assert f"par={monde.compte19.pk}" in messages[0]
+    assert "p19" not in messages[0]
     assert "Dupont" not in messages[0]
 
 
