@@ -10,14 +10,16 @@ Rendre visible ce que le moteur calcule : le préparateur ouvre « Forme actuell
 
 Niveau de collaboration : 5, autonome, par défaut ([ADR-0019](../adr/0019-autonomie-de-claude-code.md)), pour la phase entière ; le cadrage (section 13.4) prévoyait le niveau 4. Claude Code mène chaque PR de la branche à la CI verte ; le mainteneur valide la fiche, la fusion de chaque PR et la production ([guide](../outillage-claude-code.md)). Les règles « Le mainteneur valide » et « Jamais » de `CLAUDE.md` (section 7) restent en vigueur. Estimation : 20 heures (cadrage, section 13.4).
 
-**Aucune formule dans l'interface** : les gabarits, le JavaScript et les spécifications Vega-Lite n'affichent que des valeurs produites par le moteur (`engine/`) via l'adaptateur `suivi/calculs.py`. Les seuls calculs permis côté Python d'affichage sont ceux que l'[ADR-0018](../adr/0018-graphique-forme-actuelle.md) place explicitement dans la construction de la spécification (couleur du point).
+**Aucune formule dans l'interface** : les gabarits, le JavaScript et les spécifications Vega-Lite n'affichent que des valeurs produites par le moteur (`engine/`) via l'adaptateur `suivi/calculs.py`. Les calculs propres à « Forme actuelle » (choix de l'entrée de sensations la plus récente de D − 3 à D, couleur (intensité − sensations) / 2 bornée par `couleur_borne`, états « absent depuis N jours » et « pas d'entrée récente ») vivent dans `engine/`, avec leurs paramètres `fraicheur_entree_jours` et `couleur_borne` ajoutés à `config/calcul.toml`, à `Parametres` et à la validation de `lire_parametres`, et leurs tests unitaires (seuil de 95 % des branches) : c'est la PR 6.1a. Il en va de même du total de la heatmap, qui est le `score_sensations` du moteur (R19, ADR-0014), avec son état `reponses_insuffisantes` ; le passage sur 10 et le sens des indicateurs inversés sont décidés par le moteur, jamais par le gabarit ni le JavaScript.
 
 ## Points à trancher par le mainteneur en validant cette fiche
 
-1. **Jeu de référence E3** : `tests/reference/E3-fiche-joueur/` n'existe pas encore. Son `attendu.csv` et son `provenance.md` sont réservés au mainteneur (`CLAUDE.md`, section 6), qui les produit de façon indépendante du code. Les PR 6.2 et 6.3 en dépendent pour le parcours E3 : à fournir avant la PR 6.2, sinon E3 reste incomplet et la phase ne peut pas se clore. Si le jeu n'est pas prêt, la PR 6.1 (qui n'en a pas besoin) peut commencer.
+1. **Jeu de référence E3** : `tests/reference/E3-fiche-joueur/` n'existe pas encore, et le harnais (`registre.py`, README) ne connaît que C01 à C15 ; la PR 6.1b l'étend. Claude écrit les fichiers d'entrée (`joueurs.csv`, `seances.csv`, etc.) ; seuls `attendu.csv` et `provenance.md` sont réservés au mainteneur (`CLAUDE.md`, section 6), qui les produit de façon indépendante du code. E3 porte sur la fiche et sur le point du joueur de référence dans « Forme actuelle », lu dans le tableau de valeurs : à fournir avant la PR 6.1b, qui peut commencer sans, E3 restant alors en attente.
+6. **Début de saison** : `debut_saison` (spécifications, section 5, « à valider avant la phase 6 ») : 1er juillet ? La PR 6.5 l'ajoute à `config/calcul.toml` et à `lire_parametres`.
+7. **Couleur du tableau des RPE** : selon la valeur du RPE (comme la grille de saisie) ou selon l'intensité du jour (z-score de la CE courte, glossaire) ?
 2. **Niveau de collaboration** : 5, comme les phases 4 bis et 5, ou le niveau 4 du cadrage ?
-3. **ADR-0018** (graphique « Forme actuelle ») : « Accepté, provisoire : à confirmer par le préparateur ». Le mainteneur le confirme-t-il tel quel (sensations dégradées en haut, couleur selon (intensité − sensations) / 2, entrée la plus récente des 3 derniers jours) avant la PR 6.1, ou la PR 6.1 est-elle livrée sur l'état provisoire ?
-4. **Vega et politique de sécurité du contenu** : la politique actuelle (`suivi/middleware.py`) n'autorise que `'self'` et `data:` pour les images. Proposition : Vega-Lite et `vega-embed` copiés dans `suivi/static/suivi/vendor/`, avec l'interpréteur d'expressions de Vega (`vega-interpreter`, option `ast: true`) pour ne pas avoir à ajouter `'unsafe-eval'` ; la politique ne change pas. Une ADR consignera le choix dans la PR 6.1.
+3. **ADR-0018** (graphique « Forme actuelle ») : la PR 6.1 l'applique telle qu'acceptée le 2026-10-12 ; elle reste provisoire et paramétrable, en attendant l'avis du préparateur. Cas non tranché par l'ADR : si l'entrée la plus récente de la fenêtre est en état `reponses_insuffisantes`, prendre une entrée plus ancienne de la fenêtre, ou afficher l'état ? Proposition : l'état, sans repli.
+4. **Vega et politique de sécurité du contenu** : la politique actuelle (`suivi/middleware.py`) n'autorise que `'self'` et `data:` pour les images. Proposition : Vega-Lite et `vega-embed` copiés dans `suivi/static/suivi/vendor/`, avec l'interpréteur d'expressions de Vega (`vega-interpreter`, option `ast: true`) pour ne pas avoir à ajouter `'unsafe-eval'` ; la politique ne change pas. C'est un objectif à vérifier, non acquis : `vega-embed` et `vega-tooltip` injectent des balises `<style>` que la politique refuse (architecture, section 5). Il faut aussi copier `vega` et `vega-interpreter`, joindre les licences dans `vendor/` comme pour Pico CSS, et dire dans l'ADR comment les versions JavaScript sont suivies (`pip-audit` ne les voit pas). Une ADR consigne le choix dans la PR 6.1b.
 5. **Recette** : sur ordinateur, tablette et téléphone, en réseau local comme en phase 5 (ni la production ni les previews n'ont de données avant la phase 7).
 
 ## Livrables
@@ -32,11 +34,12 @@ Niveau de collaboration : 5, autonome, par défaut ([ADR-0019](../adr/0019-auton
 
 | # | Titre | Contenu | Tests apportés | Statut | Lien |
 | --- | --- | --- | --- | --- | --- |
-| 6.1 | `feat: afficher le graphique Forme actuelle` | Vega-Lite et `vega-embed` copiés dans le dépôt et compatibles avec la politique de sécurité du contenu, spécification construite en Python (`suivi/graphiques.py`), liste des joueurs sans point, tableau de valeurs accompagnant le graphique ; ADR sur le mode compatible de Vega | Unitaires sur la spécification ; intégration (périmètre d'accès, `LISTE_BLANCHE` du catalogue) | À faire | — |
-| 6.2 | `feat: afficher la charge sur la fiche joueur` | Tableau des RPE coloré, barres de CE, tableaux de valeurs | E1 étendu au tableau de bord ; E3 (valeurs de charge) | À faire | — |
-| 6.3 | `feat: afficher les sensations sur la fiche joueur` | Barres de la dernière entrée, heatmap sur 7 jours avec total | Unitaires sur la spécification ; E3 (valeurs de sensations) | À faire | — |
-| 6.4 | `feat: choisir une date de rétrospection` | Sélecteur sur la fiche et sur « Forme actuelle » | E3, C9 côté interface | À faire | — |
-| 6.5 | `feat: consulter et exporter les données brutes` | Tableau depuis le début de saison, export CSV | A3 sur l'export | À faire | — |
+| 6.1a | `feat: calculer la forme actuelle dans le moteur` | Entrée de sensations la plus récente de D − 3 à D, couleur bornée, états sans point ; `fraicheur_entree_jours` et `couleur_borne` dans `config/calcul.toml`, `Parametres` et `lire_parametres` | Unitaires du moteur (95 % des branches) ; C9 sur ces calculs | À faire | — |
+| 6.1b | `feat: afficher le graphique Forme actuelle` | Vega-Lite, `vega-embed`, `vega` et `vega-interpreter` copiés dans le dépôt avec leurs licences, compatibles avec la politique de sécurité du contenu, spécification construite en Python (`suivi/graphiques.py`), joueurs sans point listés, tableau de valeurs ; ADR sur le mode compatible de Vega ; `gardien-acces` | Unitaires sur la spécification ; A1 (la nouvelle route entre dans le catalogue, `LISTE_BLANCHE` inchangée) ; A3 (seuls les joueurs suivis, ni invité ni autre catégorie) ; E3 (point du joueur de référence, lu dans le tableau) | À faire | — |
+| 6.2 | `feat: afficher la charge sur la fiche joueur` | Tableau des RPE coloré, barres de CE, tableaux de valeurs ; le joueur est obtenu par `joueurs_suivis` avant tout appel à l'adaptateur | E1 étendu au tableau de bord ; E3 (charge) ; A3 (fiche d'un joueur d'une autre catégorie ou d'un invité : 404) | À faire | — |
+| 6.3 | `feat: afficher les sensations sur la fiche joueur` | Barres de la dernière entrée, heatmap sur 7 jours, total = `score_sensations` du moteur | Unitaires sur la spécification ; E3 (sensations) ; A3 | À faire | — |
+| 6.4 | `feat: choisir une date de rétrospection` | Sélecteur sur la fiche et sur « Forme actuelle » | E3, C9 côté interface ; A3 avec le paramètre de date | À faire | — |
+| 6.5 | `feat: consulter et exporter les données brutes` | `debut_saison` dans `config/calcul.toml` et `lire_parametres`, tableau depuis le début de saison, export CSV | A3 sur l'export | À faire | — |
 
 ## Critères de fin (Definition of Done)
 
@@ -66,11 +69,18 @@ Niveau de collaboration : 5, autonome, par défaut ([ADR-0019](../adr/0019-auton
 - [ADR-0011](../adr/0011-calendrier-et-charges-glissantes.md) — Calendrier et charges glissantes
 - [ADR-0012](../adr/0012-zscore-d-intensite.md) — Z-score d'intensité
 - [ADR-0015](../adr/0015-zscore-de-sensations.md) — Z-score de sensations
+- [ADR-0005](../adr/0005-controle-d-acces-applicatif.md) — Contrôle d'accès (A3, export, joueur invité)
+- [ADR-0008](../adr/0008-cycle-de-vie-des-saisies.md) — Cycle de vie des saisies (C9)
+- [ADR-0013](../adr/0013-absences-longues.md) — Absences longues
+- [ADR-0014](../adr/0014-score-de-sensations.md) — Score de sensations (total, affichage sur 10)
 - [ADR-0018](../adr/0018-graphique-forme-actuelle.md) — Graphique « Forme actuelle » (provisoire)
 
 ## Écarts par rapport au plan
 
 - Niveau 5 proposé pour toute la phase, au lieu du niveau 4 du cadrage (à confirmer, point 2 ci-dessus).
+- La PR 6.1 du cadrage est coupée en 6.1a (moteur et paramètres) et 6.1b (graphique), pour rester relisible en moins de 20 minutes ; une ADR s'y ajoute.
+- E3 est réparti sur les PR 6.1b à 6.4, au lieu de la seule PR 6.4.
+- Recette en réseau local sur la base de démonstration, au lieu de l'environnement déployé (cadrage, section 7.8), faute de données en production avant la phase 7.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé
 
