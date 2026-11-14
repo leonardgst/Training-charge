@@ -21,7 +21,7 @@ Phase 5 : questionnaire joueur.
 - Phase 5 en niveau 5 de collaboration (autonome) pour toute la phase, accès et migrations compris (décision du mainteneur).
 - Outillage de Claude Code (phase 4 bis, sans version) : niveau 5 autonome (ADR-0019), serveurs MCP de Neon et de Vercel derrière un hook, actions GitHub épinglées par empreinte de commit, Dependabot mensuel ; Django 5.2.18 → 5.2.19 (dépendance de production).
 - `Referrer-Policy: same-origin` sur la page du lien joueur, au lieu de `no-referrer` (décision du mainteneur ; ADR-0006 et architecture mises à jour).
-- ADR-0006, ADR-0008 et ADR-0017 complétées par leur mise en œuvre de la phase 5.
+- ADR-0006, ADR-0008 et ADR-0017 complétées par leur mise en œuvre de la phase 5 ; `CLAUDE.md` et README pointent vers la suite.
 
 ## [0.4.0] - 2026-10-15
 

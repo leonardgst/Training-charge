@@ -35,11 +35,11 @@ Niveau de collaboration : 5, autonome, pour la phase entière, PR 5.1 et 5.2 com
 
 ## Critères de fin (Definition of Done)
 
-- [x] Toutes les PR de la phase sont fusionnées, CI verte (quatre PR : [#53](https://github.com/leonardgst/Training-charge/pull/53), [#54](https://github.com/leonardgst/Training-charge/pull/54), [#55](https://github.com/leonardgst/Training-charge/pull/55), [#56](https://github.com/leonardgst/Training-charge/pull/56) ; CI de `main` verte sur `379e55d`)
+- [x] Toutes les PR de la phase sont fusionnées, CI verte (quatre PR : [#53](https://github.com/leonardgst/Training-charge/pull/53), [#54](https://github.com/leonardgst/Training-charge/pull/54), [#55](https://github.com/leonardgst/Training-charge/pull/55), [#56](https://github.com/leonardgst/Training-charge/pull/56) ; CI de `main` verte sur `379e55d`, puis sur `8986da7`)
 - [x] A4 et A5 au vert ; le jeton en clair ne figure dans aucune colonne de la base (`tests/integration/test_vues_questionnaire.py` pour A4 et A5, `test_vues_liens.py` pour la recherche du jeton dans toutes les colonnes texte)
 - [x] E2 au vert en format téléphone (`tests/e2e/test_badge_questionnaire.py` : le joueur répond, le badge passe à « Reçu », sur ordinateur, tablette et téléphone ; `test_questionnaire.py` pour le parcours du joueur)
 - [x] D1 et D2 étendus au questionnaire, à la saisie comme en base (`test_vues_questionnaire.py` pour la saisie, `test_modele_sensations.py` pour la base ; `test_vues_correction_sensations.py` pour la correction)
-- [x] Recette faite sur un vrai téléphone, avec un questionnaire rempli en moins d'une minute (recette du 2026-11-13 et 2026-11-14 : une trentaine de secondes ; résultats ci-dessous)
+- [x] Recette faite sur un vrai téléphone, avec un questionnaire rempli en moins d'une minute (recette du 2026-11-13 au 2026-11-14 : une trentaine de secondes ; résultats ci-dessous)
 - [x] Documentation à jour : fiche, journal, `CHANGELOG.md` (section `0.5.0`), `CLAUDE.md` pointant vers la phase 6
 
 ## Recette manuelle
@@ -109,7 +109,7 @@ Remarques d'ergonomie : aucune.
 - PR 5.2 : `suivi/journal.py` masque `/q/<jeton>` dans les journaux `django.request`, `django.security.csrf` et `django.server`, qui écrivent sinon l'adresse (jeton révoqué ou mal recopié compris), posé au démarrage et non par `LOGGING`. `/q/x` entre dans la `LISTE_BLANCHE` du catalogue d'accès, comme prévu ; son refus est vérifié par A5.
 - PR 5.3 : le badge suit les jours de questionnaire de la catégorie de référence du joueur (R22) et porte sur la date de la séance (ADR-0017, Q3) ; une séance à venir n'a pas de « Manquant » (tiret), le jour même oui, puisque le joueur peut répondre jusqu'à 23 h 59. Un joueur invité d'une autre catégorie a toujours un tiret : son entrée n'est pas lisible par le préparateur (ADR-0005).
 - PR 5.4 : la correction passe par la liste « Sensations » de chaque joueur (lien depuis la page des joueurs). Un champ laissé vide garde la réponse du joueur, car un indicateur ajouté depuis n'a pas de réponse dans une ancienne entrée ; aucune réponse n'est supprimée, et la date de l'entrée ne se change pas. Les entrées d'un joueur archivé restent corrigeables. Seule une entrée *passée* se corrige (R16) : celle du jour reste au joueur, sans quoi son prochain envoi effacerait la trace de la correction. Un envoi sans réponse modifiée ne compte pas comme une correction.
-- PR 5.4 : l'ADR-0008 (Q3) exige « date et auteur » sans historique ; une correction les inscrit dans `updated_at` et `updated_by`, et une suppression, qui ne laisse plus de ligne, est tracée au journal applicatif `suivi.audit` (clé du joueur, date de l'entrée, clé du compte de l'auteur, sans nom de joueur ni d'utilisateur).
+- PR 5.4 : l'ADR-0008 (Q3) exige « date et auteur » sans historique ; une correction les inscrit dans `updated_at` et `updated_by`, et une suppression, qui ne laisse plus de ligne, est tracée au journal applicatif `suivi.audit` (clé du joueur, date de l'entrée, clé du compte de l'auteur, sans nom de joueur ni d'utilisateur ; la PR 5.4 écrivait le nom d'utilisateur, remplacé par la clé du compte à la clôture, décision du mainteneur du 2026-11-14).
 - La PR 5.1 reprend la révocation du lien à l'archivage d'un joueur, prévue par la PR 4.2 mais impossible tant que les liens n'existaient pas.
 
 ## Rétrospective : ce qui a marché, ce qui a coincé
@@ -124,7 +124,7 @@ Remarques d'ergonomie : aucune.
 **Ce qui a coincé**
 - Le journal de Django écrit l'adresse `/q/<jeton>` (réponses 4xx, refus CSRF, serveur de développement) ; un premier filtre par `LOGGING` ne couvrait pas `django.security.csrf` et retirait des gestionnaires. Il a fallu poser le filtre au démarrage, sur trois journaux nommés.
 - Le journal `suivi.audit` n'avait ni niveau ni gestionnaire : la trace de suppression se perdait. Elle est désormais configurée au démarrage ; elle porte les clés du joueur et du compte de l'auteur, sans nom.
-- Deux fichiers de test du même nom (intégration et bout en bout) ont fait échouer le test d'unicité des noms.
+- Deux fichiers de test du même nom (intégration et bout en bout) ont fait échouer en local le test d'unicité des noms, avant l'ouverture de la PR ; renommés.
 - Des relectures lancées en parallèle sur la même base de test ont produit des échecs sans rapport avec le code ; un seul lot de tests à la fois.
 - Avec `DEBUG` actif, le réseau local verrait la page d'erreur détaillée : la procédure de recette impose `DJANGO_DEBUG=false` et `runserver --insecure`.
 
