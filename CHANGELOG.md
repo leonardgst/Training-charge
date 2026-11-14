@@ -4,6 +4,10 @@ Toutes les modifications notables du projet sont consignées ici, au format [Kee
 
 ## [Non publié]
 
+### Ajouté
+
+- Moteur de la « Forme actuelle » (US-10, ADR-0018) : entrée de sensations la plus récente de D − 3 à D, point et couleur bornée, états sans point ; paramètres `fraicheur_entree_jours` et `couleur_borne` dans `config/calcul.toml`.
+
 ## [0.5.0] - 2026-11-14
 
 Phase 5 : questionnaire joueur.
