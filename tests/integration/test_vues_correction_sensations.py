@@ -27,7 +27,7 @@ pytestmark = pytest.mark.django_db
 NAISSANCE = datetime.date(2007, 3, 14)
 HIER = datetime.date(2026, 11, 12)
 AVANT_HIER = datetime.date(2026, 11, 11)
-PARAMETRES = Parametres(10, 7, 28, 28, 21, 1e-9, 0.5, 28, 6)
+PARAMETRES = Parametres(10, 7, 28, 28, 21, 1e-9, 0.5, 28, 6, 3, 3)
 
 
 class Monde:

@@ -9,22 +9,28 @@ from pathlib import Path
 
 import pytest
 
-from engine.modeles import ChargesGlissantes, Etat, JourCalcule, Parametres
+from engine.modeles import ChargesGlissantes, Etat, EtatForme, JourCalcule, Parametres
 from suivi.calculs import (
     calculer_charges_glissantes,
+    calculer_forme_actuelle,
     calculer_intensite,
     calculer_joueur,
     calculer_sensations,
     charges_de_seance,
 )
-from suivi.models import Categorie, Joueur, Participation, Seance
-from tests.reference.execution import charger_en_base, executer_sans_base, executer_sur_base
-from tests.reference.harnais import CasReference, lire_cas
+from suivi.models import Categorie, EntreeSensations, Joueur, Participation, Seance
+from tests.reference.execution import (
+    charger_en_base,
+    executer_sans_base,
+    executer_sur_base,
+    parametres_du_cas,
+)
+from tests.reference.harnais import CasReference, lire_cas, trouver_dossier
 from tests.reference.synthese import ecrire_cas
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
-PARAMETRES = Parametres(10, 7, 28, 28, 21, 1e-9, 0.5, 28, 6)
+PARAMETRES = Parametres(10, 7, 28, 28, 21, 1e-9, 0.5, 28, 6, 3, 3)
 LUNDI = datetime.date(2026, 1, 5)
 MARDI = datetime.date(2026, 1, 6)
 ENTETE = "seance_id,joueur,rpe_cardio,rpe_musculaire,rpe_teta\n"
@@ -286,6 +292,70 @@ def test_les_deux_chemins_donnent_les_memes_sensations(tmp_path: Path) -> None:
     assert sur_base[("J1", jour, "sensations_z")].etat == "ok"
     assert sur_base[("J1", LUNDI, "sensations_z")].etat == "historique_insuffisant"
     assert ("J2", LUNDI, "score_sensations") not in sur_base
+
+
+# --- Forme actuelle (PR 6.1a, ADR-0018) ------------------------------------------------
+
+
+def test_c9_la_forme_actuelle_a_d_ne_voit_que_les_donnees_du_jour_d() -> None:
+    cas = lire_cas(trouver_dossier("C09"))
+    joueurs = charger_en_base(cas)
+    d = datetime.date(2026, 2, 5)
+    # Des séances et des entrées datées après D sont en base.
+    assert Seance.objects.filter(date__gt=d).exists()
+    assert EntreeSensations.objects.filter(date__gt=d).exists()
+
+    forme = calculer_forme_actuelle(joueurs["J1"], d, parametres_du_cas(cas))
+
+    # Valeurs du mainteneur à D (`attendu.csv`), lues dans le fichier.
+    attendu = {(a.date, a.grandeur): a.valeur for a in cas.attendu}
+    intensite, sensations = attendu[(d, "intensite")], attendu[(d, "sensations_z")]
+    assert intensite is not None and sensations is not None
+    assert forme.etat is EtatForme.OK and forme.point is not None
+    assert forme.point.intensite == pytest.approx(intensite, abs=1e-6)
+    assert forme.point.sensations == pytest.approx(sensations, abs=1e-6)
+    assert forme.point.couleur == pytest.approx((intensite - sensations) / 2, abs=1e-6)
+    # Entrée du jour D retenue ; séance validée le 5 : pas d'absence.
+    assert (forme.jour_entree, forme.age_entree_jours, forme.absent_depuis_jours) == (d, 0, None)
+
+
+def test_un_brouillon_ne_compte_pas_comme_une_participation_recente(tmp_path: Path) -> None:
+    # Brouillon complet : ses RPE sont tous saisis, seule la validation manque.
+    participations = ENTETE + "S1,J1,5,6,4\nS1,J2,7,7,7\nS2,J1,3,3,3\n"
+    joueurs = charger_en_base(_cas(tmp_path, **{"participations.csv": participations}))
+    # J1 : S1 validée le 5, S2 brouillon le 6. Le 12, la fenêtre courte (du 6 au 12) ne
+    # contient que le brouillon : absent depuis 12 − 5 = 7 jours.
+    forme = calculer_forme_actuelle(joueurs["J1"], LUNDI + datetime.timedelta(days=7), PARAMETRES)
+    assert (forme.etat, forme.absent_depuis_jours, forme.point) == (EtatForme.ABSENT, 7, None)
+
+
+def test_l_entree_retenue_ignore_les_entrees_posterieures_a_la_date_de_calcul(
+    tmp_path: Path,
+) -> None:
+    reponses = (
+        "J1,2026-01-05,plaisir,8\nJ1,2026-01-05,fatigue,2\n"
+        "J1,2026-01-07,plaisir,0\nJ1,2026-01-07,fatigue,10\n"
+    )
+    joueurs = charger_en_base(_cas_sensations(tmp_path, INDICATEURS, reponses))
+    # Le 6, l'entrée du 7 n'existe pas encore : celle du 5 est retenue, âgée d'un jour, sans
+    # entrée de référence. L'intensité de J1 (une séance le 5) est d'abord insuffisante.
+    forme = calculer_forme_actuelle(joueurs["J1"], MARDI, PARAMETRES)
+    assert (forme.jour_entree, forme.age_entree_jours) == (LUNDI, 1)
+    assert forme.sensations is not None
+    assert forme.sensations.etat is Etat.HISTORIQUE_INSUFFISANT
+    assert (forme.etat, forme.point) == (EtatForme.HISTORIQUE_INSUFFISANT, None)
+
+
+def test_un_joueur_sans_participation_ni_entree_n_a_pas_de_point(tmp_path: Path) -> None:
+    joueurs = charger_en_base(_cas(tmp_path))
+    # J2 n'a qu'une participation le 5 et aucune entrée ; la veille, il n'a encore rien.
+    forme = calculer_forme_actuelle(joueurs["J2"], LUNDI - datetime.timedelta(days=1), PARAMETRES)
+    assert (forme.etat, forme.intensite, forme.sensations, forme.point) == (
+        EtatForme.HISTORIQUE_INSUFFISANT,
+        None,
+        None,
+        None,
+    )
 
 
 # --- Charges d'une séance, pour sa page (PR 4.4) ----------------------------------------

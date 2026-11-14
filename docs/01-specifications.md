@@ -109,12 +109,12 @@ Les identifiants entre crochets renvoient aux cas de test de la section 7 du cad
 
 **US-10 — Voir la forme actuelle du groupe.** En tant que préparateur, j'ouvre « Forme actuelle » et je repère les joueurs dont l'intensité est au-dessus de leur moyenne alors que leurs sensations se dégradent.
 - Un point par joueur dont l'intensité et les sensations sont calculables.
-- Les joueurs sans valeur sont listés à part avec leur état : historique insuffisant, non calculable, pas d'entrée récente.
+- Les joueurs sans valeur sont listés à part avec leur état : absent depuis N jours ([ADR-0013](adr/0013-absences-longues.md)), historique insuffisant, non calculable, pas d'entrée récente, réponses insuffisantes ([ADR-0018](adr/0018-graphique-forme-actuelle.md)).
 - L'orientation, les couleurs et le choix de l'entrée de sensations suivent [ADR-0018](adr/0018-graphique-forme-actuelle.md).
 - Les valeurs affichées sont celles du moteur : aucune formule n'est réécrite dans l'interface.
 
 **US-11 — Consulter la fiche d'un joueur.** En tant que préparateur, j'ouvre la fiche d'un de mes joueurs pour comprendre son historique.
-- Tableau des RPE des dernières séances, coloré selon l'intensité.
+- Tableau des RPE des dernières séances, coloré selon la valeur du RPE, comme la grille de saisie (décision du mainteneur, 2026-11-14).
 - Barres de CE courte et de CE longue.
 - Barres des sensations de la dernière entrée.
 - Heatmap des sensations sur 7 jours, par indicateur, avec un total.
@@ -191,7 +191,7 @@ Les identifiants entre crochets renvoient aux cas de test de la section 7 du cad
 | R20 | Sensations (z) = z-score du score par rapport aux scores des entrées des 28 jours précédents, entrée courante exclue, avec au moins 6 entrées de référence et le même estimateur que l'intensité. | Provisoire → [ADR-0015](adr/0015-zscore-de-sensations.md) | `sensations_reference_jours = 28`, `sensations_reference_min_entrees = 6` | C7, C8 |
 | R21 | Configuration rétroactive : tous les scores sont recalculés avec la configuration actuelle ; un indicateur ajouté ne compte que dans les entrées qui y répondent ; l'échelle d'un indicateur déjà utilisé ne change pas. | Provisoire → [ADR-0016](adr/0016-evolution-de-la-configuration.md) | — | C15 |
 | R22 | Jours de questionnaire paramétrés par catégorie : tous les jours pour la démonstration U19. « Manquant » ne s'affiche que ces jours-là. | Provisoire → [ADR-0017](adr/0017-frequence-du-questionnaire.md) | `jours_questionnaire` | E2 |
-| R23 | « Forme actuelle » : sensations dégradées en haut ; couleur selon (intensité − sensations) / 2, bornée à ±3 ; entrée de sensations la plus récente des 3 derniers jours ; joueurs sans point listés à part avec leur état. | Provisoire → [ADR-0018](adr/0018-graphique-forme-actuelle.md) | `fraicheur_entree_jours = 3` | E3 |
+| R23 | « Forme actuelle » : sensations dégradées en haut ; couleur selon (intensité − sensations) / 2, bornée à ±3 ; entrée de sensations la plus récente datée de D − 3 à D ; joueurs sans point listés à part avec leur état. | Provisoire → [ADR-0018](adr/0018-graphique-forme-actuelle.md) | `fraicheur_entree_jours = 3`, `couleur_borne = 3` | E3 |
 | R24 | Joueur invité : tout préparateur lit l'annuaire minimal ; le préparateur organisateur lit et écrit les participations à ses propres séances, sans voir le reste des données de l'invité. | Décidé le 2026-10-12 | — | A3 |
 | R25 | Départ du groupe : archivage réversible, par le préparateur. Effacement : suppression définitive en cascade, par l'administrateur seul. | Décidé le 2026-10-12 → [ADR-0009](adr/0009-suppression-et-archivage-d-un-joueur.md) | — | D4 |
 | R26 | Régularité du sommeil = écart-type de la durée de sommeil sur les 8 dernières réponses. | Reporté après la V1 | — | — |

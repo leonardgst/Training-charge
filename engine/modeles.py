@@ -19,6 +19,8 @@ class Parametres:
     score_poids_min: float
     sensations_reference_jours: int
     sensations_reference_min_entrees: int
+    fraicheur_entree_jours: int
+    couleur_borne: float
 
 
 @dataclass(frozen=True)
@@ -95,3 +97,47 @@ class ScoreEntree:
     jour: datetime.date
     valeur: float | None
     etat: Etat
+
+
+class EtatForme(StrEnum):
+    """État d'un joueur dans « Forme actuelle » : seul `OK` donne un point (ADR-0018, Q4)."""
+
+    OK = "ok"
+    ABSENT = "absent"
+    HISTORIQUE_INSUFFISANT = "historique_insuffisant"
+    NON_CALCULABLE = "non_calculable"
+    PAS_D_ENTREE_RECENTE = "pas_d_entree_recente"
+    REPONSES_INSUFFISANTES = "reponses_insuffisantes"
+
+
+@dataclass(frozen=True)
+class PointForme:
+    """Point d'un joueur : abscisse, ordonnée et couleur, toutes calculées par le moteur.
+
+    `sensations` est le z-score brut (positif = meilleures sensations que d'habitude) ;
+    l'axe inversé (« sensations dégradées ↑ », ADR-0018, Q1) relève du graphique.
+    """
+
+    intensite: float
+    sensations: float
+    couleur: float
+
+
+@dataclass(frozen=True)
+class FormeActuelle:
+    """Situation d'un joueur dans « Forme actuelle » au jour `jour` (ADR-0013, ADR-0018).
+
+    `point` n'existe que si `etat` vaut `EtatForme.OK`. `intensite` est le z-score
+    d'intensité du jour (absent sans aucune participation) ; `sensations` celui de l'entrée
+    retenue, datée `jour_entree` et âgée de `age_entree_jours` jours (absents sans entrée
+    récente). `absent_depuis_jours` n'est renseigné que pour un joueur absent.
+    """
+
+    jour: datetime.date
+    etat: EtatForme
+    point: PointForme | None
+    intensite: ZScore | None
+    sensations: ZScore | None
+    jour_entree: datetime.date | None
+    age_entree_jours: int | None
+    absent_depuis_jours: int | None

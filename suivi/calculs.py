@@ -14,9 +14,11 @@ from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 
 from engine.charge import calendrier, charge_seance, charges_glissantes
+from engine.forme import forme_actuelle
 from engine.modeles import (
     ChargesGlissantes,
     EntreeSensations,
+    FormeActuelle,
     IndicateurScore,
     JourCalcule,
     Parametres,
@@ -52,8 +54,14 @@ def lire_parametres(chemin: Path = CHEMIN_PARAMETRES) -> Parametres:
         "reference_min_jours",
         "sensations_reference_jours",
         "sensations_reference_min_entrees",
+        "fraicheur_entree_jours",
     )
-    positifs = ("facteur_echelle_charge", "tolerance_ecart_type_nul", "score_poids_min")
+    positifs = (
+        "facteur_echelle_charge",
+        "tolerance_ecart_type_nul",
+        "score_poids_min",
+        "couleur_borne",
+    )
     attendues = {*positifs, *entiers}
     if set(brut) != attendues:
         raise ImproperlyConfigured(f"{chemin.name} : clés attendues {sorted(attendues)}")
@@ -89,6 +97,8 @@ def lire_parametres(chemin: Path = CHEMIN_PARAMETRES) -> Parametres:
         score_poids_min=float(brut["score_poids_min"]),
         sensations_reference_jours=brut["sensations_reference_jours"],
         sensations_reference_min_entrees=brut["sensations_reference_min_entrees"],
+        fraicheur_entree_jours=brut["fraicheur_entree_jours"],
+        couleur_borne=float(brut["couleur_borne"]),
     )
 
 
@@ -97,10 +107,10 @@ def parametres() -> Parametres:
     return lire_parametres()
 
 
-def calculer_joueur(
-    joueur_id: int, date_calcul: datetime.date, parametres: Parametres
-) -> list[JourCalcule]:
-    """Calendrier calculé d'un joueur, de sa première participation validée à `date_calcul`."""
+def _participations_validees(
+    joueur_id: int, date_calcul: datetime.date
+) -> list[ParticipationValidee]:
+    """Participations du joueur aux séances validées datées au plus tard de `date_calcul`."""
     participations = []
     for jour, duree, *rpe in Participation.objects.filter(
         joueur_id=joueur_id,
@@ -112,7 +122,14 @@ def calculer_joueur(
             # Le déclencheur de complétude l'interdit pour une séance validée (ADR-0008).
             raise ValueError(f"participation incomplète dans une séance validée du {jour}")
         participations.append(ParticipationValidee(jour, duree, cardio, musculaire, teta))
-    return calendrier(participations, parametres, date_calcul)
+    return participations
+
+
+def calculer_joueur(
+    joueur_id: int, date_calcul: datetime.date, parametres: Parametres
+) -> list[JourCalcule]:
+    """Calendrier calculé d'un joueur, de sa première participation validée à `date_calcul`."""
+    return calendrier(_participations_validees(joueur_id, date_calcul), parametres, date_calcul)
 
 
 def charges_de_seance(
@@ -157,10 +174,10 @@ def calculer_intensite(
     return intensite(calculer_charges_glissantes(joueur_id, date_calcul, parametres), parametres)
 
 
-def calculer_sensations(
-    joueur_id: int, date_calcul: datetime.date, parametres: Parametres
-) -> tuple[list[ScoreEntree], list[ZScore]]:
-    """Score et z-score de chaque entrée de sensations d'un joueur, jusqu'à `date_calcul`.
+def _entrees_et_indicateurs(
+    joueur_id: int, date_calcul: datetime.date
+) -> tuple[list[EntreeSensations], list[IndicateurScore]]:
+    """Entrées du joueur datées au plus tard de `date_calcul`, et indicateurs du score.
 
     La configuration est celle d'aujourd'hui, pour tout le passé (ADR-0016) : les
     indicateurs actifs, notés et inclus dans le score de la catégorie de référence du joueur.
@@ -193,5 +210,31 @@ def calculer_sensations(
         if indicateur_id in indicateurs:
             par_date[jour][indicateurs[indicateur_id].code] = valeur
     entrees = [EntreeSensations(jour, reponses) for jour, reponses in par_date.items()]
-    resultats = scores(entrees, list(indicateurs.values()), parametres)
+    return entrees, list(indicateurs.values())
+
+
+def calculer_sensations(
+    joueur_id: int, date_calcul: datetime.date, parametres: Parametres
+) -> tuple[list[ScoreEntree], list[ZScore]]:
+    """Score et z-score de chaque entrée de sensations d'un joueur, jusqu'à `date_calcul`."""
+    entrees, indicateurs = _entrees_et_indicateurs(joueur_id, date_calcul)
+    resultats = scores(entrees, indicateurs, parametres)
     return resultats, sensations_z(resultats, parametres)
+
+
+def calculer_forme_actuelle(
+    joueur_id: int, date_calcul: datetime.date, parametres: Parametres
+) -> FormeActuelle:
+    """Point ou état d'un joueur dans « Forme actuelle » à `date_calcul` (ADR-0018).
+
+    Séances validées et entrées datées au plus tard de `date_calcul` seulement (C9). Le
+    joueur vient de l'appelant, qui l'a lu dans son périmètre (`suivi/acces.py`).
+    """
+    entrees, indicateurs = _entrees_et_indicateurs(joueur_id, date_calcul)
+    return forme_actuelle(
+        _participations_validees(joueur_id, date_calcul),
+        entrees,
+        indicateurs,
+        parametres,
+        date_calcul,
+    )

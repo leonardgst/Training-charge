@@ -11,7 +11,7 @@ import pytest
 from engine.modeles import EntreeSensations, Etat, IndicateurScore, Parametres, ScoreEntree
 from engine.sensations import score_entree, scores, sensations_z
 
-PARAMETRES = Parametres(10, 7, 28, 28, 21, 1e-9, 0.5, 28, 6)
+PARAMETRES = Parametres(10, 7, 28, 28, 21, 1e-9, 0.5, 28, 6, 3, 3)
 DEBUT = datetime.date(2026, 1, 5)
 
 PLAISIR = IndicateurScore("plaisir", 0, 10, True, 1.0)
