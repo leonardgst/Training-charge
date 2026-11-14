@@ -174,3 +174,30 @@ button.supprimer {
   background-color: #fdc870;
   color: #1b1b1b;
 }
+
+/* Infobulle de Vega (vega-tooltip) : son style par défaut est désactivé, car il serait injecté
+   en balise <style>, que la politique de sécurité du contenu refuse. */
+#vg-tooltip-element {
+  position: fixed;
+  z-index: 1000;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: 0.25rem;
+  background-color: var(--pico-card-background-color);
+  color: var(--pico-color);
+  font-size: 0.85rem;
+  pointer-events: none;
+  visibility: hidden;
+}
+#vg-tooltip-element.visible {
+  visibility: visible;
+}
+#vg-tooltip-element td.key {
+  padding-right: 0.5rem;
+  color: var(--pico-muted-color);
+}
+
+/* Textes du graphique : suivent le thème clair ou sombre de Pico CSS. */
+#graphique-forme text {
+  fill: var(--pico-color);
+}
