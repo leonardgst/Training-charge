@@ -2,7 +2,7 @@
 
 | Statut | Prévue | Terminée le | Tag Git |
 | --- | --- | --- | --- |
-| Terminée | — | 2026-11-14 | v0.5.0 |
+| Terminée | — | 2026-11-14 | v0.5.0 (posé le 2026-11-14 sur `502eef9`) |
 
 ## Objectif
 
