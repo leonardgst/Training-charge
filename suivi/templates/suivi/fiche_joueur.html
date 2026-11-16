@@ -96,7 +96,7 @@
 {% endif %}
 
 <h2>Sensations sur 7 jours</h2>
-{% if not derniere %}<p>Aucune entrée de sensations pour ce joueur.</p>{% endif %}
+{% if not entree_sur_7_jours %}<p>Aucune entrée de sensations sur ces 7 jours.</p>{% endif %}
 <figure id="graphique-heatmap" class="graphique" data-specification="specification-heatmap" role="img" aria-label="Heatmap des sensations sur 7 jours, par indicateur, avec le total"></figure>
 {{ specification_heatmap|json_script:"specification-heatmap" }}
 
@@ -118,7 +118,7 @@
     {% endfor %}
     <tr>
       <th scope="row">Total</th>
-      {% for j in jours_sensations %}<td>{% if j.total is not None %}{{ j.total|floatformat:1 }}{% elif j.etat == "reponses_insuffisantes" %}Réponses insuffisantes{% else %}—{% endif %}</td>{% endfor %}
+      {% for j in jours_sensations %}<td>{% if j.total is not None %}{{ j.total|floatformat:1 }}{% elif j.etat == etat_insuffisant %}{{ libelle_insuffisant }}{% else %}—{% endif %}</td>{% endfor %}
     </tr>
   </tbody>
 </table>

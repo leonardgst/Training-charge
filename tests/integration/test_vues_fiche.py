@@ -304,9 +304,13 @@ def test_a3_les_entrees_d_un_invite_d_une_autre_categorie_ne_changent_pas_la_fic
 def test_les_libelles_d_une_autre_categorie_ne_sont_pas_utilises(demo: None) -> None:
     # La démonstration partage des codes entre U17 et U19 : seul le libellé de la catégorie
     # de référence du joueur doit apparaître.
-    Indicateur.objects.filter(categorie__code="U17", code="plaisir").update(libelle="LIBELLE-U17")
+    modifies = Indicateur.objects.filter(categorie__code="U17", code="plaisir").update(
+        libelle="LIBELLE-U17"
+    )
+    assert modifies == 1
     page = _client("prep_u19").get(f"/joueurs/{_joueur('U19').pk}/").content.decode()
     assert "LIBELLE-U17" not in page
+    assert Indicateur.objects.get(categorie__code="U19", code="plaisir").libelle in page
 
 
 def test_un_joueur_sans_entree_a_une_fiche_sans_erreur() -> None:
@@ -325,3 +329,55 @@ def test_un_joueur_sans_entree_a_une_fiche_sans_erreur() -> None:
         reponse = client.get(f"/joueurs/{joueur.pk}/")
     assert reponse.status_code == 200
     assert "Aucune entrée de sensations" in reponse.content.decode()
+
+
+def _fiche_avec_une_reponse(jours_avant: int) -> str:
+    """Fiche d'un joueur dont l'unique entrée ne répond qu'à 1 indicateur du score sur 3."""
+    u19 = Categorie.objects.create(code="U19", libelle="U19")
+    compte = get_user_model().objects.create_user("p19")
+    Preparateur.objects.create(user=compte, categorie=u19)
+    joueur = Joueur.objects.create(
+        nom="Peu",
+        prenom="Bavard",
+        date_naissance=datetime.date(2007, 3, 14),
+        categorie_reference=u19,
+    )
+    indicateurs = [
+        Indicateur.objects.create(
+            categorie=u19,
+            code=code,
+            libelle=code.capitalize(),
+            type="note",
+            borne_min=0,
+            borne_max=10,
+            sens="haut_bon",
+            ordre=ordre,
+        )
+        for ordre, code in enumerate(("plaisir", "energie", "humeur"))
+    ]
+    entree = EntreeSensations.objects.create(
+        joueur=joueur, date=FIN - datetime.timedelta(days=jours_avant)
+    )
+    Reponse.objects.create(entree=entree, indicateur=indicateurs[0], valeur=6)
+    client = Client()
+    client.force_login(compte)
+    with patch("suivi.views.fiche.aujourd_hui", return_value=FIN):
+        return client.get(f"/joueurs/{joueur.pk}/").content.decode()
+
+
+def test_sous_le_poids_minimal_la_fiche_ecrit_reponses_insuffisantes_sans_total() -> None:
+    page = _fiche_avec_une_reponse(0)
+    assert "réponses insuffisantes pour un total" in page
+    tableau = page.split('id="valeurs-heatmap"')[1].split("</table>")[0]
+    total = tableau.split('<th scope="row">Total</th>')[1]
+    assert "Réponses insuffisantes" in total
+    points = _specification(page, "specification-heatmap")["data"]["values"]
+    assert not any(p["indicateur"] == "Total" for p in points)
+    assert "Aucune entrée de sensations sur ces 7 jours" not in page
+
+
+def test_une_derniere_entree_plus_ancienne_que_7_jours_explique_la_heatmap_vide() -> None:
+    page = _fiche_avec_une_reponse(10)
+    assert "Aucune entrée de sensations sur ces 7 jours" in page
+    assert 'id="graphique-barres"' in page  # la dernière entrée reste affichée
+    assert "Aucune entrée de sensations pour ce joueur" not in page

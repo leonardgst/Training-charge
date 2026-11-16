@@ -89,6 +89,9 @@ def fiche_joueur(request: RequeteStaff, pk: int) -> HttpResponse:
             "specification": specification_charges(charges),
             "derniere": sensations.derniere,
             "lignes_derniere": lignes_derniere,
+            "entree_sur_7_jours": any(j.a_entree for j in sensations.jours),
+            "etat_insuffisant": Etat.REPONSES_INSUFFISANTES,
+            "libelle_insuffisant": LIBELLES_ETAT[Etat.REPONSES_INSUFFISANTES],
             "jours_sensations": sensations.jours,
             "lignes_sensations": lignes_sensations,
             "specification_barres": specification_barres_sensations(

@@ -228,7 +228,7 @@ def test_sans_total_du_moteur_la_heatmap_n_en_invente_pas() -> None:
     assert [p["indicateur"] for p in points] == ["Plaisir"]
 
 
-def test_la_heatmap_garde_les_sept_jours_en_abscisse_meme_vides() -> None:
+def test_la_heatmap_garde_tous_les_jours_en_abscisse_meme_vides() -> None:
     jours = [_detail(d, None, None, None) for d in (2, 1, 0)]
     spec = specification_heatmap(jours, LIBELLES)
     assert spec["encoding"]["x"]["sort"] == ["12/11", "13/11", "14/11"]
