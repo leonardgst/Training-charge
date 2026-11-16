@@ -25,7 +25,7 @@ def page_formatee(page: Page, request: pytest.FixtureRequest) -> Page:
     return page
 
 
-def test_la_fiche_s_ouvre_depuis_les_joueurs_avec_ses_rpe_et_ses_barres(
+def test_la_fiche_s_ouvre_depuis_les_joueurs_avec_ses_rpe_ses_barres_et_ses_sensations(
     page_formatee: Page, live_server
 ) -> None:
     call_command("generer_demo", fin=aujourd_hui(), mot_de_passe=MOT_DE_PASSE, verbosity=0)
@@ -51,5 +51,15 @@ def test_la_fiche_s_ouvre_depuis_les_joueurs_avec_ses_rpe_et_ses_barres(
     expect(page.locator("#graphique-forme svg")).to_be_visible()
     assert page.locator("#graphique-forme svg path[role='graphics-symbol']").count() > 0
     expect(page.locator("#valeurs-charge")).to_be_visible()
+    # Sensations : barres de la dernière entrée, heatmap sur 7 jours et leurs valeurs.
+    expect(page.locator("#graphique-barres svg")).to_be_visible()
+    assert page.locator("#graphique-barres svg path[role='graphics-symbol']").count() > 0
+    expect(page.locator("#graphique-heatmap svg")).to_be_visible()
+    assert page.locator("#graphique-heatmap svg path[role='graphics-symbol']").count() > 0
+    expect(page.locator("#valeurs-derniere-entree")).to_be_visible()
+    expect(page.locator("#valeurs-heatmap")).to_be_visible()
+    expect(page.locator("#valeurs-heatmap tbody tr").last.get_by_role("rowheader")).to_have_text(
+        "Total"
+    )
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
     assert problemes == []

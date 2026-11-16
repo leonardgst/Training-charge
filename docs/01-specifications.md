@@ -116,8 +116,8 @@ Les identifiants entre crochets renvoient aux cas de test de la section 7 du cad
 **US-11 — Consulter la fiche d'un joueur.** En tant que préparateur, j'ouvre la fiche d'un de mes joueurs pour comprendre son historique.
 - Tableau des RPE des dernières séances, coloré selon la valeur du RPE, comme la grille de saisie (décision du mainteneur, 2026-11-14).
 - Barres de CE courte et de CE longue.
-- Barres des sensations de la dernière entrée.
-- Heatmap des sensations sur 7 jours, par indicateur, avec un total.
+- Barres des sensations de la dernière entrée (la plus récente jusqu'au jour affiché), un niveau sur 10 par indicateur du score, 10 étant le meilleur état ([ADR-0014](adr/0014-score-de-sensations.md)).
+- Heatmap des sensations sur 7 jours, par indicateur du score, avec un total sur 10 égal au score du moteur ; un jour sans entrée reste vide.
 - Pour le joueur du jeu de référence, les valeurs affichées sont les valeurs attendues. [E3]
 
 **US-12 — Revenir à une date passée.** En tant que préparateur, je choisis une date D pour voir la fiche ou la forme du groupe telles qu'au jour D.

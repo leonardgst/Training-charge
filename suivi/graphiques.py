@@ -5,17 +5,21 @@ que les placer sur des axes. Les repères (axes en 0, lignes pointillées à ±2
 visuels, pas un test statistique (ADR-0012, ADR-0018 Q5).
 """
 
+import datetime
 import math
 from collections.abc import Sequence
 from typing import Any
 
-from engine.modeles import ChargesGlissantes, FormeActuelle, Parametres
+from engine.modeles import ChargesGlissantes, DetailSensations, FormeActuelle, Parametres
+from engine.sensations import ECHELLE_AFFICHAGE
 
 SCHEMA_VEGA_LITE = "https://vega.github.io/schema/vega-lite/v6.json"
 # Repère visuel des lignes pointillées (ADR-0018, Q5).
 REPERE = 2
 # Demi-étendue minimale des axes, en écarts-types.
 ETENDUE_MINIMALE = 4
+# Libellé de la ligne de total de la heatmap.
+TOTAL = "Total"
 
 
 def _etendue(points: Sequence[dict[str, Any]]) -> int:
@@ -222,6 +226,129 @@ def specification_charges(charges: Sequence[ChargesGlissantes]) -> dict[str, Any
                 {"field": "grandeur", "title": "Grandeur"},
                 {"field": "valeur", "title": "Valeur", "format": ".0f"},
                 {"field": "fenetre", "title": "Fenêtre"},
+            ],
+        },
+    }
+
+
+def _etiquette_jour(jour: datetime.date) -> str:
+    return jour.strftime("%d/%m")
+
+
+def points_barres_sensations(
+    derniere: DetailSensations | None, libelles: dict[str, str]
+) -> list[dict[str, Any]]:
+    """Un enregistrement par indicateur répondu de la dernière entrée, valeurs du moteur."""
+    if derniere is None:
+        return []
+    return [
+        {
+            "indicateur": libelles[c.code],
+            "niveau": c.niveau,
+            "reponse": c.valeur,
+        }
+        for c in derniere.cellules
+        if c.niveau is not None
+    ]
+
+
+def specification_barres_sensations(
+    derniere: DetailSensations | None, libelles: dict[str, str]
+) -> dict[str, Any]:
+    """Barres horizontales du niveau de chaque indicateur de la dernière entrée (US-11).
+
+    Le niveau, sur 10, est calculé par le moteur : 10 est le meilleur état, quel que soit le
+    sens de l'indicateur. La réponse brute est donnée dans l'infobulle.
+    """
+    ordre = [libelles[c.code] for c in derniere.cellules] if derniere else []
+    return {
+        "$schema": SCHEMA_VEGA_LITE,
+        "description": "Niveau de chaque indicateur de la dernière entrée de sensations",
+        "width": "container",
+        "height": {"step": 28},
+        "autosize": {"type": "fit", "contains": "padding"},
+        "data": {"values": points_barres_sensations(derniere, libelles)},
+        "mark": {"type": "bar"},
+        "encoding": {
+            "y": {"field": "indicateur", "type": "nominal", "sort": ordre, "title": None},
+            "x": {
+                "field": "niveau",
+                "type": "quantitative",
+                "scale": {"domain": [0, ECHELLE_AFFICHAGE]},
+                "title": "Niveau sur 10 (10 = meilleur état)",
+            },
+            "tooltip": [
+                {"field": "indicateur", "title": "Indicateur"},
+                {"field": "reponse", "title": "Réponse"},
+                {"field": "niveau", "title": "Niveau sur 10", "format": ".1f"},
+            ],
+        },
+    }
+
+
+def points_heatmap(
+    jours: Sequence[DetailSensations], libelles: dict[str, str]
+) -> list[dict[str, Any]]:
+    """Une cellule par jour et par indicateur répondu, plus le total du jour s'il existe."""
+    points: list[dict[str, Any]] = []
+    for j in jours:
+        etiquette = _etiquette_jour(j.jour)
+        for c in j.cellules:
+            if c.niveau is not None:
+                points.append(
+                    {
+                        "jour": etiquette,
+                        "indicateur": libelles[c.code],
+                        "niveau": c.niveau,
+                        "reponse": c.valeur,
+                    }
+                )
+        if j.total is not None:
+            points.append({"jour": etiquette, "indicateur": TOTAL, "niveau": j.total})
+    return points
+
+
+def specification_heatmap(
+    jours: Sequence[DetailSensations], libelles: dict[str, str]
+) -> dict[str, Any]:
+    """Heatmap des sensations sur 7 jours, par indicateur, avec une ligne de total (US-11).
+
+    Rouge = mauvais état, jaune pâle = meilleur état, comme le rouge de « Forme actuelle ».
+    Un jour ou un indicateur sans réponse reste vide.
+    """
+    ordre = [libelles[c.code] for c in jours[0].cellules] + [TOTAL] if jours else [TOTAL]
+    return {
+        "$schema": SCHEMA_VEGA_LITE,
+        "description": "Sensations des 7 derniers jours, par indicateur, avec le total",
+        "width": "container",
+        "height": {"step": 28},
+        "autosize": {"type": "fit", "contains": "padding"},
+        "data": {"values": points_heatmap(jours, libelles)},
+        "mark": {"type": "rect", "stroke": "#fff", "strokeWidth": 2},
+        "encoding": {
+            "x": {
+                "field": "jour",
+                "type": "ordinal",
+                "sort": [_etiquette_jour(j.jour) for j in jours],
+                "title": None,
+                "axis": {"orient": "top", "labelAngle": 0},
+            },
+            "y": {"field": "indicateur", "type": "nominal", "sort": ordre, "title": None},
+            "color": {
+                "field": "niveau",
+                "type": "quantitative",
+                "scale": {
+                    "domain": [0, ECHELLE_AFFICHAGE],
+                    "scheme": "yelloworangered",
+                    "reverse": True,
+                },
+                "legend": {"title": "Niveau sur 10", "orient": "bottom"},
+            },
+            "tooltip": [
+                {"field": "jour", "title": "Jour"},
+                {"field": "indicateur", "title": "Indicateur"},
+                {"field": "reponse", "title": "Réponse"},
+                {"field": "niveau", "title": "Niveau sur 10", "format": ".1f"},
             ],
         },
     }

@@ -198,6 +198,6 @@ button.supprimer {
 }
 
 /* Textes du graphique : suivent le thème clair ou sombre de Pico CSS. */
-#graphique-forme text {
+.graphique text {
   fill: var(--pico-color);
 }

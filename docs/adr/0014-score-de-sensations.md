@@ -53,3 +53,13 @@ Ces choix sont paramétrables et restent provisoires tant que le préparateur ne
 ## Paramètres et tests concernés
 
 `score_poids_min` ; cas C11, C12, C13.
+
+## Précisions de la phase 6 (PR 6.3, fiche joueur)
+
+La fiche joueur détaille le score ; ces choix restent provisoires comme le reste de l'ADR. La fenêtre de 7 jours et l'échelle sur 10 sont les constantes `JOURS_HEATMAP` et `ECHELLE_AFFICHAGE` de `engine/sensations.py`, non des paramètres de `config/calcul.toml`.
+
+- **Niveau par indicateur** : la réponse normalisée u (Q1), inversée pour « bas = bon » (Q2), est affichée sur 10 (u × 10), comme le total (Q5). Un niveau de 10 est donc toujours le meilleur état : une barre « Fatigue » à 8 signifie peu de fatigue. La réponse brute est donnée dans l'infobulle et dans le tableau de valeurs.
+- **Indicateurs détaillés** : ceux du score seulement (actifs, notés, inclus dans le score de la catégorie de référence). Un indicateur d'heure ou exclu du score n'a pas de niveau sur 10 et n'est pas affiché.
+- **Dernière entrée** : la plus récente datée au plus tard du jour affiché, sans seuil de fraîcheur (le seuil `fraicheur_entree_jours` ne concerne que « Forme actuelle », ADR-0018).
+- **Heatmap** : les 7 jours de D − 6 à D ; un jour sans entrée reste vide ; une ligne de total, égale au score du moteur × 10 ; sous le poids minimal (Q4), le total est absent et le tableau de valeurs écrit « Réponses insuffisantes ».
+- **Ordre des indicateurs** : celui du champ `ordre` de l'indicateur.

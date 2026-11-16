@@ -43,7 +43,7 @@
 </div>
 
 <h2>Charge d'entraînement</h2>
-<figure id="graphique-forme" role="img" aria-label="Barres de CE courte et de CE longue, jour par jour"></figure>
+<figure id="graphique-forme" class="graphique" data-specification="specification-forme" role="img" aria-label="Barres de CE courte et de CE longue, jour par jour"></figure>
 {{ specification|json_script:"specification-forme" }}
 
 <h2>Valeurs du graphique</h2>
@@ -69,4 +69,58 @@
 {% else %}
 <p>Aucune charge à afficher : ce joueur n'a pas encore de séance validée.</p>
 {% endif %}
+
+<h2>Sensations de la dernière entrée</h2>
+{% if derniere %}
+<p>Entrée du {{ derniere.jour|date:"l j F Y" }}{% if derniere.total is not None %} : total {{ derniere.total|floatformat:1 }} sur 10{% else %} : réponses insuffisantes pour un total{% endif %}. Sur 10, 10 est le meilleur état, quel que soit le sens de l'indicateur.</p>
+<figure id="graphique-barres" class="graphique" data-specification="specification-barres" role="img" aria-label="Barres du niveau de chaque indicateur de la dernière entrée"></figure>
+{{ specification_barres|json_script:"specification-barres" }}
+<div class="overflow-auto">
+<table id="valeurs-derniere-entree">
+  <thead>
+    <tr><th scope="col">Indicateur</th><th scope="col">Réponse</th><th scope="col">Niveau sur 10</th></tr>
+  </thead>
+  <tbody>
+    {% for libelle, c in lignes_derniere %}
+    <tr>
+      <th scope="row">{{ libelle }}</th>
+      <td>{% if c.valeur is not None %}{{ c.valeur }}{% else %}—{% endif %}</td>
+      <td>{% if c.niveau is not None %}{{ c.niveau|floatformat:1 }}{% else %}—{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>Aucune entrée de sensations pour ce joueur.</p>
+{% endif %}
+
+<h2>Sensations sur 7 jours</h2>
+{% if not entree_sur_7_jours %}<p>Aucune entrée de sensations sur ces 7 jours.</p>{% endif %}
+<figure id="graphique-heatmap" class="graphique" data-specification="specification-heatmap" role="img" aria-label="Heatmap des sensations sur 7 jours, par indicateur, avec le total"></figure>
+{{ specification_heatmap|json_script:"specification-heatmap" }}
+
+<h2>Valeurs de la heatmap</h2>
+<div class="overflow-auto">
+<table id="valeurs-heatmap">
+  <thead>
+    <tr>
+      <th scope="col">Indicateur (niveau sur 10)</th>
+      {% for j in jours_sensations %}<th scope="col">{{ j.jour|date:"D d/m" }}</th>{% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for libelle, cellules in lignes_sensations %}
+    <tr>
+      <th scope="row">{{ libelle }}</th>
+      {% for c in cellules %}<td>{% if c.niveau is not None %}{{ c.niveau|floatformat:1 }}{% else %}—{% endif %}</td>{% endfor %}
+    </tr>
+    {% endfor %}
+    <tr>
+      <th scope="row">Total</th>
+      {% for j in jours_sensations %}<td>{% if j.total is not None %}{{ j.total|floatformat:1 }}{% elif j.etat == etat_insuffisant %}{{ libelle_insuffisant }}{% else %}—{% endif %}</td>{% endfor %}
+    </tr>
+  </tbody>
+</table>
+</div>
 {% endblock %}

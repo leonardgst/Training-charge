@@ -8,6 +8,7 @@ de la date de calcul (C9).
 import datetime
 import tomllib
 from collections.abc import Iterable
+from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
@@ -17,6 +18,7 @@ from engine.charge import calendrier, charge_seance, charges_glissantes
 from engine.forme import forme_actuelle
 from engine.modeles import (
     ChargesGlissantes,
+    DetailSensations,
     EntreeSensations,
     FormeActuelle,
     IndicateurScore,
@@ -26,7 +28,12 @@ from engine.modeles import (
     ScoreEntree,
     ZScore,
 )
-from engine.sensations import scores, sensations_z
+from engine.sensations import (
+    derniere_entree_detaillee,
+    scores,
+    sensations_sur_jours,
+    sensations_z,
+)
 from engine.zscore import intensite
 from suivi.models import EntreeSensations as EntreeEnBase
 from suivi.models import (
@@ -196,7 +203,7 @@ def _entrees_et_indicateurs(
             actif=True,
             inclus_score=True,
             type=TypeIndicateur.NOTE,
-        )
+        ).order_by("ordre", "pk")
     }
     par_date: dict[datetime.date, dict[str, int]] = {
         jour: {}
@@ -237,4 +244,38 @@ def calculer_forme_actuelle(
         indicateurs,
         parametres,
         date_calcul,
+    )
+
+
+@dataclass(frozen=True)
+class SensationsFiche:
+    """Sensations d'un joueur pour sa fiche : dernière entrée, 7 jours, libellés des colonnes."""
+
+    libelles: dict[str, str]
+    derniere: DetailSensations | None
+    jours: list[DetailSensations]
+
+
+def calculer_detail_sensations(
+    joueur_id: int, date_calcul: datetime.date, parametres: Parametres
+) -> SensationsFiche:
+    """Niveaux par indicateur et total sur 10 de la dernière entrée et des 7 derniers jours.
+
+    Entrées datées au plus tard de `date_calcul` seulement (C9) ; le joueur vient de
+    l'appelant, qui l'a lu dans son périmètre (`suivi/acces.py`). Seuls les indicateurs du
+    score sont détaillés : un indicateur hors score (heure) n'a pas de niveau sur 10.
+    """
+    entrees, indicateurs = _entrees_et_indicateurs(joueur_id, date_calcul)
+    categorie_id = Joueur.objects.values_list("categorie_reference_id", flat=True).get(pk=joueur_id)
+    en_base = dict(
+        Indicateur.objects.filter(
+            categorie_id=categorie_id, code__in=[i.code for i in indicateurs]
+        ).values_list("code", "libelle")
+    )
+    # Dans l'ordre des colonnes du détail : celui des indicateurs du score.
+    libelles = {i.code: en_base[i.code] for i in indicateurs}
+    return SensationsFiche(
+        libelles=libelles,
+        derniere=derniere_entree_detaillee(entrees, indicateurs, parametres, date_calcul),
+        jours=sensations_sur_jours(entrees, indicateurs, parametres, date_calcul),
     )
