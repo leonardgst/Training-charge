@@ -14,7 +14,7 @@
 <h1>Forme actuelle</h1>
 <p>Au {{ jour|date:"j F Y" }}. Chaque joueur n'est comparé qu'à lui-même ; en haut à droite, l'intensité est au-dessus de sa moyenne et ses sensations se dégradent.</p>
 
-<figure id="graphique-forme" role="img" aria-label="Nuage des joueurs : intensité en abscisse, sensations en ordonnée"></figure>
+<figure id="graphique-forme" class="graphique" data-specification="specification-forme" role="img" aria-label="Nuage des joueurs : intensité en abscisse, sensations en ordonnée"></figure>
 {{ specification|json_script:"specification-forme" }}
 
 <h2>Valeurs du graphique</h2>

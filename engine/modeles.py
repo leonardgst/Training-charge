@@ -99,6 +99,35 @@ class ScoreEntree:
     etat: Etat
 
 
+@dataclass(frozen=True)
+class CelluleSensations:
+    """Réponse d'un jour à un indicateur : valeur brute et niveau sur 10 (10 = meilleur état).
+
+    Le niveau est la réponse ramenée dans [0, 1] par les bornes, inversée pour un indicateur
+    « bas = bon » (ADR-0014, Q1 et Q2), puis multipliée par l'échelle d'affichage. Les deux
+    sont absents sans réponse.
+    """
+
+    code: str
+    valeur: int | None
+    niveau: float | None
+
+
+@dataclass(frozen=True)
+class DetailSensations:
+    """Entrée d'un jour : une cellule par indicateur du score, et le total sur 10.
+
+    `total` est le score de l'entrée sur 10 (ADR-0014, Q5), défini si `etat` vaut OK. Sans
+    entrée ce jour-là, `a_entree` est faux et `etat` est absent.
+    """
+
+    jour: datetime.date
+    a_entree: bool
+    cellules: tuple[CelluleSensations, ...]
+    total: float | None
+    etat: Etat | None
+
+
 class EtatForme(StrEnum):
     """État d'un joueur dans « Forme actuelle » : seul `OK` donne un point (ADR-0018, Q4)."""
 

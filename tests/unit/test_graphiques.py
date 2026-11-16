@@ -2,15 +2,29 @@
 
 import datetime
 
-from engine.modeles import ChargesGlissantes, EtatForme, FormeActuelle, Parametres, PointForme
+from engine.modeles import (
+    CelluleSensations,
+    ChargesGlissantes,
+    DetailSensations,
+    Etat,
+    EtatForme,
+    FormeActuelle,
+    Parametres,
+    PointForme,
+)
 from suivi.calculs import lire_parametres
 from suivi.graphiques import (
     ETENDUE_MINIMALE,
     REPERE,
+    TOTAL,
+    points_barres_sensations,
     points_charges,
     points_forme,
+    points_heatmap,
+    specification_barres_sensations,
     specification_charges,
     specification_forme,
+    specification_heatmap,
 )
 
 JOUR = datetime.date(2026, 11, 14)
@@ -150,3 +164,74 @@ def test_sans_charge_la_specification_est_vide_mais_valide() -> None:
     assert spec["data"]["values"] == []
     assert spec["encoding"]["x"]["sort"] == []
     assert spec["mark"]["type"] == "bar"
+
+
+# --- Sensations de la fiche joueur (PR 6.3) -------------------------------------------------
+
+LIBELLES = {"plaisir": "Plaisir", "fatigue": "Fatigue"}
+
+
+def _detail(
+    decalage: int, plaisir: float | None, fatigue: float | None, total: float | None
+) -> DetailSensations:
+    jour = JOUR - datetime.timedelta(days=decalage)
+    if plaisir is None and fatigue is None:
+        return DetailSensations(
+            jour,
+            False,
+            (CelluleSensations("plaisir", None, None), CelluleSensations("fatigue", None, None)),
+            None,
+            None,
+        )
+    return DetailSensations(
+        jour,
+        True,
+        (
+            CelluleSensations("plaisir", 7, plaisir),
+            CelluleSensations("fatigue", None if fatigue is None else 3, fatigue),
+        ),
+        total,
+        Etat.OK if total is not None else Etat.REPONSES_INSUFFISANTES,
+    )
+
+
+def test_les_barres_reprennent_les_niveaux_du_moteur_et_omettent_les_reponses_absentes() -> None:
+    derniere = _detail(0, 7.0, None, None)
+    points = points_barres_sensations(derniere, LIBELLES)
+    assert points == [{"indicateur": "Plaisir", "niveau": 7.0, "reponse": 7}]
+
+
+def test_sans_derniere_entree_les_barres_sont_vides() -> None:
+    spec = specification_barres_sensations(None, LIBELLES)
+    assert spec["data"]["values"] == []
+
+
+def test_les_barres_sont_dans_l_ordre_des_indicateurs_sur_une_echelle_de_0_a_10() -> None:
+    spec = specification_barres_sensations(_detail(0, 7.0, 8.0, 7.5), LIBELLES)
+    assert spec["encoding"]["y"]["sort"] == ["Plaisir", "Fatigue"]
+    assert spec["encoding"]["x"]["scale"]["domain"] == [0, 10]
+
+
+def test_la_heatmap_place_les_niveaux_et_le_total_du_moteur_sans_les_recalculer() -> None:
+    jours = [_detail(1, None, None, None), _detail(0, 7.0, 8.0, 7.5)]
+    points = points_heatmap(jours, LIBELLES)
+    assert [(p["jour"], p["indicateur"], p["niveau"]) for p in points] == [
+        ("14/11", "Plaisir", 7.0),
+        ("14/11", "Fatigue", 8.0),
+        ("14/11", TOTAL, 7.5),
+    ]
+    assert not any(p["jour"] == "13/11" for p in points)
+
+
+def test_sans_total_du_moteur_la_heatmap_n_en_invente_pas() -> None:
+    points = points_heatmap([_detail(0, 7.0, None, None)], LIBELLES)
+    assert [p["indicateur"] for p in points] == ["Plaisir"]
+
+
+def test_la_heatmap_garde_les_sept_jours_en_abscisse_meme_vides() -> None:
+    jours = [_detail(d, None, None, None) for d in (2, 1, 0)]
+    spec = specification_heatmap(jours, LIBELLES)
+    assert spec["encoding"]["x"]["sort"] == ["12/11", "13/11", "14/11"]
+    assert spec["encoding"]["y"]["sort"] == ["Plaisir", "Fatigue", TOTAL]
+    assert spec["data"]["values"] == []
+    assert spec["encoding"]["color"]["scale"]["domain"] == [0, 10]

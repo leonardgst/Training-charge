@@ -12,13 +12,14 @@ import pytest
 from engine.modeles import ChargesGlissantes, Etat, EtatForme, JourCalcule, Parametres
 from suivi.calculs import (
     calculer_charges_glissantes,
+    calculer_detail_sensations,
     calculer_forme_actuelle,
     calculer_intensite,
     calculer_joueur,
     calculer_sensations,
     charges_de_seance,
 )
-from suivi.models import Categorie, EntreeSensations, Joueur, Participation, Seance
+from suivi.models import Categorie, EntreeSensations, Indicateur, Joueur, Participation, Seance
 from tests.reference.execution import (
     charger_en_base,
     executer_sans_base,
@@ -428,3 +429,56 @@ def test_une_participation_incomplete_d_une_seance_validee_est_une_anomalie() ->
 
     with pytest.raises(ValueError, match="incomplète"):
         charges_de_seance(seance, [incomplete], PARAMETRES)
+
+
+# --- Détail des sensations de la fiche (PR 6.3, ADR-0014) ------------------------------
+
+
+def test_le_detail_des_sensations_vient_des_entrees_et_ignore_les_indicateurs_hors_score(
+    tmp_path: Path,
+) -> None:
+    reponses = (
+        "J1,2026-01-05,plaisir,8\nJ1,2026-01-05,fatigue,2\nJ1,2026-01-05,heure_coucher,1380\n"
+        "J1,2026-01-07,plaisir,4\nJ1,2026-01-07,fatigue,6\n"
+    )
+    joueurs = charger_en_base(_cas_sensations(tmp_path, INDICATEURS, reponses))
+    fiche = calculer_detail_sensations(joueurs["J1"], datetime.date(2026, 1, 9), PARAMETRES)
+    assert set(fiche.libelles) == {"plaisir", "fatigue"}
+    assert fiche.derniere is not None and fiche.derniere.jour == datetime.date(2026, 1, 7)
+    # plaisir 4/10 → 0,4 ; fatigue 6/10, bas = bon → 0,4 : total 4 sur 10.
+    assert fiche.derniere.total == pytest.approx(4.0)
+    assert [c.code for c in fiche.derniere.cellules] == ["plaisir", "fatigue"]
+    assert [j.jour for j in fiche.jours][0] == datetime.date(2026, 1, 3)
+    assert [j.a_entree for j in fiche.jours] == [False, False, True, False, True, False, False]
+
+
+def test_c9_le_detail_des_sensations_a_d_ignore_les_entrees_posterieures(tmp_path: Path) -> None:
+    reponses = (
+        "J1,2026-01-05,plaisir,8\nJ1,2026-01-05,fatigue,2\n"
+        "J1,2026-01-07,plaisir,0\nJ1,2026-01-07,fatigue,10\n"
+    )
+    joueurs = charger_en_base(_cas_sensations(tmp_path, INDICATEURS, reponses))
+    fiche = calculer_detail_sensations(joueurs["J1"], MARDI, PARAMETRES)
+    assert fiche.derniere is not None and fiche.derniere.jour == LUNDI
+    assert fiche.derniere.total == pytest.approx(8.0)
+    assert not any(j.jour > MARDI for j in fiche.jours)
+
+
+def test_un_joueur_sans_entree_n_a_pas_de_derniere_entree(tmp_path: Path) -> None:
+    joueurs = charger_en_base(_cas_sensations(tmp_path, INDICATEURS, ""))
+    fiche = calculer_detail_sensations(joueurs["J1"], MARDI, PARAMETRES)
+    assert fiche.derniere is None
+    assert len(fiche.jours) == 7 and not any(j.a_entree for j in fiche.jours)
+
+
+def test_les_indicateurs_du_detail_suivent_leur_champ_ordre(tmp_path: Path) -> None:
+    joueurs = charger_en_base(
+        _cas_sensations(tmp_path, INDICATEURS, "J1,2026-01-05,plaisir,8\nJ1,2026-01-05,fatigue,2\n")
+    )
+    # `plaisir` est créé avant `fatigue` : l'ordre explicite les inverse.
+    Indicateur.objects.filter(code="plaisir").update(ordre=2)
+    Indicateur.objects.filter(code="fatigue").update(ordre=1)
+    fiche = calculer_detail_sensations(joueurs["J1"], LUNDI, PARAMETRES)
+    assert fiche.derniere is not None
+    assert [c.code for c in fiche.derniere.cellules] == ["fatigue", "plaisir"]
+    assert list(fiche.libelles) == ["fatigue", "plaisir"]
